@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Sampai Bila? — poster-plate design system (Bento-derived tokens)
+   Linen canvas · ink strokes on every shape · one loud lime CTA accent
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Colors */
+  --color-lime-spark: #d2e823;
+  --color-lavender-mist: #e9c0e9;
+  --color-cobalt-band: #2665d6;
+  --color-maroon-plate: #780016;
+  --color-cobalt-deep: #061492;
+  --color-forest-ink: #254f1a;
+  --color-mustard-pop: #d6a337;
+  --color-linen-canvas: #f3f3f1;
+  --color-white-plate: #ffffff;
+  --color-ink-black: #000000;
+  --color-midnight-ink: #1e2330;
+  --color-sage-mute: #676b5f;
+  --color-silver-border: #c7c8cb;
+  --color-charcoal-pill: #222222;
+  --color-concrete-tile: #adadad;
+  --color-leaf-wash: #ebffc5;
+  --color-moss-tint: #e8efd6;
+
+  /* Typography — Linksans is not distributable; Inter is the substitute the
+     token sheet itself recommends. Departure Mono stays for data/digits. */
+  --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-linksans: var(--font-linksans-sub), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-linksans-linksansvf: var(--font-linksans-sub), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-yerk: 'yerk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Map the framework defaults so font-sans / font-mono resolve to the system */
+  --font-sans: var(--font-linksans-sub), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-departure-mono), monospace;
+
+  /* Typography — Scale */
+  --text-caption: 12px;
+  --leading-caption: 1.5;
+  --tracking-caption: 0.12px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.5;
+  --tracking-body-sm: -0.28px;
+  --text-body: 16px;
+  --leading-body: 1.5;
+  --tracking-body: -0.16px;
+  --text-body-lg: 18px;
+  --leading-body-lg: 1.3;
+  --tracking-body-lg: -0.36px;
+  --text-subheading: 24px;
+  --leading-subheading: 1.2;
+  --tracking-subheading: -0.48px;
+  --text-heading-sm: 28px;
+  --leading-heading-sm: 1.07;
+  --tracking-heading-sm: -0.67px;
+  --text-heading: 51px;
+  --leading-heading: 1.06;
+  --tracking-heading: -2.19px;
+  --text-display: 80px;
+  --leading-display: 1;
+  --tracking-display: -3.44px;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-10: 10px;
+  --spacing-14: 14px;
+  --spacing-16: 16px;
+  --spacing-18: 18px;
+  --spacing-20: 20px;
+  --spacing-22: 22px;
+  --spacing-24: 24px;
+  --spacing-26: 26px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-65: 65px;
+  --spacing-128: 128px;
+  --spacing-216: 216px;
+
+  /* Border Radius */
+  --radius-lg: 8px;
+  --radius-2xl: 16px;
+  --radius-3xl: 29.09px;
+  --radius-3xl-2: 32px;
+  --radius-3xl-3: 41.6px;
+  --radius-full: 64px;
+  --radius-full-2: 99px;
+  --radius-full-3: 1000px;
+}
+
+/* ── Motion + shared primitives ──────────────────────────────────────────── */
+:root {
+  /*
+   * Easing — never ease-in on UI; it delays the frame the user watches most.
+   *   --ease-out    entering / exiting elements
+   *   --ease-in-out moving / morphing on screen (flap digits)
+   *   --ease-pop    tiny overshoot for playful stickers (rare-use only)
+   */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-pop: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+body {
+  background: var(--color-linen-canvas);
+  color: var(--color-ink-black);
+  font-family: var(--font-linksans-sub), ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Selection carries the one loud accent */
+::selection {
+  background: var(--color-lime-spark);
+  color: var(--color-ink-black);
+}
+
+/* ── Plate: the core surface. Every card is a white plate with an ink stroke
+      and a hard offset shadow — pressing physically pushes it into the page. */
+.plate {
+  background: var(--color-white-plate);
+  border: 2px solid var(--color-ink-black);
+}
+
+.shadow-plate    { box-shadow: 4px 4px 0 0 var(--color-ink-black); }
+.shadow-plate-sm { box-shadow: 3px 3px 0 0 var(--color-ink-black); }
+
+/* Pressable: the tactile signature. The element travels the exact distance of
+   its shadow so it lands flush — like pressing a physical key. Transform does
+   the motion; the shadow collapse sells the depth. Snappy both ways (140ms). */
+.pressable {
+  box-shadow: 4px 4px 0 0 var(--color-ink-black);
+  transition:
+    transform 140ms var(--ease-out),
+    box-shadow 140ms var(--ease-out),
+    background-color 160ms var(--ease-out);
+}
+.pressable:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 var(--color-ink-black);
+}
+.pressable-sm {
+  box-shadow: 3px 3px 0 0 var(--color-ink-black);
+  transition:
+    transform 130ms var(--ease-out),
+    box-shadow 130ms var(--ease-out),
+    background-color 160ms var(--ease-out);
+}
+.pressable-sm:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--color-ink-black);
+}
+
+/* GPU-safe press: same neo-brutalist "push into the page" as .pressable, but
+   the hard offset shadow lives on a pseudo-element and is animated via OPACITY
+   (compositor-only) instead of animating box-shadow (paint). Use this on all
+   NEW components (map markers/controls). See DESIGN.md → Elevation. */
+.pressable-gpu {
+  position: relative;
+  z-index: 0;
+  transition: transform 140ms var(--ease-out);
+}
+.pressable-gpu::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 4px 4px 0 0 var(--color-ink-black);
+  transition: opacity 140ms var(--ease-out);
+  pointer-events: none;
+}
+.pressable-gpu:active {
+  transform: translate(4px, 4px);
+}
+.pressable-gpu:active::after {
+  opacity: 0;
+}
+
+/* ── Keyframes (transform + opacity only) ────────────────────────────────── */
+
+/* Card entrance — rises from below at 97% scale; used with fill-mode:both so
+   staggered items stay invisible during their delay. */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* First-paint rise for hero blocks — once per app open. */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Highlighter swipe behind the greeting word — scaleX from the left, like a
+   marker pen drawn under the word. Origin set on the element. */
+@keyframes highlightIn {
+  from { transform: scaleX(0) rotate(-1deg); }
+  to   { transform: scaleX(1) rotate(-1deg); }
+}
+
+/* Live-position ring — expands outward from the dot and fades. */
+@keyframes livePulseRing {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  70%  { transform: scale(2.5); opacity: 0;   }
+  100% { transform: scale(2.5); opacity: 0;   }
+}
+
+/* Search overlay entrance */
+@keyframes searchIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Marquee ticker — linear is correct here: constant ambient motion.
+   Track holds two identical copies; -50% loops seamlessly. */
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeX 22s linear infinite;
+}
+
+/* ── Live map markers (Leaflet divIcons) ─────────────────────────────────── */
+
+/* Root wrapper on every vehicle marker — opacity is the ONLY thing we animate
+   for enter/exit (no blur, per DESIGN.md). Position tween is done imperatively
+   via setLatLng, so we never transition Leaflet's left/top. */
+.veh-marker {
+  opacity: 0;
+  background: transparent;
+  border: 0;
+  transition: opacity 320ms var(--ease-out);
+  will-change: opacity;
+}
+.veh-marker[data-shown='1'] { opacity: 1; }
+
+/* The dot itself — ink stroke, per-vehicle colour fill set inline. */
+.veh-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full-3);
+  border: 2px solid var(--color-ink-black);
+  box-sizing: border-box;
+}
+
+/* Small plate holding the vehicle's label, Departure Mono. */
+.veh-label {
+  margin-top: 3px;
+  padding: 1px 5px;
+  border: 1.5px solid var(--color-ink-black);
+  border-radius: var(--radius-lg);
+  background: var(--color-white-plate);
+  font-family: var(--font-departure-mono), monospace;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-black);
+  white-space: nowrap;
+}
+
+.veh-marker-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* KTM station dot — smaller, always white plate with ink ring. */
+.station-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full-3);
+  border: 2px solid var(--color-ink-black);
+  background: var(--color-white-plate);
+  box-sizing: border-box;
+}
+
+/* ── Utility: hide native scrollbar on horizontal card rows ──────────────── */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ── Reduced motion: keep opacity/color, strip movement ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .marquee-track { animation: none; }
+}

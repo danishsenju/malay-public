@@ -1,0 +1,41 @@
+{
+  "name": "sampai-bila",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "ingest": "tsx scripts/ingest-gtfs-static.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.109.0",
+    "adm-zip": "^0.5.18",
+    "csv-parse": "^7.0.1",
+    "gtfs-realtime-bindings": "^1.1.1",
+    "leaflet": "^1.9.4",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-leaflet": "^5.0.0",
+    "swr": "^2.4.2",
+    "vaul": "^1.1.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/adm-zip": "^0.5.8",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
+    "dotenv": "^17.4.2",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.0",
+    "typescript": "^5",
+    "ws": "^8.21.0"
+  }
+}
