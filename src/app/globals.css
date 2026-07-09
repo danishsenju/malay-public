@@ -111,6 +111,9 @@ body {
   font-family: var(--font-linksans-sub), ui-sans-serif, system-ui, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  /* Viewport meta (layout.tsx) blocks pinch-zoom; this kills double-tap-zoom,
+     which some mobile browsers honor independently of the viewport meta. */
+  touch-action: manipulation;
 }
 
 /* Selection carries the one loud accent */
