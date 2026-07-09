@@ -194,8 +194,8 @@ export default async function ReportPage() {
               Kesihatan setiap sumber data.gov.my, masa nyata
             </span>
           </span>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-lime-spark text-ink-black">
-            <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-lime-spark text-ink-black">
+            <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </span>

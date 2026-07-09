@@ -14,6 +14,7 @@ function StopName({ name }: { name: string }) {
     </>
   )
 }
+import { useState } from 'react'
 import { useLang } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNearbyStops } from '@/hooks/useNearbyStops'
@@ -139,6 +140,16 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
   )
 }
 
+// ─── Network filter chips ────────────────────────────────────────────────────
+
+type NearbyFilter = 'all' | 'rail' | 'bus' | 'ktm'
+
+const FILTER_NETWORK: Record<Exclude<NearbyFilter, 'all'>, NearbyStop['network']> = {
+  rail: 'rapid-rail-kl',
+  bus:  'rapid-bus-kl',
+  ktm:  'ktmb',
+}
+
 // ─── Main section ─────────────────────────────────────────────────────────────
 
 interface NearbySectionProps {
@@ -150,8 +161,37 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
   const geo                                     = useGeolocation()
   const { stops, isLoading, error, radiusUsed } = useNearbyStops(geo.lat, geo.lon)
   const liveStatus                              = useRealtimeVehicles()
+  const [filter, setFilter]                     = useState<NearbyFilter>('all')
 
   const showSkeleton = geo.isPending || isLoading
+
+  const visibleStops = filter === 'all'
+    ? stops
+    : stops.filter(s => s.network === FILTER_NETWORK[filter])
+
+  const filterChips = (
+    <div className="flex gap-8" role="group" aria-label={t('home.nearby')}>
+      {(['all', 'rail', 'bus', 'ktm'] as const).map(f => {
+        const active = filter === f
+        return (
+          <button
+            key={f}
+            type="button"
+            aria-pressed={active}
+            onClick={() => setFilter(f)}
+            className="shrink-0 rounded-full-2 border-2 border-ink-black px-14 py-4 font-mono text-caption font-bold active:scale-[0.95]"
+            style={{
+              backgroundColor: active ? 'var(--color-lime-spark)' : 'var(--color-white-plate)',
+              color: active ? 'var(--color-ink-black)' : 'var(--color-sage-mute)',
+              transition: 'background-color 150ms var(--ease-out), color 150ms var(--ease-out), transform 140ms var(--ease-out)',
+            }}
+          >
+            {t(`search.filter.${f}` as const)}
+          </button>
+        )
+      })}
+    </div>
+  )
 
   // Detect-location button — lives in the section header so "near WHERE?" is
   // always one tap from being answered with a fresh, exact GPS fix.
@@ -199,10 +239,13 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
         </div>
       )}
 
+      {/* Network filter — answers "which of these can I actually ride?" */}
+      {!showSkeleton && !error && stops.length > 0 && filterChips}
+
       {/* Stop groups — one per nearby stop */}
-      {!showSkeleton && stops.length > 0 && (
+      {!showSkeleton && visibleStops.length > 0 && (
         <div className="space-y-40">
-          {stops.map(stop => (
+          {visibleStops.map(stop => (
             <StopGroup
               key={`${stop.stop_id}:${stop.network}`}
               stop={stop}
@@ -214,6 +257,13 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
             />
           ))}
         </div>
+      )}
+
+      {/* Filter matched nothing (but stops exist) — point back to "All" */}
+      {!showSkeleton && !error && stops.length > 0 && visibleStops.length === 0 && (
+        <p className="py-8 text-center font-sans text-body-sm text-sage-mute">
+          {t('home.nearby.filterNone')}
+        </p>
       )}
 
       {/* Error state — the maroon tray makes white type glow; honest copy */}

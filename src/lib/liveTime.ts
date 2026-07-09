@@ -28,3 +28,16 @@ export function liveMinutesUntil(arrSecs: number, nowMs: number): number {
   if (diff < -6 * 3600) diff += 86_400
   return Math.floor(diff / 60)
 }
+
+/**
+ * Human duration — "80 min" reads like an error code; "1 jam 20 min" reads
+ * like a person. Under an hour stays plain minutes.
+ */
+export function formatDuration(totalMin: number, lang: 'ms' | 'en'): string {
+  const min = Math.max(0, Math.round(totalMin))
+  if (min < 60) return `${min} min`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  const hourWord = lang === 'ms' ? 'jam' : h === 1 ? 'hr' : 'hrs'
+  return m === 0 ? `${h} ${hourWord}` : `${h} ${hourWord} ${m} min`
+}

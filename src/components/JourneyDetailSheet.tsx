@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { useLang } from '@/lib/i18n'
+import { formatDuration } from '@/lib/liveTime'
 import type { JourneyLeg, JourneyOption, JourneyTransfer } from '@/lib/types'
 
 /**
@@ -29,7 +30,7 @@ function WalkDetailRow({ transfer, label }: { transfer: JourneyTransfer; label: 
 }
 
 function LegDetail({ leg }: { leg: JourneyLeg }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const railColor = leg.routeColor ? `#${leg.routeColor}` : 'var(--color-cobalt-band)'
   return (
     <div
@@ -67,7 +68,7 @@ function LegDetail({ leg }: { leg: JourneyLeg }) {
 
       {/* Ride meta */}
       <p className="mt-6 pl-2 font-mono text-[11px] font-medium text-sage-mute tabular-nums">
-        {leg.numStops} {t('common.stops')} · {leg.durationMin} {t('common.min')}
+        {leg.numStops} {t('common.stops')} · {formatDuration(leg.durationMin, lang)}
       </p>
 
       {/* Alight */}
@@ -85,7 +86,7 @@ function LegDetail({ leg }: { leg: JourneyLeg }) {
 }
 
 function SheetBody({ option }: { option: JourneyOption }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const nTransfers = option.legs.length - 1
   const transfersLabel =
     nTransfers === 0 ? t('plan.transfers.0')
@@ -108,7 +109,7 @@ function SheetBody({ option }: { option: JourneyOption }) {
             {option.arrTime}
           </span>
           <span className="shrink-0 rounded-full-2 border-2 border-ink-black bg-lime-spark px-10 py-2 font-mono text-[11px] font-bold text-ink-black tabular-nums">
-            {option.totalMin} min
+            {formatDuration(option.totalMin, lang)}
           </span>
         </div>
         <Drawer.Description className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-sage-mute">

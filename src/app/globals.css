@@ -213,6 +213,13 @@ body {
   100% { transform: scale(2.5); opacity: 0;   }
 }
 
+/* Scroll-affordance chevron — a small downward dip, run a fixed number of
+   times on mount (never infinite: it's a teaching cue, not ambient motion). */
+@keyframes scrollNudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(3px); }
+}
+
 /* Search overlay entrance */
 @keyframes searchIn {
   from { opacity: 0; transform: translateY(6px); }

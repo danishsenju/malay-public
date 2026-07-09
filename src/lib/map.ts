@@ -85,6 +85,65 @@ export function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: n
 }
 
 /**
+ * Map-match a vehicle onto the drawn network. KTMB ships no shapes.txt, so
+ * the lines are station-to-station chords — a train's true GPS position sits
+ * beside the drawn line on every curve, which reads as "the dot is wrong"
+ * even though the dot is the truth. Standard map-matching fixes the *display*:
+ * project the dot onto the nearest line segment, but only when it's within
+ * SNAP_MAX_M — a train genuinely far from the drawn network (depot, siding,
+ * unmapped branch) stays at its real GPS position rather than being faked
+ * onto a line.
+ */
+const SNAP_MAX_M = 500
+
+/** Nearest point on any polyline, with its distance in metres. Local
+ *  equirectangular projection per query point — the cos(lat) factor is
+ *  computed per-point so this works Tumpat to JB. */
+export function projectToPolylines(
+  lat: number,
+  lon: number,
+  paths: [number, number][][],
+): { lat: number; lon: number; distM: number } {
+  const mPerDegLat = 111_320
+  const cosLat = Math.cos((lat * Math.PI) / 180)
+  let bestD2 = Infinity
+  let best: [number, number] = [lat, lon]
+
+  for (const path of paths) {
+    for (let i = 0; i < path.length - 1; i++) {
+      const [aLat, aLon] = path[i]
+      const [bLat, bLon] = path[i + 1]
+      const ax = (aLon - lon) * cosLat * mPerDegLat
+      const ay = (aLat - lat) * mPerDegLat
+      const bx = (bLon - lon) * cosLat * mPerDegLat
+      const by = (bLat - lat) * mPerDegLat
+      const dx = bx - ax
+      const dy = by - ay
+      const len2 = dx * dx + dy * dy
+      const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2))
+      const px = ax + t * dx
+      const py = ay + t * dy
+      const d2 = px * px + py * py
+      if (d2 < bestD2) {
+        bestD2 = d2
+        best = [lat + py / mPerDegLat, lon + px / (cosLat * mPerDegLat)]
+      }
+    }
+  }
+
+  return { lat: best[0], lon: best[1], distM: Math.sqrt(bestD2) }
+}
+
+export function snapToPolylines(
+  lat: number,
+  lon: number,
+  paths: [number, number][][],
+): [number, number] {
+  const p = projectToPolylines(lat, lon, paths)
+  return p.distM <= SNAP_MAX_M ? [p.lat, p.lon] : [lat, lon]
+}
+
+/**
  * Loose route matching between a GTFS-REALTIME vehicle and a GTFS-STATIC
  * route. The two feeds don't always agree on formatting (case, stray spaces,
  * "U6250" vs "6250") — strict equality silently drops real buses, which reads

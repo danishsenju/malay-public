@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import KTMB_SHAPES from '@/data/ktmbShapes.json'
 
 /**
  * KTM line geometry for the live map. The KTMB GTFS feed ships no shapes.txt,
- * so each route's polyline is derived from its longest trip: stops connected
- * in stop_sequence order. Station-to-station segments, not track curvature —
- * but the network reads as LINES, not a scatter of dots.
+ * so real track polylines are prebuilt from OpenStreetMap railway data by
+ * scripts/build-ktmb-shapes.mjs (Dijkstra along the actual rails between each
+ * route's stations) and shipped as src/data/ktmbShapes.json. Routes missing
+ * from that file fall back to station-to-station chords derived from the
+ * longest trip, so a brand-new route still draws before the script is re-run.
  *
  * Geometry only changes when the timetable changes, so it's cached hard.
  */
@@ -90,7 +93,10 @@ async function compute(): Promise<LinePath[]> {
       if (arr.length > best.length) best = arr
     }
 
-    const path = best
+    // Real OSM track geometry when prebuilt; chord fallback otherwise.
+    // JSON import types as number[][]; the builder writes [lat, lon] pairs.
+    const shape = (KTMB_SHAPES as unknown as Record<string, [number, number][]>)[route.route_id]
+    const path = shape ?? best
       .map(st => coords.get(st.stop_id))
       .filter((p): p is [number, number] => p !== undefined)
     if (path.length < 2) continue

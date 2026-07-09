@@ -32,11 +32,16 @@ async function compute(): Promise<AccessiblePlace[]> {
     const batch = PLACES.slice(i, i + BATCH)
     const results = await Promise.all(
       batch.map(async place => {
+        // Wide limit matters: around a mall the nearest 4 stops are ALWAYS
+        // bus poles, so a small limit never surfaces the rail station 600 m
+        // away — and a bus-anchored place can't be journey-planned from a
+        // rail origin (bus cross-network is unsupported). 24 reaches past
+        // the pole cluster to the station.
         const { data, error } = await db.rpc('nearby_stops', {
           p_lat: place.lat,
           p_lon: place.lon,
           p_radius_m: WALK_RADIUS_M,
-          p_limit: 4,
+          p_limit: 24,
         })
         if (error || !data) return null
         // Prefer rail/KTM stations over bus poles — a station anchors the

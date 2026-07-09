@@ -154,6 +154,40 @@ export default async function KtmbPage() {
           )}
         </div>
 
+        {/* ── Buy ticket CTA — the one lime action on this screen, linking out
+            to KTMB's own booking portal. Domain shown up front + real
+            external-link affordance so it reads as trustworthy, not a scam
+            redirect. */}
+        <a
+          href="https://online.ktmb.com.my/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            pressable mt-20 flex items-center gap-14 rounded-2xl border-2 border-ink-black
+            bg-lime-spark p-16 text-ink-black
+          "
+        >
+          <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-white-plate">
+            <svg aria-hidden className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d={TRAIN_ICON} />
+            </svg>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-sans text-body font-extrabold leading-tight tracking-[-0.01em]">
+              Beli tiket KTM rasmi
+            </span>
+            <span className="mt-1 flex items-center gap-4 font-mono text-[11px] font-bold text-ink-black/70">
+              online.ktmb.com.my
+              <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M9 7h8v8" />
+              </svg>
+            </span>
+          </span>
+          <span className="shrink-0 rounded-full-2 border-2 border-ink-black bg-white-plate px-10 py-4 font-mono text-[10px] font-bold uppercase tracking-widest">
+            Rasmi
+          </span>
+        </a>
+
         {/* ── Body ── */}
         {fetchedAt === 0 ? (
           // Total failure with nothing cached — stay honest, never a red crash.

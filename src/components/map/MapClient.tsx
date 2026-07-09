@@ -8,7 +8,7 @@ import { NetworkRouteSelector, type MapNetwork } from './NetworkRouteSelector'
 import { useLang, LangToggle } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import type { StaticLine } from './LiveMap'
-import { distanceMeters, vehicleMatchesRoute } from '@/lib/map'
+import { distanceMeters, projectToPolylines, snapToPolylines, vehicleMatchesRoute } from '@/lib/map'
 import type { MapVehicle, RouteSummary, ShapeResponse, Station } from '@/lib/map'
 
 const LiveMap = dynamic(() => import('./LiveMap').then(m => m.LiveMap), {
@@ -69,12 +69,23 @@ export function MapClient() {
     { revalidateOnFocus: false },
   )
 
-  // KTM route polylines — static geometry so the network draws as lines.
+  // KTM route polylines — real OSM track geometry so the network draws as
+  // the actual railway, not station-to-station chords.
   const { data: ktmLines } = useSWR<{ lines: StaticLine[] }>(
     network === 'ktmb' ? '/api/ktmb/lines' : null,
     json,
     { revalidateOnFocus: false },
   )
+
+  // A handful of KTMB feed stations carry junk coordinates (232 km off, in
+  // the wrong state). A station dot nowhere near any railway is feed noise,
+  // not a station — hide it rather than plot fiction. Runs once per load.
+  const visibleStations = useMemo<Station[]>(() => {
+    const all = stations ?? []
+    const paths = (ktmLines?.lines ?? []).map(l => l.path)
+    if (paths.length === 0) return all
+    return all.filter(s => projectToPolylines(s.stop_lat, s.stop_lon, paths).distM <= 1500)
+  }, [stations, ktmLines])
 
   // Poll whichever realtime feed the network needs. The bus feed is fetched
   // even before a route is chosen — it powers "buses near you".
@@ -90,14 +101,23 @@ export function MapClient() {
   // ── Derived view state ────────────────────────────────────────────────────
   const vehicles = useMemo<MapVehicle[]>(() => {
     const all = feed?.vehicles ?? []
-    if (network === 'ktmb') return all
+    if (network === 'ktmb') {
+      // Map-match trains onto the drawn lines (see snapToPolylines) so dots
+      // sit ON the track instead of beside the station-to-station chords.
+      const paths = (ktmLines?.lines ?? []).map(l => l.path)
+      if (paths.length === 0) return all
+      return all.map(v => {
+        const [lat, lon] = snapToPolylines(v.lat, v.lon, paths)
+        return { ...v, lat, lon }
+      })
+    }
     // Route chosen → loose matching (realtime route ids don't always equal the
     // static ones byte-for-byte; strict equality dropped real buses).
     if (selectedRoute) return all.filter(v => vehicleMatchesRoute(v.routeId, selectedRoute))
     // No route → every live bus near the user's real position.
     if (!userPos) return []
     return all.filter(v => distanceMeters(v.lat, v.lon, userPos[0], userPos[1]) <= NEARBY_RADIUS_M)
-  }, [feed, network, selectedRoute, userPos])
+  }, [feed, network, selectedRoute, userPos, ktmLines])
 
   const fitToken = network === 'ktmb'
     ? 'ktmb'
@@ -119,10 +139,10 @@ export function MapClient() {
     // KTM — wait for the realtime feed to resolve before deciding.
     if (!feed) return null
     if (vehicles.length > 0) return vehicles.map(v => [v.lat, v.lon])
-    return stations && stations.length > 0
-      ? stations.map(s => [s.stop_lat, s.stop_lon])
+    return visibleStations.length > 0
+      ? visibleStations.map(s => [s.stop_lat, s.stop_lon])
       : null
-  }, [isBus, selectedRoute, userPos, shape, feed, vehicles, stations])
+  }, [isBus, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
 
   const nearbyMode = isBus && !selectedRoute
   const stale = feed?.stale ?? false
@@ -164,7 +184,7 @@ export function MapClient() {
         <LiveMap
           vehicles={vehicles}
           shape={isBus && selectedRoute ? shape ?? null : null}
-          stations={network === 'ktmb' ? stations ?? [] : []}
+          stations={network === 'ktmb' ? visibleStations : []}
           staticLines={network === 'ktmb' ? ktmLines?.lines ?? [] : []}
           fitPoints={fitPoints}
           fitToken={fitToken}
@@ -228,8 +248,11 @@ export function MapClient() {
           <span className="font-mono text-caption font-bold tabular-nums text-ink-black">
             {statusText}
           </span>
-          {stale && (
+          {stale ? (
             <span className="font-sans text-[10px] text-sage-mute">{t('map.maybeLate')}</span>
+          ) : (
+            // Set the waiting expectation up front: dots refresh on a 15s poll.
+            <span className="whitespace-nowrap font-sans text-[10px] text-sage-mute">{t('map.refresh')}</span>
           )}
         </div>
 

@@ -6,6 +6,7 @@ import useSWR from 'swr'
 import { SearchOverlay } from '@/components/SearchOverlay'
 import { JourneyDetailSheet } from '@/components/JourneyDetailSheet'
 import { getRailLine } from '@/lib/transit'
+import { formatDuration } from '@/lib/liveTime'
 import { getSupabase } from '@/lib/supabase'
 import { BrandMark } from '@/components/BrandMark'
 import { useLang, LangToggle } from '@/lib/i18n'
@@ -123,7 +124,7 @@ function OptionCard({
   fallbackTo: string
   onOpen: (option: JourneyOption) => void
 }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const nTransfers = option.legs.length - 1
   const transfersLabel =
     nTransfers === 0 ? t('plan.transfers.0')
@@ -149,7 +150,7 @@ function OptionCard({
             {option.arrTime}
           </span>
           <span className="shrink-0 rounded-full-2 border-2 border-ink-black bg-lime-spark px-10 py-2 font-mono text-[11px] font-bold text-ink-black tabular-nums">
-            {option.totalMin} min
+            {formatDuration(option.totalMin, lang)}
           </span>
         </div>
 

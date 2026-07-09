@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# raw OSM download cached by scripts/build-ktmb-shapes.mjs (~30 MB)
+/.cache/
+
 # next.js
 /.next/
 /out/
