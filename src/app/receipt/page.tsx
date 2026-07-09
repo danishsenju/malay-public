@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ShareButton } from '@/components/ShareButton'
+import { BrandMark } from '@/components/BrandMark'
 
 /**
  * The Delay Receipt — a share-first page. The OG image (the actual ticket)
@@ -33,11 +34,11 @@ export async function generateMetadata(
   const stop = p.stop?.slice(0, 48) || 'hentian anda'
   const mins = parseInt(p.mins ?? '', 10)
   const title = Number.isFinite(mins)
-    ? `${stop} — seterusnya dalam ${Math.max(0, mins)} min · Sampai Bila?`
-    : `${stop} · Sampai Bila?`
+    ? `${stop} — seterusnya dalam ${Math.max(0, mins)} min · TransitMY`
+    : `${stop} · TransitMY`
   return {
     title,
-    description: 'Resit perjalanan langsung daripada papan berlepas Sampai Bila? — masa nyata, dengan resit.',
+    description: 'Resit perjalanan langsung daripada papan berlepas TransitMY — masa nyata, dengan resit.',
     openGraph: { title, images: [{ url: ogUrl(p), width: 1200, height: 630 }] },
     twitter: { card: 'summary_large_image', images: [ogUrl(p)] },
   }
@@ -61,7 +62,7 @@ export default async function ReceiptPage(
 
   return (
     <div className="min-h-screen bg-linen-canvas">
-      <div className="mx-auto max-w-md px-20 pb-64">
+      <div className="mx-auto max-w-md px-20 pb-128">
 
         {/* ── Masthead ── */}
         <header className="flex items-center justify-between pt-20">
@@ -74,7 +75,7 @@ export default async function ReceiptPage(
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <span className="font-mono text-body-sm font-bold text-ink-black">Sampai&nbsp;Bila?</span>
+          <BrandMark />
         </header>
 
         {/* ── The ticket ── */}
@@ -152,7 +153,7 @@ export default async function ReceiptPage(
 
         {/* ── Actions ── */}
         <div className="mt-26 flex flex-col items-center gap-14">
-          <ShareButton title={`${stop} · Sampai Bila?`} text={shareText} />
+          <ShareButton title={`${stop} · TransitMY`} text={shareText} />
           <Link
             href="/"
             className="plate pressable-sm rounded-full-2 px-18 py-8 font-sans text-[13px] font-bold text-ink-black"

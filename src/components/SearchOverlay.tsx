@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useLang } from '@/lib/i18n'
+import type { StringKey } from '@/lib/strings'
 import type { NearbyStop, Network } from '@/lib/types'
 import { getRailLine } from '@/lib/transit'
 
@@ -22,16 +24,16 @@ type Filter = 'all' | Network
 
 interface FilterDef {
   id:         Filter
-  label:      string
+  label:      StringKey
   activeBg:   string
   activeText: string
 }
 
 const FILTER_DEFS: FilterDef[] = [
-  { id: 'all',           label: 'All',  activeBg: 'var(--color-ink-black)',     activeText: '#ffffff' },
-  { id: 'rapid-bus-kl',  label: 'Bus',  activeBg: 'var(--color-cobalt-band)',   activeText: '#ffffff' },
-  { id: 'rapid-rail-kl', label: 'Rail', activeBg: 'var(--color-lavender-mist)', activeText: 'var(--color-ink-black)' },
-  { id: 'ktmb',          label: 'KTM',  activeBg: 'var(--color-mustard-pop)',   activeText: 'var(--color-ink-black)' },
+  { id: 'all',           label: 'search.filter.all',  activeBg: 'var(--color-ink-black)',     activeText: '#ffffff' },
+  { id: 'rapid-bus-kl',  label: 'search.filter.bus',  activeBg: 'var(--color-cobalt-band)',   activeText: '#ffffff' },
+  { id: 'rapid-rail-kl', label: 'search.filter.rail', activeBg: 'var(--color-lavender-mist)', activeText: 'var(--color-ink-black)' },
+  { id: 'ktmb',          label: 'search.filter.ktm',  activeBg: 'var(--color-mustard-pop)',   activeText: 'var(--color-ink-black)' },
 ]
 
 const NETWORK_ACCENT: Record<Network, string> = {
@@ -62,6 +64,7 @@ export function SearchOverlay({ isOpen, onClose, onSelect }: SearchOverlayProps)
 }
 
 function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) {
+  const { t } = useLang()
   const [query,      setQuery]      = useState('')
   const [filter,     setFilter]     = useState<Filter>('all')
   const [results,    setResults]    = useState<NearbyStop[]>([])
@@ -126,7 +129,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Carian hentian"
+      aria-label={t('search.aria')}
       className="fixed inset-0 z-50 flex flex-col bg-linen-canvas md:items-center md:justify-center md:bg-ink-black/60 md:backdrop-blur-sm"
       onClick={onClose}
     >
@@ -143,7 +146,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
           {/* Back chevron — bordered disc */}
           <button
             type="button"
-            aria-label="Tutup carian"
+            aria-label={t('search.close')}
             onClick={onClose}
             className="plate flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 text-ink-black active:scale-90"
             style={{ transition: 'transform 160ms var(--ease-out)' }}
@@ -160,7 +163,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
               type="search"
               value={query}
               onChange={handleQueryChange}
-              placeholder="Cari hentian…"
+              placeholder={t('search.placeholder')}
               autoComplete="off"
               spellCheck={false}
               className="
@@ -173,7 +176,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
             {/* Spinner */}
             {isFetching && (
               <div
-                aria-label="Mencari"
+                aria-label={t('search.searching')}
                 className="
                   pointer-events-none absolute right-14 top-1/2 -translate-y-1/2
                   h-14 w-14 rounded-full-3 border-2 border-ink-black/15 border-t-ink-black animate-spin
@@ -185,7 +188,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
             {query.length > 0 && !isFetching && (
               <button
                 type="button"
-                aria-label="Kosongkan"
+                aria-label={t('search.clear')}
                 onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
                 className="
                   absolute right-14 top-1/2 -translate-y-1/2
@@ -219,7 +222,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
                     transition: 'background-color 150ms var(--ease-out), color 150ms var(--ease-out), transform 140ms var(--ease-out)',
                   }}
                 >
-                  {f.label}
+                  {t(f.label)}
                 </button>
               )
             })}
@@ -244,10 +247,10 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
                 </svg>
               </span>
               <p className="font-sans text-body font-bold text-ink-black">
-                Cari nama hentian
+                {t('search.idle.title')}
               </p>
               <p className="max-w-[260px] font-sans text-[13px] leading-relaxed text-sage-mute">
-                Meliputi RapidKL Bas, Rapid Rail (LRT / MRT / Monorel) dan perkhidmatan KTM
+                {t('search.idle.desc')}
               </p>
 
               {/* Network guide pills */}
@@ -264,12 +267,12 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
                       transition: 'transform 140ms var(--ease-out)',
                     }}
                   >
-                    {f.label}
+                    {t(f.label)}
                   </button>
                 ))}
               </div>
               <p className="font-sans text-caption text-sage-mute/80">
-                Ketuk rangkaian untuk menapis
+                {t('search.idle.hint')}
               </p>
             </div>
           )}
@@ -278,7 +281,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
           {hasQuery && !isFetching && !hasResults && (
             <div className="flex flex-col items-center gap-8 px-40 pt-64 text-center">
               <p className="font-sans text-body font-bold text-ink-black">
-                Tiada hentian sepadan &ldquo;{query}&rdquo;
+                {t('search.noMatch')} &ldquo;{query}&rdquo;
               </p>
               {filter !== 'all' && (
                 <button
@@ -287,7 +290,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
                   className="mt-4 rounded-full-2 border-2 border-ink-black bg-lime-spark px-16 py-4 font-sans text-[13px] font-bold text-ink-black active:scale-[0.96]"
                   style={{ transition: 'transform 140ms var(--ease-out)' }}
                 >
-                  Cari dalam semua rangkaian
+                  {t('search.allNetworks')}
                 </button>
               )}
             </div>

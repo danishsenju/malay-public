@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import { PwaRegister } from "@/components/PwaRegister";
+import { BottomNav } from "@/components/AppNav";
 import "./globals.css";
 
 // Departure Mono v1.500 — Helena Zhang, SIL Open Font License 1.1
@@ -34,10 +35,10 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Sampai Bila?",
+  title: "TransitMY",
   description:
-    "Live Malaysian transit tracker — LRT, MRT, Monorail, KTMB & Rapid buses. Real-time arrivals, delay tracking.",
-  applicationName: "Sampai Bila?",
+    "Live Malaysian transit tracker — LRT, MRT, Monorail, KTMB & Rapid buses. Real-time arrivals, journey planner, delay tracking.",
+  applicationName: "TransitMY",
 };
 
 export const viewport: Viewport = {
@@ -58,6 +59,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-linen-canvas text-ink-black font-sans">
         {children}
+        <BottomNav />
         <PwaRegister />
       </body>
     </html>

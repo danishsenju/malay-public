@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { NETWORK_LABELS } from '@/lib/reliability'
+import { BrandMark } from '@/components/BrandMark'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Status — Sampai Bila?',
+  title: 'Status — TransitMY',
   description:
     'Kesihatan langsung setiap suapan data.gov.my yang kami guna. Bila sumber bermasalah, kami cakap — supaya anda tahu siapa yang patut dipersalahkan.',
 }
@@ -116,7 +117,7 @@ export default async function StatusPage() {
 
   return (
     <div className="min-h-screen bg-linen-canvas">
-      <div className="mx-auto max-w-md px-20 pb-64 lg:max-w-2xl">
+      <div className="mx-auto max-w-md px-20 pb-128 lg:max-w-2xl lg:pb-64">
 
         {/* ── Masthead ── */}
         <header className="flex items-center justify-between pt-20">
@@ -129,7 +130,7 @@ export default async function StatusPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <span className="font-mono text-body-sm font-bold text-ink-black">Sampai&nbsp;Bila?</span>
+          <BrandMark />
         </header>
 
         {/* ── Hero ── */}

@@ -14,6 +14,7 @@ function StopName({ name }: { name: string }) {
     </>
   )
 }
+import { useLang } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNearbyStops } from '@/hooks/useNearbyStops'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
@@ -60,6 +61,7 @@ interface StopGroupProps {
 }
 
 function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelect }: StopGroupProps) {
+  const { t } = useLang()
   const { arrivals, isLoading } = useUpcomingArrivals(stop.stop_id, stop.network)
 
   const isLive = stop.network === 'rapid-bus-kl' ? hasLiveBus
@@ -97,7 +99,7 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
         </div>
       ) : arrivals.length === 0 ? (
         <p className="py-4 font-sans text-[13px] text-sage-mute">
-          Tiada ketibaan dalam 90 minit akan datang
+          {t('home.nearby.noArrivals')}
         </p>
       ) : (
         /* Mobile: horizontal snap-scroll. Desktop (lg): 2-col grid (xl: 3-col). */
@@ -134,16 +136,17 @@ interface NearbySectionProps {
 }
 
 export function NearbySection({ onSelectStop }: NearbySectionProps) {
+  const { t } = useLang()
   const geo                                     = useGeolocation()
   const { stops, isLoading, error, radiusUsed } = useNearbyStops(geo.lat, geo.lon)
   const liveStatus                              = useRealtimeVehicles()
 
   const showSkeleton  = geo.isPending || isLoading
-  const locationLabel = geo.isDefault ? 'KL Sentral' : 'Dekat anda'
+  const locationLabel = geo.isDefault ? 'KL Sentral' : t('home.nearby.nearYou')
 
   return (
     <section className="space-y-18">
-      <SectionLabel trailing={locationLabel}>Berdekatan</SectionLabel>
+      <SectionLabel trailing={locationLabel}>{t('home.nearby')}</SectionLabel>
 
       {/* Skeleton while geo + stops resolve */}
       {showSkeleton && (
@@ -175,7 +178,7 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
       {!showSkeleton && error && (
         <div className="rounded-2xl border-2 border-ink-black bg-maroon-plate px-20 py-24 text-center space-y-8">
           <p className="font-sans text-body-sm font-semibold text-white-plate">
-            Tak dapat muatkan hentian berdekatan
+            {t('home.nearby.loadFailed')}
           </p>
           <p className="break-all font-mono text-[11px] text-white-plate/60">{error.message}</p>
         </div>
@@ -185,12 +188,12 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
       {!showSkeleton && !error && stops.length === 0 && (
         <div className="rounded-2xl border-2 border-ink-black bg-moss-tint px-20 py-40 text-center space-y-8">
           <p className="font-sans text-body-sm font-semibold text-ink-black">
-            Tiada hentian dalam {radiusUsed < 1000 ? `${radiusUsed} m` : `${radiusUsed / 1000} km`}
+            {t('home.nearby.noneWithin')} {radiusUsed < 1000 ? `${radiusUsed} m` : `${radiusUsed / 1000} km`}
           </p>
           <p className="font-sans text-caption text-sage-mute">
             {geo.isDefault
-              ? 'Akses lokasi ditolak — menunjukkan sekitar KL Sentral'
-              : 'Cuba dekati mana-mana hentian transit'}
+              ? t('home.nearby.geoDenied')
+              : t('home.nearby.getCloser')}
           </p>
         </div>
       )}

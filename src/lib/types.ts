@@ -37,23 +37,41 @@ export interface JourneyLeg {
   routeColor:     string | null   // hex without '#'
   routeTextColor: string | null
   headsign:       string | null
+  network:        Network
+  fromName:       string
+  toName:         string
   depTime:        string          // "HH:MM" MYT
   arrTime:        string
   durationMin:    number
   numStops:       number
 }
 
-/** A complete A→B option: one leg (direct) or two (one transfer). */
+/** The walk between two consecutive legs (or from/to the first/last stop). */
+export interface JourneyTransfer {
+  fromName:    string
+  toName:      string
+  walkMin:     number
+  sameStation: boolean   // true when it's just a platform change
+}
+
+/** A complete A→B option: 1–3 rides joined by walking transfers. */
 export interface JourneyOption {
-  legs:          JourneyLeg[]
-  transferStop?: string   // stop name, present when legs.length === 2
-  depTime:       string
-  arrTime:       string
-  totalMin:      number
+  legs:       JourneyLeg[]
+  /** transfers[i] sits between legs[i] and legs[i+1]. */
+  transfers:  JourneyTransfer[]
+  /** Walk from the chosen origin stop to the first boarding stop, if any. */
+  startWalk?: JourneyTransfer
+  /** Walk from the last alighting stop to the destination stop, if any. */
+  endWalk?: JourneyTransfer
+  depTime:    string
+  arrTime:    string
+  totalMin:   number
 }
 
 export interface JourneyResponse {
-  options:     JourneyOption[]
-  sameNetwork: boolean
+  options: JourneyOption[]
+  /** false only when a bus stop is paired with a different network — the one
+   *  combination we don't plan yet. */
+  supported:   boolean
   generatedAt: number
 }

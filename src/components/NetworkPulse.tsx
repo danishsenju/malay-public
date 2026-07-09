@@ -1,6 +1,7 @@
 'use client'
 
 import useSWR from 'swr'
+import { useLang } from '@/lib/i18n'
 import { FlapDigit } from './FlapDigit'
 
 interface PulseNetwork {
@@ -36,6 +37,7 @@ async function fetchPulse(url: string): Promise<PulseResponse> {
  * motion language. Data-driven flips are state indication, not decoration.
  */
 export function NetworkPulse() {
+  const { t } = useLang()
   const { data, error } = useSWR<PulseResponse>('/api/pulse', fetchPulse, {
     refreshInterval: 15_000,
     revalidateOnFocus: false,
@@ -53,7 +55,7 @@ export function NetworkPulse() {
       {/* Eyebrow */}
       <div className="flex items-center justify-between">
         <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-sage-mute">
-          Denyut rangkaian
+          {t('home.pulse.eyebrow')}
         </span>
         {anyLive && (
           <span className="flex items-center gap-1.75" aria-hidden>
@@ -75,14 +77,14 @@ export function NetworkPulse() {
       <div className="mt-10 flex items-baseline gap-3">
         <span
           className="font-mono text-[56px] font-bold leading-none tracking-[-0.02em] text-ink-black tabular-nums"
-          aria-label={loading ? 'Memuatkan' : `${total} kenderaan dijejak secara langsung`}
+          aria-label={loading ? t('common.loading') : `${total} ${t('home.pulse.tracked')}`}
         >
           {display.split('').map((ch, i) => (
             <FlapDigit key={i} value={ch} delay={i * 40} />
           ))}
         </span>
         <span className="max-w-[120px] font-sans text-[13px] font-semibold leading-tight text-sage-mute">
-          kenderaan dijejak secara langsung
+          {t('home.pulse.tracked')}
         </span>
       </div>
 
@@ -98,7 +100,7 @@ export function NetworkPulse() {
             {n.stale && (
               <span
                 className="h-2 w-2 rounded-full-3 border border-ink-black bg-mustard-pop"
-                aria-label="Data mungkin lewat"
+                aria-label={t('home.pulse.stale')}
               />
             )}
           </span>
@@ -107,7 +109,7 @@ export function NetworkPulse() {
 
       {/* Honesty line — the trust engine, on every screen */}
       <p className="mt-3 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-sage-mute/80">
-        Sumber: data.gov.my · LRT/MRT tiada suapan langsung
+        {t('home.pulse.honesty')}
       </p>
     </div>
   )

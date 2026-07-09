@@ -1,6 +1,7 @@
 'use client'
 
 import { SectionLabel } from './SectionLabel'
+import { useLang } from '@/lib/i18n'
 import { getRailLine } from '@/lib/transit'
 import type { NearbyStop } from '@/lib/types'
 
@@ -25,15 +26,16 @@ interface SavedSectionProps {
 }
 
 export function SavedSection({ stops, onSelect }: SavedSectionProps) {
+  const { t } = useLang()
   return (
     <section className="space-y-18">
       <SectionLabel trailing={stops.length > 0 ? String(stops.length) : undefined}>
-        Disimpan
+        {t('home.saved')}
       </SectionLabel>
 
       {stops.length === 0 ? (
         <p className="font-sans text-body-sm leading-relaxed text-sage-mute">
-          Simpan hentian yang kerap anda guna — ia muncul di sini dahulu.
+          {t('home.saved.empty')}
         </p>
       ) : (
         <div className="mx-[-20px] flex gap-3 overflow-x-auto px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:px-0">

@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Sampai Bila? — Penjejak Transit Malaysia',
-    short_name: 'Sampai Bila?',
+    name: 'TransitMY — Penjejak Transit Malaysia',
+    short_name: 'TransitMY',
     description:
       'LRT, MRT, Monorel, KTM & bas Rapid dalam satu aplikasi — masa nyata, dengan resit.',
     start_url: '/',
@@ -12,10 +12,22 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#f3f3f1',
     icons: [
       {
-        src: '/icon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
         purpose: 'any',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   }

@@ -5,13 +5,15 @@ import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { NetworkRouteSelector, type MapNetwork } from './NetworkRouteSelector'
+import { useLang, LangToggle } from '@/lib/i18n'
+import type { StaticLine } from './LiveMap'
 import type { MapVehicle, RouteSummary, ShapeResponse, Station } from '@/lib/map'
 
 const LiveMap = dynamic(() => import('./LiveMap').then(m => m.LiveMap), {
   ssr: false,
   loading: () => (
     <div className="flex h-full w-full items-center justify-center bg-linen-canvas">
-      <span className="font-mono text-caption text-sage-mute">Memuatkan peta…</span>
+      <span className="font-mono text-caption text-sage-mute">…</span>
     </div>
   ),
 })
@@ -25,6 +27,7 @@ interface VehicleFeed {
 }
 
 export function MapClient() {
+  const { t } = useLang()
   const [network, setNetwork] = useState<MapNetwork>('ktmb')
   const [selectedRoute, setSelectedRoute] = useState<RouteSummary | null>(null)
 
@@ -47,6 +50,13 @@ export function MapClient() {
 
   const { data: stations } = useSWR<Station[]>(
     network === 'ktmb' ? '/api/stations?network=ktmb' : null,
+    json,
+    { revalidateOnFocus: false },
+  )
+
+  // KTM route polylines — static geometry so the network draws as lines.
+  const { data: ktmLines } = useSWR<{ lines: StaticLine[] }>(
+    network === 'ktmb' ? '/api/ktmb/lines' : null,
     json,
     { revalidateOnFocus: false },
   )
@@ -95,14 +105,14 @@ export function MapClient() {
   const stale = feed?.stale ?? false
 
   const statusText = needsRoute
-    ? 'Pilih laluan bas untuk melihat kenderaan langsung'
+    ? t('map.pickBusRoute')
     : feedLoading && !feed
-      ? 'Memuatkan kedudukan langsung…'
+      ? t('map.loadingLive')
       : vehicles.length === 0
         ? network === 'ktmb'
-          ? 'Tiada tren KTM aktif sekarang'
-          : 'Tiada bas aktif untuk laluan ini sekarang'
-        : `${vehicles.length} ${network === 'ktmb' ? 'tren' : 'bas'} langsung`
+          ? t('map.noTrains')
+          : t('map.noBuses')
+        : `${vehicles.length} ${network === 'ktmb' ? t('map.train') : t('map.bus')} ${t('map.liveSuffix')}`
 
   function handleNetworkChange(n: MapNetwork) {
     setNetwork(n)
@@ -110,13 +120,17 @@ export function MapClient() {
   }
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-linen-canvas">
+    // `isolate` contains the map's z-1000 controls in their own stacking
+    // context so they beat Leaflet's panes without out-painting the app's
+    // fixed bottom nav (z-40 in the root context sits above this whole block).
+    <div className="relative h-dvh w-full overflow-hidden bg-linen-canvas isolate">
       {/* Map fills the screen */}
       <div className="absolute inset-0">
         <LiveMap
           vehicles={vehicles}
           shape={isBus ? shape ?? null : null}
           stations={network === 'ktmb' ? stations ?? [] : []}
+          staticLines={network === 'ktmb' ? ktmLines?.lines ?? [] : []}
           fitPoints={fitPoints}
           fitToken={fitToken}
         />
@@ -125,15 +139,22 @@ export function MapClient() {
       {/* Floating controls */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-1000 flex flex-col items-center gap-10 p-14">
         <div className="pointer-events-auto flex w-full max-w-md items-center justify-between">
+          {/* Same circular back button as every other page */}
           <Link
             href="/"
-            className="pressable-gpu rounded-lg border-2 border-ink-black bg-white-plate px-12 py-6 font-sans text-caption font-bold text-ink-black"
+            aria-label={t('common.backHome')}
+            className="plate pressable-sm flex h-40 w-40 items-center justify-center rounded-full-3 text-ink-black"
           >
-            ← Kembali
+            <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
           </Link>
-          <span className="rounded-lg border-2 border-ink-black bg-lime-spark px-10 py-6 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-ink-black">
-            Peta Langsung
-          </span>
+          <div className="flex items-center gap-8">
+            <span className="rounded-lg border-2 border-ink-black bg-lime-spark px-10 py-6 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-ink-black">
+              {t('map.title')}
+            </span>
+            <LangToggle />
+          </div>
         </div>
 
         <div className="pointer-events-auto w-full max-w-md">
@@ -148,12 +169,10 @@ export function MapClient() {
         </div>
       </div>
 
-      {/* Status chip */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-1000 flex justify-center p-14">
-        <div
-          className="plate shadow-plate-sm flex items-center gap-8 rounded-full-2 px-14 py-8"
-          style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
-        >
+      {/* Status chip — lifted clear of the persistent bottom nav on mobile;
+          on desktop (lg:) there's no bottom nav, so it sits at the edge. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-1000 flex justify-center px-14 pb-18.5 pt-14 lg:pb-14">
+        <div className="plate shadow-plate-sm flex items-center gap-8 rounded-full-2 px-14 py-8">
           {!needsRoute && (
             <span className="relative flex h-2 w-2">
               {!stale && (
@@ -172,7 +191,7 @@ export function MapClient() {
             {statusText}
           </span>
           {stale && (
-            <span className="font-sans text-[10px] text-sage-mute">· data mungkin lewat</span>
+            <span className="font-sans text-[10px] text-sage-mute">{t('map.maybeLate')}</span>
           )}
         </div>
       </div>

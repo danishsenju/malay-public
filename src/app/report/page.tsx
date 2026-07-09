@@ -3,11 +3,12 @@ import Link from 'next/link'
 import { fetchLedgerWindow, gradeRows, mytDate, UNMONITORED_LINES, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
 import { ShareButton } from '@/components/ShareButton'
+import { BrandMark } from '@/components/BrandMark'
 
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Laporan Harian — Sampai Bila?',
+  title: 'Laporan Harian — TransitMY',
   description:
     'Liga kelewatan pengangkutan awam Malaysia — gred kebolehpercayaan harian untuk KTM dan bas Rapid, dikira daripada data langsung data.gov.my. Dengan resit.',
 }
@@ -26,7 +27,7 @@ function shareText(grades: NetworkGrade[], dayLabel: string): string {
     .filter(g => g.grade !== '—')
     .map(g => `${g.label}: gred ${g.grade} (uptime ${g.uptimePct}%)`)
   const body = lines.length > 0 ? lines.join(' · ') : 'Lejar baru mula merekod — semak semula esok.'
-  return `Laporan Harian Sampai Bila? — ${dayLabel}\n${body}\nLRT/MRT? Prasarana tak siarkan kedudukan tren. Kami gred apa yang mereka tunjuk. 🧾`
+  return `Laporan Harian TransitMY — ${dayLabel}\n${body}\nLRT/MRT? Prasarana tak siarkan kedudukan tren. Kami gred apa yang mereka tunjuk. 🧾`
 }
 
 // ── Row: one network in the league table ────────────────────────────────────
@@ -89,7 +90,7 @@ export default async function ReportPage() {
 
   return (
     <div className="min-h-screen bg-linen-canvas">
-      <div className="mx-auto max-w-md px-20 pb-64 lg:max-w-2xl">
+      <div className="mx-auto max-w-md px-20 pb-128 lg:max-w-2xl lg:pb-64">
 
         {/* ── Masthead ── */}
         <header className="flex items-center justify-between pt-20">
@@ -102,7 +103,7 @@ export default async function ReportPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <span className="font-mono text-body-sm font-bold text-ink-black">Sampai&nbsp;Bila?</span>
+          <BrandMark />
         </header>
 
         {/* ── Hero ── */}
@@ -172,7 +173,7 @@ export default async function ReportPage() {
         {/* ── Share ── */}
         <div className="mt-26 flex justify-center">
           <ShareButton
-            title="Laporan Harian — Sampai Bila?"
+            title="Laporan Harian — TransitMY"
             text={shareText(rows, day)}
           />
         </div>

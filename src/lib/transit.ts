@@ -14,16 +14,19 @@ export interface LineInfo {
   color: string           // hex, matches official line colour
 }
 
+// Colours match route_color in the data.gov.my GTFS routes table (current
+// official line colours), not the older map palette.
 const LINE_MAP: [string, LineInfo][] = [
-  ['BRT', { name: 'BRT Sunway',        type: 'BRT',      color: '#005C88' }],
+  ['BRT', { name: 'BRT Sunway',        type: 'BRT',      color: '#115740' }],
   ['ERL', { name: 'KLIA Ekspres',       type: 'ERL',      color: '#003087' }],
-  ['AGL', { name: 'Ampang Line',        type: 'LRT',      color: '#FF8000' }],  // combined-section trips
-  ['KJ',  { name: 'Kelana Jaya Line',   type: 'LRT',      color: '#009EE0' }],
-  ['AG',  { name: 'Ampang Line',        type: 'LRT',      color: '#FF8000' }],
-  ['SP',  { name: 'Sri Petaling Line',  type: 'LRT',      color: '#9B1C31' }],
-  ['MR',  { name: 'KL Monorail',        type: 'Monorail', color: '#EE2024' }],
-  ['KG',  { name: 'Kajang Line',        type: 'MRT',      color: '#007F55' }],
-  ['PY',  { name: 'Putrajaya Line',     type: 'MRT',      color: '#3C3799' }],
+  ['AGL', { name: 'Ampang Line',        type: 'LRT',      color: '#E57200' }],  // combined-section trips
+  ['KJ',  { name: 'Kelana Jaya Line',   type: 'LRT',      color: '#D50032' }],
+  ['AG',  { name: 'Ampang Line',        type: 'LRT',      color: '#E57200' }],
+  ['SP',  { name: 'Sri Petaling Line',  type: 'LRT',      color: '#76232F' }],
+  ['SA',  { name: 'Shah Alam Line',     type: 'LRT',      color: '#FF00FF' }],
+  ['MR',  { name: 'KL Monorail',        type: 'Monorail', color: '#84BD00' }],
+  ['KG',  { name: 'Kajang Line',        type: 'MRT',      color: '#047940' }],
+  ['PY',  { name: 'Putrajaya Line',     type: 'MRT',      color: '#FFCD00' }],
 ]
 
 /**

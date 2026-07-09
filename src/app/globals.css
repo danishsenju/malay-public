@@ -296,5 +296,12 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .marquee-track { animation: none; }
+
+  /* The line ticker is ambient signage, not motion reacting to a user action —
+     it stays scrolling under reduced motion (exempted from the wildcard
+     above), same as a stock ticker or departure board would. */
+  .marquee-track {
+    animation-duration: 22s !important;
+    animation-iteration-count: infinite !important;
+  }
 }

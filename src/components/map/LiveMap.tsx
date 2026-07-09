@@ -8,10 +8,18 @@ import { VehicleLayer } from './VehicleLayer'
 import type { MapVehicle, ShapeResponse, Station } from '@/lib/map'
 import { KL_CENTER, normalizeHex } from '@/lib/map'
 
+export interface StaticLine {
+  route_id: string
+  name: string
+  color: string // hex without '#'
+  path: [number, number][]
+}
+
 interface LiveMapProps {
   vehicles: MapVehicle[]
   shape: ShapeResponse | null // bus route shape; null for KTM / no selection
   stations: Station[]         // KTM stations; empty for bus
+  staticLines: StaticLine[]   // KTM line polylines (stop-to-stop); empty for bus
   /** Points to frame the initial view around (bus: route shape; KTM: active
    *  trains, falling back to stations). null while the source data is loading. */
   fitPoints: [number, number][] | null
@@ -40,7 +48,7 @@ function FitBounds({ points, token }: { points: [number, number][] | null; token
   return null
 }
 
-export function LiveMap({ vehicles, shape, stations, fitPoints, fitToken }: LiveMapProps) {
+export function LiveMap({ vehicles, shape, stations, staticLines, fitPoints, fitToken }: LiveMapProps) {
   const lineColor = normalizeHex(shape?.color)
 
   return (
@@ -72,6 +80,25 @@ export function LiveMap({ vehicles, shape, stations, fitPoints, fitToken }: Live
           positions={variant}
           pathOptions={{ color: lineColor, weight: 4, opacity: 1, lineJoin: 'round', lineCap: 'round' }}
         />
+      ))}
+
+      {/* KTM lines — same ink-casing treatment as bus shapes, one colour per
+          route, drawn under the station dots so the network reads as LINES. */}
+      {staticLines.map(line => (
+        <Polyline
+          key={`ktm-case-${line.route_id}`}
+          positions={line.path}
+          pathOptions={{ color: '#000000', weight: 6, opacity: 1, lineJoin: 'round', lineCap: 'round' }}
+        />
+      ))}
+      {staticLines.map(line => (
+        <Polyline
+          key={`ktm-line-${line.route_id}`}
+          positions={line.path}
+          pathOptions={{ color: normalizeHex(line.color), weight: 3.5, opacity: 1, lineJoin: 'round', lineCap: 'round' }}
+        >
+          <Tooltip sticky opacity={1}>{line.name}</Tooltip>
+        </Polyline>
       ))}
 
       {/* KTM stations — static white plate dots. */}

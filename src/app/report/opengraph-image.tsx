@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { fetchLedgerWindow, gradeRows, mytDate, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
 
-export const alt = 'Laporan Harian Sampai Bila? — liga kelewatan pengangkutan awam Malaysia'
+export const alt = 'Laporan Harian TransitMY — liga kelewatan pengangkutan awam Malaysia'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -49,7 +49,7 @@ export default async function OgImage() {
               boxShadow: '4px 4px 0 0 #000000',
             }}
           >
-            Sampai Bila?
+            TransitMY
           </div>
           <div
             style={{

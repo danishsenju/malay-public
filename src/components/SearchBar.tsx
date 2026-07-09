@@ -1,14 +1,17 @@
 'use client'
 
+import { useLang } from '@/lib/i18n'
+
 interface SearchBarProps {
   onClick: () => void
 }
 
 export function SearchBar({ onClick }: SearchBarProps) {
+  const { t } = useLang()
   return (
     <button
       type="button"
-      aria-label="Cari hentian"
+      aria-label={t('home.search.aria')}
       onClick={onClick}
       className="
         plate pressable flex w-full items-center gap-3
@@ -29,7 +32,7 @@ export function SearchBar({ onClick }: SearchBarProps) {
       </span>
 
       <span className="font-sans text-body-sm font-medium text-sage-mute">
-        Cari hentian atau laluan…
+        {t('home.search.placeholder')}
       </span>
 
       {/* Coverage chips */}

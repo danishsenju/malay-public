@@ -16,6 +16,7 @@ function StopNameText({ name }: { name: string }) {
   )
 }
 import { useRouter } from 'next/navigation'
+import { useLang } from '@/lib/i18n'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
 import { useRealtimeVehicles } from '@/hooks/useRealtimeVehicles'
 import { useLastTrain } from '@/hooks/useLastTrain'
@@ -134,6 +135,7 @@ interface SheetBodyProps {
 }
 
 function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
+  const { t } = useLang()
   const router = useRouter()
   const { arrivals, isLoading } = useUpcomingArrivals(stop.stop_id, stop.network)
   const live = useRealtimeVehicles()
@@ -192,7 +194,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
             {/* Delay Receipt — turn this departure board into a shareable ticket */}
             <button
               type="button"
-              aria-label="Kongsi resit perjalanan"
+              aria-label={t('sheet.share')}
               onClick={() => openReceipt(arrivals[0] ?? null)}
               className="flex h-9 w-9 items-center justify-center rounded-full-3 border-2 border-ink-black bg-white-plate text-ink-black active:scale-[0.97]"
               style={{ transition: 'transform 160ms var(--ease-out)' }}
@@ -215,7 +217,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
             {/* Save / unsave — fills lime when saved */}
             <button
               type="button"
-              aria-label={isSaved ? 'Buang daripada disimpan' : 'Simpan hentian ini'}
+              aria-label={isSaved ? t('sheet.removeAria') : t('sheet.saveAria')}
               onClick={isSaved ? onRemove : onSave}
               className="flex h-9 w-9 items-center justify-center rounded-full-3 border-2 border-ink-black text-ink-black active:scale-[0.97]"
               style={{
@@ -243,7 +245,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
           </>
         ) : arrivals.length === 0 ? (
           <p className="py-48 text-center font-sans text-body-sm text-sage-mute">
-            Tiada ketibaan dalam 90 minit akan datang
+            {t('sheet.noArrivals')}
           </p>
         ) : (
           arrivals.map((a, i) => (

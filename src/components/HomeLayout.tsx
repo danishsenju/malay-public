@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 import { NearbySection } from './NearbySection'
 import { NetworkPulse } from './NetworkPulse'
-import { NavRow } from './NavRow'
+import { HeaderNav } from './AppNav'
+import { BrandMark } from './BrandMark'
 import { SearchBar } from './SearchBar'
 import { SearchOverlay } from './SearchOverlay'
 import { SavedSection } from './SavedSection'
@@ -11,18 +12,17 @@ import { SmartCommuteCard } from './SmartCommuteCard'
 import { StopSheet } from './StopSheet'
 import { useCommutePattern } from '@/hooks/useCommutePattern'
 import { useSavedStops } from '@/hooks/useSavedStops'
+import { useLang, LangToggle, type Lang } from '@/lib/i18n'
+import { STRINGS, DAYS, MONTHS, type StringKey } from '@/lib/strings'
 import type { NearbyStop } from '@/lib/types'
 
-// ── Time-aware Malay greeting + date eyebrow ────────────────────────────────
+// ── Time-aware greeting + date eyebrow ──────────────────────────────────────
 
-const HARI  = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']
-const BULAN = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogos', 'Sep', 'Okt', 'Nov', 'Dis']
-
-function greetingFor(h: number): string {
-  if (h >= 5 && h < 12) return 'Selamat pagi'
-  if (h >= 12 && h < 15) return 'Selamat tengah hari'
-  if (h >= 15 && h < 19) return 'Selamat petang'
-  return 'Selamat malam'
+function greetKeyFor(h: number): StringKey {
+  if (h >= 5 && h < 12) return 'home.greet.morning'
+  if (h >= 12 && h < 15) return 'home.greet.midday'
+  if (h >= 15 && h < 19) return 'home.greet.evening'
+  return 'home.greet.night'
 }
 
 interface Clock {
@@ -32,31 +32,37 @@ interface Clock {
 }
 
 // Client-only snapshot: null during SSR/hydration, then the greeting for the
-// moment the page loaded. Cached so getSnapshot stays referentially stable.
+// moment the page loaded. Cached per language so getSnapshot stays
+// referentially stable between renders.
 const emptySubscribe = () => () => {}
 const getServerClock = () => null
-let clockSnapshot: Clock | null = null
-function getClockSnapshot(): Clock {
-  if (!clockSnapshot) {
+const clockCache: Partial<Record<Lang, Clock>> = {}
+function clockSnapshotFor(lang: Lang): Clock {
+  let snap = clockCache[lang]
+  if (!snap) {
     const d = new Date()
-    const [head, ...rest] = greetingFor(d.getHours()).split(' ')
-    clockSnapshot = {
+    const [head, ...rest] = STRINGS[lang][greetKeyFor(d.getHours())].split(' ')
+    snap = {
       greetHead: head,
       greetTail: rest.join(' '),
-      dateLabel: `${HARI[d.getDay()]} · ${d.getDate()} ${BULAN[d.getMonth()]}`,
+      dateLabel: `${DAYS[lang][d.getDay()]} · ${d.getDate()} ${MONTHS[lang][d.getMonth()]}`,
     }
+    clockCache[lang] = snap
   }
-  return clockSnapshot
+  return snap
 }
 
 // ── Ticker ──────────────────────────────────────────────────────────────────
 // Decorative → aria-hidden. On desktop it stays within the left column
 // (lg:mx-0 + lg:rounded-lg); on mobile it bleeds edge-to-edge (mx-[-20px]).
 
-const TICKER_ITEMS = ['LRT', 'MRT', 'MONOREL', 'KTM KOMUTER', 'BAS RAPIDKL', 'MASA NYATA']
+const TICKER_ITEMS: Record<Lang, string[]> = {
+  ms: ['LRT', 'MRT', 'MONOREL', 'KTM KOMUTER', 'BAS RAPIDKL', 'MASA NYATA'],
+  en: ['LRT', 'MRT', 'MONORAIL', 'KTM KOMUTER', 'RAPIDKL BUS', 'REAL-TIME'],
+}
 
-function Ticker() {
-  const run = TICKER_ITEMS.map(t => `${t} ◆ `).join('')
+function Ticker({ lang }: { lang: Lang }) {
+  const run = TICKER_ITEMS[lang].map(t => `${t} ◆ `).join('')
   return (
     <div
       aria-hidden
@@ -77,6 +83,7 @@ function Ticker() {
 // ── Layout ──────────────────────────────────────────────────────────────────
 
 export function HomeLayout() {
+  const { lang } = useLang()
   const [selectedStop, setSelectedStop] = useState<NearbyStop | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { saved, save, remove, isSaved, hydrated } = useSavedStops()
@@ -88,6 +95,7 @@ export function HomeLayout() {
     setSelectedStop(stop)
   }
 
+  const getClockSnapshot = useCallback(() => clockSnapshotFor(lang), [lang])
   const clock = useSyncExternalStore(emptySubscribe, getClockSnapshot, getServerClock)
 
   return (
@@ -95,22 +103,28 @@ export function HomeLayout() {
       {/* ── Masthead — expands to max-w-6xl on desktop ───────────────────── */}
       <header className="sticky top-0 z-20 bg-linen-canvas/85 px-16 pb-10 pt-3 backdrop-blur-md lg:px-[32px]">
         <div className="mx-auto max-w-md lg:max-w-6xl">
-          <div className="plate shadow-plate-sm flex items-center justify-between rounded-full-2 px-18 py-2.25">
-            <span className="font-mono text-body-sm font-bold tracking-[-0.01em] text-ink-black">
-              Sampai&nbsp;Bila?
-            </span>
+          <div className="plate shadow-plate-sm flex items-center justify-between rounded-full-2 py-2.25 pl-2.5 pr-18">
+            <BrandMark />
 
-            {/* LIVE chip */}
-            <span className="flex items-center gap-1.75 rounded-full-2 border-2 border-ink-black bg-lime-spark px-10 py-0.75">
-              <span className="relative flex h-1.75 w-1.75" aria-hidden>
-                <span
-                  className="absolute inset-0 rounded-full-3 bg-forest-ink"
-                  style={{ animation: 'livePulseRing 2s ease-out infinite' }}
-                />
-                <span className="relative h-1.75 w-1.75 rounded-full-3 bg-forest-ink" />
-              </span>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-ink-black">
-                Live
+            {/* Desktop: nav lives in the masthead pill itself */}
+            <HeaderNav />
+
+            <span className="flex items-center gap-8">
+              {/* Language switch */}
+              <LangToggle />
+
+              {/* LIVE chip */}
+              <span className="flex items-center gap-1.75 rounded-full-2 border-2 border-ink-black bg-lime-spark px-10 py-0.75">
+                <span className="relative flex h-1.75 w-1.75" aria-hidden>
+                  <span
+                    className="absolute inset-0 rounded-full-3 bg-forest-ink"
+                    style={{ animation: 'livePulseRing 2s ease-out infinite' }}
+                  />
+                  <span className="relative h-1.75 w-1.75 rounded-full-3 bg-forest-ink" />
+                </span>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-ink-black">
+                  Live
+                </span>
               </span>
             </span>
           </div>
@@ -156,7 +170,7 @@ export function HomeLayout() {
 
             {/* Ticker band */}
             <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 60ms both' }}>
-              <Ticker />
+              <Ticker lang={lang} />
             </div>
 
             {/* Search */}
@@ -164,13 +178,8 @@ export function HomeLayout() {
               <SearchBar onClick={() => setIsSearchOpen(true)} />
             </div>
 
-            {/* Primary destinations */}
-            <div className="mt-16" style={{ animation: 'riseIn 340ms var(--ease-out) 160ms both' }}>
-              <NavRow />
-            </div>
-
             {/* Network Pulse — the live heartbeat of the whole country */}
-            <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 200ms both' }}>
+            <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 160ms both' }}>
               <NetworkPulse />
             </div>
 

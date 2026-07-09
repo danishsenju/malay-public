@@ -2,6 +2,7 @@
 
 import { SectionLabel } from './SectionLabel'
 import { FlapCountdown } from './FlapCountdown'
+import { useLang } from '@/lib/i18n'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
 import { getRailLine } from '@/lib/transit'
 import type { NearbyStop } from '@/lib/types'
@@ -17,21 +18,22 @@ interface SmartCommuteCardProps {
  * search. The best interaction is the one removed.
  */
 export function SmartCommuteCard({ stop, onSelect }: SmartCommuteCardProps) {
+  const { t } = useLang()
   const { arrivals, isLoading } = useUpcomingArrivals(stop.stop_id, stop.network)
   const next = arrivals[0] ?? null
   const line = stop.network === 'rapid-rail-kl' ? getRailLine(stop.stop_id) : null
 
   return (
     <section>
-      <SectionLabel trailing="dipelajari pada peranti anda">
-        Rutin anda
+      <SectionLabel trailing={t('home.routine.learned')}>
+        {t('home.routine')}
       </SectionLabel>
 
       <div className="mt-14" style={{ animation: 'cardEnter 250ms var(--ease-out) both' }}>
         <button
           type="button"
           onClick={() => onSelect(stop)}
-          aria-label={`Rutin anda: ${stop.stop_name}`}
+          aria-label={`${t('home.routine')}: ${stop.stop_name}`}
           className="
             plate pressable w-full rounded-2xl bg-leaf-wash p-16 text-left
             flex items-center justify-between gap-14 text-ink-black
@@ -52,8 +54,8 @@ export function SmartCommuteCard({ stop, onSelect }: SmartCommuteCardProps) {
             </span>
             <span className="mt-4 block font-mono text-[11px] font-medium text-sage-mute">
               {next
-                ? `Seterusnya ${next.scheduled_time}${next.trip_headsign ? ` · ${next.trip_headsign}` : ''}`
-                : isLoading ? 'Menyemak jadual…' : 'Tiada perkhidmatan sekarang'}
+                ? `${t('home.routine.next')} ${next.scheduled_time}${next.trip_headsign ? ` · ${next.trip_headsign}` : ''}`
+                : isLoading ? t('home.routine.checking') : t('home.routine.noService')}
             </span>
           </span>
 
