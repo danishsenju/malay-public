@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { NearbySection } from './NearbySection'
 import { NetworkPulse } from './NetworkPulse'
 import { NavRow } from './NavRow'
@@ -29,6 +29,24 @@ interface Clock {
   greetHead: string
   greetTail: string
   dateLabel: string
+}
+
+// Client-only snapshot: null during SSR/hydration, then the greeting for the
+// moment the page loaded. Cached so getSnapshot stays referentially stable.
+const emptySubscribe = () => () => {}
+const getServerClock = () => null
+let clockSnapshot: Clock | null = null
+function getClockSnapshot(): Clock {
+  if (!clockSnapshot) {
+    const d = new Date()
+    const [head, ...rest] = greetingFor(d.getHours()).split(' ')
+    clockSnapshot = {
+      greetHead: head,
+      greetTail: rest.join(' '),
+      dateLabel: `${HARI[d.getDay()]} · ${d.getDate()} ${BULAN[d.getMonth()]}`,
+    }
+  }
+  return clockSnapshot
 }
 
 // ── Ticker ──────────────────────────────────────────────────────────────────
@@ -70,17 +88,7 @@ export function HomeLayout() {
     setSelectedStop(stop)
   }
 
-  const [clock, setClock] = useState<Clock | null>(null)
-  useEffect(() => {
-    const d = new Date()
-    const greeting = greetingFor(d.getHours())
-    const [head, ...rest] = greeting.split(' ')
-    setClock({
-      greetHead: head,
-      greetTail: rest.join(' '),
-      dateLabel: `${HARI[d.getDay()]} · ${d.getDate()} ${BULAN[d.getMonth()]}`,
-    })
-  }, [])
+  const clock = useSyncExternalStore(emptySubscribe, getClockSnapshot, getServerClock)
 
   return (
     <>

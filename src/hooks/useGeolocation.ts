@@ -21,8 +21,10 @@ export function useGeolocation(): GeolocationResult {
 
   useEffect(() => {
     if (!navigator?.geolocation) {
-      setIsPending(false)
-      return
+      // No geolocation API — resolve on the next tick, matching the async
+      // shape of the supported path.
+      const id = window.setTimeout(() => setIsPending(false), 0)
+      return () => window.clearTimeout(id)
     }
 
     navigator.geolocation.getCurrentPosition(

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { getRailLine } from '@/lib/transit'
 
@@ -282,8 +282,8 @@ interface StopSheetProps {
 export function StopSheet({ stop, onClose, isSaved, onSave, onRemove }: StopSheetProps) {
   // Retain the last non-null stop so SheetBody stays mounted during vaul's close
   // animation — prevents a flash of empty content while the drawer slides down.
-  const lastStop = useRef(stop)
-  if (stop !== null) lastStop.current = stop
+  const [lastStop, setLastStop] = useState(stop)
+  if (stop !== null && stop !== lastStop) setLastStop(stop)
 
   return (
     <Drawer.Root
@@ -294,12 +294,12 @@ export function StopSheet({ stop, onClose, isSaved, onSave, onRemove }: StopShee
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-ink-black/40" />
         <Drawer.Content className="fixed inset-x-0 bottom-0 max-h-[85dvh] rounded-t-3xl-2 border-t-2 border-ink-black bg-linen-canvas outline-none">
-          {lastStop.current && (
+          {lastStop && (
             <SheetBody
-              stop={lastStop.current}
+              stop={lastStop}
               isSaved={isSaved}
-              onSave={() => lastStop.current && onSave(lastStop.current)}
-              onRemove={() => lastStop.current && onRemove(lastStop.current)}
+              onSave={() => onSave(lastStop)}
+              onRemove={() => onRemove(lastStop)}
             />
           )}
         </Drawer.Content>

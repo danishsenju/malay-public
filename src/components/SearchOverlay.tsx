@@ -55,6 +55,13 @@ interface SearchOverlayProps {
 }
 
 export function SearchOverlay({ isOpen, onClose, onSelect }: SearchOverlayProps) {
+  // The panel holds all search state, so closing unmounts it and reopening
+  // starts fresh — no reset-state-in-effect needed.
+  if (!isOpen) return null
+  return <SearchPanel onClose={onClose} onSelect={onSelect} />
+}
+
+function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) {
   const [query,      setQuery]      = useState('')
   const [filter,     setFilter]     = useState<Filter>('all')
   const [results,    setResults]    = useState<NearbyStop[]>([])
@@ -62,25 +69,20 @@ export function SearchOverlay({ isOpen, onClose, onSelect }: SearchOverlayProps)
   const inputRef = useRef<HTMLInputElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Reset + focus when opened
+  // Focus the input once mounted (after the enter animation starts)
   useEffect(() => {
-    if (!isOpen) return
-    setQuery('')
-    setResults([])
-    setFilter('all')
     const t = setTimeout(() => inputRef.current?.focus(), 100)
     return () => clearTimeout(t)
-  }, [isOpen])
+  }, [])
 
   // Keyboard escape
   useEffect(() => {
-    if (!isOpen) return
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isOpen, onClose])
+  }, [onClose])
 
   async function doSearch(q: string, net: Filter) {
     if (q.trim().length < 2) { setResults([]); return }
@@ -114,8 +116,6 @@ export function SearchOverlay({ isOpen, onClose, onSelect }: SearchOverlayProps)
     onClose()
     onSelect(stop)
   }
-
-  if (!isOpen) return null
 
   const hasQuery   = query.trim().length >= 2
   const hasResults = results.length > 0
