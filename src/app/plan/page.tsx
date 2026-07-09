@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { SearchOverlay } from '@/components/SearchOverlay'
+import { JourneyDetailSheet } from '@/components/JourneyDetailSheet'
 import { getRailLine } from '@/lib/transit'
 import { getSupabase } from '@/lib/supabase'
 import { BrandMark } from '@/components/BrandMark'
@@ -114,12 +115,13 @@ function WalkRow({ transfer, label, sameStationLabel, walkLabel }: {
 }
 
 function OptionCard({
-  option, index, fallbackFrom, fallbackTo,
+  option, index, fallbackFrom, fallbackTo, onOpen,
 }: {
   option: JourneyOption
   index: number
   fallbackFrom: string
   fallbackTo: string
+  onOpen: (option: JourneyOption) => void
 }) {
   const { t } = useLang()
   const nTransfers = option.legs.length - 1
@@ -130,7 +132,15 @@ function OptionCard({
 
   return (
     <li style={{ animation: `cardEnter 250ms var(--ease-out) ${index * 60}ms both` }}>
-      <div className="plate shadow-plate rounded-2xl p-16">
+      <button
+        type="button"
+        onClick={() => onOpen(option)}
+        className="
+          plate pressable shadow-plate w-full rounded-2xl p-16 text-left
+          [@media(hover:hover)_and_(pointer:fine)]:hover:bg-leaf-wash/60
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-cobalt-band focus-visible:ring-offset-2 focus-visible:ring-offset-linen-canvas
+        "
+      >
         {/* Times + duration */}
         <div className="flex items-center justify-between gap-14">
           <span className="font-mono text-[26px] font-bold leading-none tracking-[-0.02em] text-ink-black tabular-nums">
@@ -143,8 +153,14 @@ function OptionCard({
           </span>
         </div>
 
-        <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-sage-mute">
+        <p className="mt-2 flex items-center justify-between gap-10 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-sage-mute">
           {transfersLabel}
+          <span className="flex shrink-0 items-center gap-4 normal-case tracking-normal text-sage-mute/80">
+            {t('plan.details')}
+            <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
         </p>
 
         {/* Legs joined by walk rows */}
@@ -189,7 +205,7 @@ function OptionCard({
             />
           )}
         </div>
-      </div>
+      </button>
     </li>
   )
 }
@@ -322,6 +338,7 @@ export default function PlanPage() {
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
   const [locating, setLocating] = useState(false)
+  const [detailOption, setDetailOption] = useState<JourneyOption | null>(null)
 
   const search = useCallback(async (a: NearbyStop, b: NearbyStop) => {
     setLoading(true)
@@ -366,10 +383,12 @@ export default function PlanPage() {
     navigator.geolocation.getCurrentPosition(
       async pos => {
         try {
+          // Wide ring — even a user far from any stop gets their nearest
+          // boarding point instead of a silent no-op.
           const { data } = await getSupabase().rpc('nearby_stops', {
             p_lat: pos.coords.latitude,
             p_lon: pos.coords.longitude,
-            p_radius_m: 1500,
+            p_radius_m: 20_000,
             p_limit: 4,
           })
           const stops = (data ?? []) as NearbyStop[]
@@ -526,6 +545,7 @@ export default function PlanPage() {
                     index={i}
                     fallbackFrom={from?.stop_name ?? ''}
                     fallbackTo={to?.stop_name ?? ''}
+                    onOpen={setDetailOption}
                   />
                 ))}
               </ol>
@@ -539,6 +559,9 @@ export default function PlanPage() {
         {/* ── Places you can reach by transit ── */}
         <PlacesSection onPick={pickPlace} />
       </div>
+
+      {/* ── Journey detail sheet — tap a card to see the full breakdown ── */}
+      <JourneyDetailSheet option={detailOption} onClose={() => setDetailOption(null)} />
 
       {/* ── Stop picker overlay (shared search UI) ── */}
       <SearchOverlay

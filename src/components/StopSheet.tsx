@@ -20,6 +20,8 @@ import { useLang } from '@/lib/i18n'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
 import { useRealtimeVehicles } from '@/hooks/useRealtimeVehicles'
 import { useLastTrain } from '@/hooks/useLastTrain'
+import { useNow } from '@/hooks/useNow'
+import { liveMinutesUntil } from '@/lib/liveTime'
 import { ArrivalCard } from './ArrivalCard'
 import type { Arrival, NearbyStop } from '@/lib/types'
 
@@ -139,6 +141,13 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
   const router = useRouter()
   const { arrivals, isLoading } = useUpcomingArrivals(stop.stop_id, stop.network)
   const live = useRealtimeVehicles()
+  const now = useNow()
+
+  // Live countdown — same ticking-clock math as NearbySection, so the sheet
+  // never shows a stale "1 min" while the vehicle has already left.
+  const liveArrivals = arrivals
+    .map(a => ({ ...a, minutes_until: liveMinutesUntil(a.arr_secs, now) }))
+    .filter(a => a.minutes_until >= 0)
 
   // Delay Receipt — snapshot the departure board into a shareable ticket.
   function openReceipt(next: Arrival | null) {
@@ -195,7 +204,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
             <button
               type="button"
               aria-label={t('sheet.share')}
-              onClick={() => openReceipt(arrivals[0] ?? null)}
+              onClick={() => openReceipt(liveArrivals[0] ?? null)}
               className="flex h-9 w-9 items-center justify-center rounded-full-3 border-2 border-ink-black bg-white-plate text-ink-black active:scale-[0.97]"
               style={{ transition: 'transform 160ms var(--ease-out)' }}
             >
@@ -243,12 +252,12 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
             <SkeletonRow />
             <SkeletonRow />
           </>
-        ) : arrivals.length === 0 ? (
+        ) : liveArrivals.length === 0 ? (
           <p className="py-48 text-center font-sans text-body-sm text-sage-mute">
             {t('sheet.noArrivals')}
           </p>
         ) : (
-          arrivals.map((a, i) => (
+          liveArrivals.map((a, i) => (
             <ArrivalCard
               key={`${a.trip_id}:${a.arr_secs}`}
               routeShortName={a.route_short_name ?? stop.network.toUpperCase()}

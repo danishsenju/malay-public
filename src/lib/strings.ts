@@ -19,6 +19,7 @@ const ms = {
   'nav.home': 'Utama',
   'nav.map': 'Peta',
   'nav.plan': 'Rancang',
+  'nav.ktmb': 'KTM',
   'nav.report': 'Laporan',
   'nav.status': 'Status',
 
@@ -36,6 +37,8 @@ const ms = {
   'home.nearby.noneWithin': 'Tiada hentian dalam',
   'home.nearby.geoDenied': 'Akses lokasi ditolak — menunjukkan sekitar KL Sentral',
   'home.nearby.getCloser': 'Cuba dekati mana-mana hentian transit',
+  'home.nearby.detect': 'Kesan lokasi saya',
+  'home.nearby.locating': 'Mengesan lokasi…',
   'home.saved': 'Disimpan',
   'home.saved.empty': 'Simpan hentian yang kerap anda guna — ia muncul di sini dahulu.',
   'home.routine': 'Rutin anda',
@@ -88,6 +91,12 @@ const ms = {
   'plan.transfers.0': 'Terus',
   'plan.transfers.1': '1 pertukaran',
   'plan.transfers.n': 'pertukaran',
+  'plan.details': 'Ketuk untuk perincian',
+  'plan.detail.title': 'Perincian perjalanan',
+  'plan.detail.board': 'Naik di',
+  'plan.detail.alight': 'Turun di',
+  'plan.detail.depart': 'Bertolak',
+  'plan.detail.arrive': 'Tiba',
 
   // ── Places (malls / hospitals / attractions) ───────────────────────────────
   'places.title': 'Pergi ke tempat menarik',
@@ -110,6 +119,11 @@ const ms = {
   'map.bus': 'bas',
   'map.liveSuffix': 'langsung',
   'map.maybeLate': '· data mungkin lewat',
+  'map.locate': 'Lokasi saya',
+  'map.locating': 'Mengesan…',
+  'map.nearbyBuses': 'bas berdekatan anda',
+  'map.noNearbyBuses': 'Tiada bas dalam 3 km — pilih laluan untuk lihat semua bas',
+  'map.locateHint': 'Kesan lokasi anda untuk lihat bas berdekatan, atau pilih laluan',
 
   // ── Stop sheet ─────────────────────────────────────────────────────────────
   'sheet.save': 'Simpan',
@@ -136,6 +150,7 @@ const en: Record<StringKey, string> = {
   'nav.home': 'Home',
   'nav.map': 'Map',
   'nav.plan': 'Plan',
+  'nav.ktmb': 'KTM',
   'nav.report': 'Report',
   'nav.status': 'Status',
 
@@ -152,6 +167,8 @@ const en: Record<StringKey, string> = {
   'home.nearby.noneWithin': 'No stops within',
   'home.nearby.geoDenied': 'Location denied — showing around KL Sentral',
   'home.nearby.getCloser': 'Try getting closer to any transit stop',
+  'home.nearby.detect': 'Detect my location',
+  'home.nearby.locating': 'Locating…',
   'home.saved': 'Saved',
   'home.saved.empty': 'Save the stops you use often — they show up here first.',
   'home.routine': 'Your routine',
@@ -202,6 +219,12 @@ const en: Record<StringKey, string> = {
   'plan.transfers.0': 'Direct',
   'plan.transfers.1': '1 transfer',
   'plan.transfers.n': 'transfers',
+  'plan.details': 'Tap for details',
+  'plan.detail.title': 'Journey details',
+  'plan.detail.board': 'Board at',
+  'plan.detail.alight': 'Alight at',
+  'plan.detail.depart': 'Depart',
+  'plan.detail.arrive': 'Arrive',
 
   'places.title': 'Go somewhere great',
   'places.desc': 'All reachable by public transport — tap one to set it as your destination.',
@@ -222,6 +245,11 @@ const en: Record<StringKey, string> = {
   'map.bus': 'bus',
   'map.liveSuffix': 'live',
   'map.maybeLate': '· data may be delayed',
+  'map.locate': 'My location',
+  'map.locating': 'Locating…',
+  'map.nearbyBuses': 'buses near you',
+  'map.noNearbyBuses': 'No buses within 3 km — pick a route to see all buses',
+  'map.locateHint': 'Detect your location to see nearby buses, or pick a route',
 
   'sheet.save': 'Save',
   'sheet.saved': 'Saved',
@@ -243,3 +271,33 @@ export const MONTHS = {
   ms: ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogos', 'Sep', 'Okt', 'Nov', 'Dis'],
   en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 } as const
+
+/**
+ * Feel-good one-liners shown under the greeting. The voice: a friend who SEES
+ * the commuter — the early alarms, the packed train, the sweat of going to
+ * work, the loved ones waiting at home — and makes it all feel worth it.
+ * Kept short so they sit on one or two lines, warm Malaysian "kau" register,
+ * never preachy. Pick one at random per visit (client-side — see HomeLayout).
+ */
+export const QUOTES: { ms: string; en: string }[] = [
+  { ms: 'Titik peluh pagi ini bukan sia-sia — ada senyuman menunggu kau di rumah.', en: "This morning's sweat isn't for nothing — there's a smile waiting for you at home." },
+  { ms: 'Kau bukan sekadar pergi kerja. Kau sedang bina masa depan orang tersayang.', en: "You're not just going to work — you're building a future for the people you love." },
+  { ms: 'Penat hari ini, rezeki esok. Semangat!', en: "Today's tiredness is tomorrow's rezeki. Keep going!" },
+  { ms: 'Setiap perjalanan pagi ini, ada yang doakan kau selamat sampai.', en: 'Someone prayed for you to arrive safely today.' },
+  { ms: 'Peluh tu tanda kau berjuang. Bangga dengan diri sendiri.', en: "That sweat means you're fighting for something. Be proud of yourself." },
+  { ms: 'Jauh mana pun perjalanan, rumah tetap tunggu kau pulang.', en: 'However far you travel, home will always wait for you.' },
+  { ms: 'Kerja keras kau hari ini, cerita bangga keluarga esok.', en: "Your hard work today is your family's proud story tomorrow." },
+  { ms: 'Sarapan boleh tertinggal, tapi semangat jangan.', en: 'You can skip breakfast, but never skip your spirit.' },
+  { ms: 'Tren sesak pun, hati kau tetap luas. Terima kasih sebab tak putus asa.', en: 'The train may be packed, but your heart is bigger. Thank you for not giving up.' },
+  { ms: 'Ada kesayangan tunggu di rumah — sebab paling cantik untuk pulang dengan selamat.', en: 'Someone you love is waiting at home — the most beautiful reason to travel safe.' },
+  { ms: 'Bukan senang bangun awal setiap hari. Tapi kau buat jugak. Hebat.', en: "Waking up early every day isn't easy. But you do it anyway. That's strength." },
+  { ms: 'Gaji masuk sebulan sekali, tapi usaha kau masuk setiap hari.', en: 'Payday comes once a month, but your effort shows up every single day.' },
+  { ms: 'Perjalanan jauh hari ini, langkah dekat ke impian kau.', en: "Today's long commute is one step closer to your dreams." },
+  { ms: 'Letih itu sementara. Bangga keluarga pada kau, kekal.', en: "Tiredness is temporary. Your family's pride in you is forever." },
+  { ms: 'Tak perlu sempurna hari ini — cukup sekadar hadir dan cuba.', en: "You don't have to be perfect today — showing up is already enough." },
+  { ms: 'Setiap stesen yang kau lalui, satu pengorbanan yang orang rumah hargai.', en: 'Every station you pass is a sacrifice someone at home appreciates.' },
+  { ms: 'Malam ini, balik dan peluk orang yang kau sayang. Kau layak.', en: "Tonight, go home and hug the ones you love. You've earned it." },
+  { ms: 'Rezeki tak pernah tersalah alamat. Teruskan usaha.', en: 'Rezeki never gets lost in the mail. Keep at it.' },
+  { ms: 'Kau penat sebab kau berusaha. Itu bukan kelemahan — itu bukti.', en: "You're tired because you're trying. That's not weakness — that's proof." },
+  { ms: 'Perjalanan pulang terasa lebih ringan bila tahu ada yang menanti.', en: 'The ride home always feels lighter when someone is waiting.' },
+]

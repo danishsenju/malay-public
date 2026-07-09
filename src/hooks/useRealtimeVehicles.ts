@@ -10,8 +10,8 @@ async function fetchFeed(url: string): Promise<VehicleFeedResponse> {
 }
 
 export function useRealtimeVehicles() {
-  const { data: busData }  = useSWR<VehicleFeedResponse>('/api/vehicles/bus?category=rapid-bus-kl', fetchFeed, { refreshInterval: 15_000, revalidateOnFocus: false })
-  const { data: ktmbData } = useSWR<VehicleFeedResponse>('/api/vehicles/ktmb',                      fetchFeed, { refreshInterval: 15_000, revalidateOnFocus: false })
+  const { data: busData }  = useSWR<VehicleFeedResponse>('/api/vehicles/bus?category=rapid-bus-kl', fetchFeed, { refreshInterval: 15_000, revalidateOnFocus: true })
+  const { data: ktmbData } = useSWR<VehicleFeedResponse>('/api/vehicles/ktmb',                      fetchFeed, { refreshInterval: 15_000, revalidateOnFocus: true })
 
   return {
     hasLiveBus:  (busData?.vehicles.length  ?? 0) > 0 && !busData?.stale,

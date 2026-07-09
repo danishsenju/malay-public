@@ -19,6 +19,8 @@ import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNearbyStops } from '@/hooks/useNearbyStops'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
 import { useRealtimeVehicles } from '@/hooks/useRealtimeVehicles'
+import { useNow } from '@/hooks/useNow'
+import { liveMinutesUntil } from '@/lib/liveTime'
 import { ArrivalCard } from './ArrivalCard'
 import { SectionLabel } from './SectionLabel'
 import type { NearbyStop } from '@/lib/types'
@@ -63,6 +65,14 @@ interface StopGroupProps {
 function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelect }: StopGroupProps) {
   const { t } = useLang()
   const { arrivals, isLoading } = useUpcomingArrivals(stop.stop_id, stop.network)
+  const now = useNow()
+
+  // Recompute minutes against the ticking clock so the flap board counts down
+  // in real time between polls — never a "1 min" frozen on screen. Rows whose
+  // scheduled time has passed drop out immediately.
+  const liveArrivals = arrivals
+    .map(a => ({ ...a, minutes_until: liveMinutesUntil(a.arr_secs, now) }))
+    .filter(a => a.minutes_until >= 0)
 
   const isLive = stop.network === 'rapid-bus-kl' ? hasLiveBus
                : stop.network === 'ktmb'          ? hasLiveKtmb
@@ -97,14 +107,14 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
           <SkeletonCard />
           <SkeletonCard />
         </div>
-      ) : arrivals.length === 0 ? (
+      ) : liveArrivals.length === 0 ? (
         <p className="py-4 font-sans text-[13px] text-sage-mute">
           {t('home.nearby.noArrivals')}
         </p>
       ) : (
         /* Mobile: horizontal snap-scroll. Desktop (lg): 2-col grid (xl: 3-col). */
         <div className="mx-[-20px] flex gap-3 overflow-x-auto px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-x-visible lg:px-0 xl:grid-cols-3">
-          {arrivals.slice(0, 3).map((a, i) => (
+          {liveArrivals.slice(0, 3).map((a, i) => (
             <div
               key={`${a.trip_id}:${a.arr_secs}`}
               className="min-w-[260px] max-w-[260px] shrink-0 snap-start lg:min-w-0 lg:max-w-none lg:shrink"
@@ -141,12 +151,44 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
   const { stops, isLoading, error, radiusUsed } = useNearbyStops(geo.lat, geo.lon)
   const liveStatus                              = useRealtimeVehicles()
 
-  const showSkeleton  = geo.isPending || isLoading
-  const locationLabel = geo.isDefault ? 'KL Sentral' : t('home.nearby.nearYou')
+  const showSkeleton = geo.isPending || isLoading
+
+  // Detect-location button — lives in the section header so "near WHERE?" is
+  // always one tap from being answered with a fresh, exact GPS fix.
+  const locateLabel = geo.isPending ? t('home.nearby.locating')
+                    : geo.isDefault ? t('home.nearby.detect')
+                    : t('home.nearby.nearYou')
+
+  const locateButton = (
+    <button
+      type="button"
+      onClick={geo.refresh}
+      disabled={geo.isPending}
+      className="
+        flex items-center gap-6 rounded-full-2 border-2 border-ink-black bg-white-plate
+        px-10 py-2 font-mono text-[10px] font-bold uppercase tracking-widest text-ink-black
+        active:scale-[0.96] disabled:opacity-50
+      "
+      style={{ transition: 'transform 140ms var(--ease-out)' }}
+    >
+      <svg aria-hidden className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-4.5-4-7-7.2-7-10.2A7 7 0 0 1 12 4a7 7 0 0 1 7 6.8c0 3-2.5 6.2-7 10.2Z" />
+        <circle cx="12" cy="10.8" r="2.5" />
+      </svg>
+      {locateLabel}
+    </button>
+  )
 
   return (
     <section className="space-y-18">
-      <SectionLabel trailing={locationLabel}>{t('home.nearby')}</SectionLabel>
+      <SectionLabel trailing={locateButton}>{t('home.nearby')}</SectionLabel>
+
+      {/* Location denied — say so honestly instead of quietly showing KL Sentral */}
+      {!geo.isPending && geo.status === 'denied' && (
+        <p className="font-sans text-caption leading-relaxed text-sage-mute">
+          {t('home.nearby.geoDenied')}
+        </p>
+      )}
 
       {/* Skeleton while geo + stops resolve */}
       {showSkeleton && (

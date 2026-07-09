@@ -25,6 +25,12 @@ interface LiveMapProps {
   fitPoints: [number, number][] | null
   /** Changes when the thing we should frame changes (route id or network). */
   fitToken: string
+  /** The user's real position (null until geolocation resolves). */
+  userPos: [number, number] | null
+  /** Tooltip label for the user marker (localised upstream). */
+  userLabel: string
+  /** Increments each time the user taps "my location" — fly the view there. */
+  flyToken: number
 }
 
 /** Frames the view around `points` exactly ONCE per `token` — as soon as the
@@ -48,7 +54,21 @@ function FitBounds({ points, token }: { points: [number, number][] | null; token
   return null
 }
 
-export function LiveMap({ vehicles, shape, stations, staticLines, fitPoints, fitToken }: LiveMapProps) {
+/** Flies the view to the user's position, once per locate tap. The position
+ *  can arrive AFTER the tap (a fresh GPS fix is async), so this re-fires when
+ *  either the token or the position lands — guarded by the last-flown token. */
+function FlyToUser({ pos, token }: { pos: [number, number] | null; token: number }) {
+  const map = useMap()
+  const lastFlown = useRef(0)
+  useEffect(() => {
+    if (!pos || token === 0 || lastFlown.current === token) return
+    map.flyTo(pos, Math.max(map.getZoom(), 15), { duration: 0.8 })
+    lastFlown.current = token
+  }, [pos, token, map])
+  return null
+}
+
+export function LiveMap({ vehicles, shape, stations, staticLines, fitPoints, fitToken, userPos, userLabel, flyToken }: LiveMapProps) {
   const lineColor = normalizeHex(shape?.color)
 
   return (
@@ -115,8 +135,29 @@ export function LiveMap({ vehicles, shape, stations, staticLines, fitPoints, fit
         </CircleMarker>
       ))}
 
+      {/* You are here — cobalt dot ringed in ink, halo underneath */}
+      {userPos && (
+        <>
+          <CircleMarker
+            center={userPos}
+            radius={11}
+            pathOptions={{ color: '#2665d6', weight: 1, opacity: 0.35, fillColor: '#2665d6', fillOpacity: 0.15 }}
+          />
+          <CircleMarker
+            center={userPos}
+            radius={6}
+            pathOptions={{ color: '#000000', weight: 2, fillColor: '#2665d6', fillOpacity: 1 }}
+          >
+            <Tooltip direction="top" offset={[0, -6]} opacity={1}>
+              {userLabel}
+            </Tooltip>
+          </CircleMarker>
+        </>
+      )}
+
       <VehicleLayer vehicles={vehicles} />
       <FitBounds points={fitPoints} token={fitToken} />
+      <FlyToUser pos={userPos} token={flyToken} />
     </MapContainer>
   )
 }

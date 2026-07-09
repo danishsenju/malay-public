@@ -13,7 +13,7 @@ import { StopSheet } from './StopSheet'
 import { useCommutePattern } from '@/hooks/useCommutePattern'
 import { useSavedStops } from '@/hooks/useSavedStops'
 import { useLang, LangToggle, type Lang } from '@/lib/i18n'
-import { STRINGS, DAYS, MONTHS, type StringKey } from '@/lib/strings'
+import { STRINGS, DAYS, MONTHS, QUOTES, type StringKey } from '@/lib/strings'
 import type { NearbyStop } from '@/lib/types'
 
 // ── Time-aware greeting + date eyebrow ──────────────────────────────────────
@@ -29,7 +29,13 @@ interface Clock {
   greetHead: string
   greetTail: string
   dateLabel: string
+  quote: string
 }
+
+// One positive quote per visit. Chosen once on the client (this whole snapshot
+// is client-only — getServerClock returns null — so there's no SSR/hydration
+// mismatch) and shared across languages, so toggling BM/EN keeps the same line.
+let quoteIndex: number | null = null
 
 // Client-only snapshot: null during SSR/hydration, then the greeting for the
 // moment the page loaded. Cached per language so getSnapshot stays
@@ -40,12 +46,14 @@ const clockCache: Partial<Record<Lang, Clock>> = {}
 function clockSnapshotFor(lang: Lang): Clock {
   let snap = clockCache[lang]
   if (!snap) {
+    if (quoteIndex === null) quoteIndex = Math.floor(Math.random() * QUOTES.length)
     const d = new Date()
     const [head, ...rest] = STRINGS[lang][greetKeyFor(d.getHours())].split(' ')
     snap = {
       greetHead: head,
       greetTail: rest.join(' '),
       dateLabel: `${DAYS[lang][d.getDay()]} · ${d.getDate()} ${MONTHS[lang][d.getMonth()]}`,
+      quote: QUOTES[quoteIndex][lang],
     }
     clockCache[lang] = snap
   }
@@ -166,6 +174,15 @@ export function HomeLayout() {
                   ' '
                 )}
               </h1>
+
+              {/* Feel-good line — a small positive nudge under the greeting.
+                  Seen every home visit, so it rides the hero's riseIn and adds
+                  no motion of its own (Emil: frequency rule). */}
+              {clock?.quote && (
+                <p className="mt-14 max-w-[36ch] font-sans text-body-sm font-medium leading-relaxed text-sage-mute">
+                  {clock.quote}
+                </p>
+              )}
             </div>
 
             {/* Ticker band */}

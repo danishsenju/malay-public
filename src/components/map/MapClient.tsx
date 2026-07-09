@@ -6,7 +6,9 @@ import useSWR from 'swr'
 import Link from 'next/link'
 import { NetworkRouteSelector, type MapNetwork } from './NetworkRouteSelector'
 import { useLang, LangToggle } from '@/lib/i18n'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import type { StaticLine } from './LiveMap'
+import { distanceMeters, vehicleMatchesRoute } from '@/lib/map'
 import type { MapVehicle, RouteSummary, ShapeResponse, Station } from '@/lib/map'
 
 const LiveMap = dynamic(() => import('./LiveMap').then(m => m.LiveMap), {
@@ -26,12 +28,25 @@ interface VehicleFeed {
   message?: string
 }
 
+// "Buses near you" search ring — when no route is picked but the user has
+// shared their location, we plot every live bus within this distance so the
+// bus physically in front of them is on the map.
+const NEARBY_RADIUS_M = 3_000
+
 export function MapClient() {
   const { t } = useLang()
   const [network, setNetwork] = useState<MapNetwork>('ktmb')
   const [selectedRoute, setSelectedRoute] = useState<RouteSummary | null>(null)
+  const geo = useGeolocation()
+  // Incremented on each "my location" tap — tells the map to fly there.
+  const [flyToken, setFlyToken] = useState(0)
 
   const isBus = network === 'rapid-bus-kl'
+
+  const userPos = useMemo<[number, number] | null>(
+    () => (geo.status === 'located' ? [geo.lat, geo.lon] : null),
+    [geo.status, geo.lat, geo.lon],
+  )
 
   // ── Data sources (null key disables the request) ──────────────────────────
   const { data: routes, isLoading: routesLoading } = useSWR<RouteSummary[]>(
@@ -61,28 +76,32 @@ export function MapClient() {
     { revalidateOnFocus: false },
   )
 
-  // Only poll the realtime feed we can actually plot: KTM always; bus only once
-  // a route is chosen (we filter to that route's vehicles).
+  // Poll whichever realtime feed the network needs. The bus feed is fetched
+  // even before a route is chosen — it powers "buses near you".
   const vehiclesKey = network === 'ktmb'
     ? '/api/vehicles/ktmb'
-    : selectedRoute
-      ? '/api/vehicles/bus?category=rapid-bus-kl'
-      : null
+    : '/api/vehicles/bus?category=rapid-bus-kl'
 
   const { data: feed, isLoading: feedLoading } = useSWR<VehicleFeed>(vehiclesKey, json, {
     refreshInterval: 15_000,
-    revalidateOnFocus: false,
+    revalidateOnFocus: true,
   })
 
   // ── Derived view state ────────────────────────────────────────────────────
   const vehicles = useMemo<MapVehicle[]>(() => {
     const all = feed?.vehicles ?? []
     if (network === 'ktmb') return all
-    if (!selectedRoute) return []
-    return all.filter(v => v.routeId === selectedRoute.route_id)
-  }, [feed, network, selectedRoute])
+    // Route chosen → loose matching (realtime route ids don't always equal the
+    // static ones byte-for-byte; strict equality dropped real buses).
+    if (selectedRoute) return all.filter(v => vehicleMatchesRoute(v.routeId, selectedRoute))
+    // No route → every live bus near the user's real position.
+    if (!userPos) return []
+    return all.filter(v => distanceMeters(v.lat, v.lon, userPos[0], userPos[1]) <= NEARBY_RADIUS_M)
+  }, [feed, network, selectedRoute, userPos])
 
-  const fitToken = network === 'ktmb' ? 'ktmb' : selectedRoute?.route_id ?? 'bus-none'
+  const fitToken = network === 'ktmb'
+    ? 'ktmb'
+    : selectedRoute?.route_id ?? (userPos ? 'bus-near-me' : 'bus-none')
 
   // What the initial view frames. Bus: the route shape. KTM: the active trains'
   // positions, so we open on live movement — falling back to all stations only
@@ -90,8 +109,12 @@ export function MapClient() {
   // FitBounds waits rather than framing a half-loaded (or wrong) target.
   const fitPoints = useMemo<[number, number][] | null>(() => {
     if (isBus) {
-      const pts = shape?.variants.flat() ?? []
-      return pts.length > 0 ? pts : null
+      if (selectedRoute) {
+        const pts = shape?.variants.flat() ?? []
+        return pts.length > 0 ? pts : null
+      }
+      // Nearby-bus mode — frame the user plus the buses around them.
+      return userPos ? [userPos, ...vehicles.map(v => [v.lat, v.lon] as [number, number])] : null
     }
     // KTM — wait for the realtime feed to resolve before deciding.
     if (!feed) return null
@@ -99,13 +122,17 @@ export function MapClient() {
     return stations && stations.length > 0
       ? stations.map(s => [s.stop_lat, s.stop_lon])
       : null
-  }, [isBus, shape, feed, vehicles, stations])
+  }, [isBus, selectedRoute, userPos, shape, feed, vehicles, stations])
 
-  const needsRoute = isBus && !selectedRoute
+  const nearbyMode = isBus && !selectedRoute
   const stale = feed?.stale ?? false
 
-  const statusText = needsRoute
-    ? t('map.pickBusRoute')
+  const statusText = nearbyMode
+    ? userPos === null
+      ? t('map.locateHint')
+      : vehicles.length === 0
+        ? t('map.noNearbyBuses')
+        : `${vehicles.length} ${t('map.nearbyBuses')}`
     : feedLoading && !feed
       ? t('map.loadingLive')
       : vehicles.length === 0
@@ -113,6 +140,14 @@ export function MapClient() {
           ? t('map.noTrains')
           : t('map.noBuses')
         : `${vehicles.length} ${network === 'ktmb' ? t('map.train') : t('map.bus')} ${t('map.liveSuffix')}`
+
+  // The live dot only makes sense once a feed is actually being plotted.
+  const showLiveDot = !nearbyMode || userPos !== null
+
+  function locateMe() {
+    geo.refresh()
+    setFlyToken(n => n + 1)
+  }
 
   function handleNetworkChange(n: MapNetwork) {
     setNetwork(n)
@@ -128,11 +163,14 @@ export function MapClient() {
       <div className="absolute inset-0">
         <LiveMap
           vehicles={vehicles}
-          shape={isBus ? shape ?? null : null}
+          shape={isBus && selectedRoute ? shape ?? null : null}
           stations={network === 'ktmb' ? stations ?? [] : []}
           staticLines={network === 'ktmb' ? ktmLines?.lines ?? [] : []}
           fitPoints={fitPoints}
           fitToken={fitToken}
+          userPos={userPos}
+          userLabel={t('map.locate')}
+          flyToken={flyToken}
         />
       </div>
 
@@ -171,9 +209,9 @@ export function MapClient() {
 
       {/* Status chip — lifted clear of the persistent bottom nav on mobile;
           on desktop (lg:) there's no bottom nav, so it sits at the edge. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-1000 flex justify-center px-14 pb-18.5 pt-14 lg:pb-14">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-1000 flex items-center justify-center gap-10 px-14 pb-18.5 pt-14 lg:pb-14">
         <div className="plate shadow-plate-sm flex items-center gap-8 rounded-full-2 px-14 py-8">
-          {!needsRoute && (
+          {showLiveDot && (
             <span className="relative flex h-2 w-2">
               {!stale && (
                 <span
@@ -194,6 +232,21 @@ export function MapClient() {
             <span className="font-sans text-[10px] text-sage-mute">{t('map.maybeLate')}</span>
           )}
         </div>
+
+        {/* My location — fresh GPS fix + fly the map there */}
+        <button
+          type="button"
+          aria-label={geo.isPending ? t('map.locating') : t('map.locate')}
+          onClick={locateMe}
+          disabled={geo.isPending}
+          className="plate pressable-sm pointer-events-auto flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 text-ink-black disabled:opacity-50"
+        >
+          <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <circle cx="12" cy="12" r="3" />
+            <path strokeLinecap="round" d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+            <circle cx="12" cy="12" r="7.5" />
+          </svg>
+        </button>
       </div>
     </div>
   )

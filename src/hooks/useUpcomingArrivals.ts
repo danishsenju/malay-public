@@ -19,7 +19,10 @@ export function useUpcomingArrivals(stopId: string, network: Network) {
   const { data, error, isLoading } = useSWR(
     key,
     () => fetchArrivals(stopId, network),
-    { refreshInterval: 20_000, revalidateOnFocus: false },
+    // revalidateOnFocus matters here: SWR pauses refreshInterval while the tab
+    // is hidden, so returning to the app must trigger an immediate refetch or
+    // the board shows minutes-old data.
+    { refreshInterval: 20_000, revalidateOnFocus: true, keepPreviousData: true },
   )
   return { arrivals: (data ?? []) as Arrival[], isLoading, error: error as Error | null }
 }

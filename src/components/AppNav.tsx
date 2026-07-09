@@ -29,9 +29,13 @@ const ITEMS: NavItem[] = [
   { href: '/',       label: 'nav.home',   icon: 'M3 10.75 12 3l9 7.75M5.5 9.6V20a1 1 0 0 0 1 1H9.5v-5.5h5V21h3a1 1 0 0 0 1-1V9.6' },
   { href: '/map',    label: 'nav.map',    icon: 'M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0 0 21 18.382V7.618a1 1 0 0 0-.553-.894L15 4m0 13V4M9 7l6-3' },
   { href: '/plan',   label: 'nav.plan',   icon: 'M13 5l7 7-7 7M5 5l7 7-7 7' },
+  { href: '/ktmb',   label: 'nav.ktmb',   icon: 'M6 10h12M8 4h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM8.5 17l-2 4M15.5 17l2 4' },
   { href: '/report', label: 'nav.report', icon: 'M9 17V9m4 8V5m4 12v-4M4 21h16' },
-  { href: '/status', label: 'nav.status', icon: 'M22 12h-4l-3 9L9 3l-3 9H2' },
 ]
+
+// /status is intentionally not in the bar — it's a rarely-visited transparency
+// page, kept discoverable via the footer links on Home, Report and KTM. Its
+// nav.status string stays in strings.ts in case it returns to the bar.
 
 function isActive(pathname: string, href: string): boolean {
   return href === '/' ? pathname === '/' : pathname.startsWith(href)

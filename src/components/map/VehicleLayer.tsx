@@ -39,6 +39,15 @@ function escapeHtml(s: string): string {
   )
 }
 
+/** Tooltip text with the GPS report's age — radical transparency: every dot
+ *  says exactly how fresh its position is. */
+function tooltipText(v: MapVehicle): string {
+  const label = vehicleLabel(v)
+  if (!v.timestampMs) return label
+  const ageS = Math.max(0, Math.round((Date.now() - v.timestampMs) / 1000))
+  return ageS < 120 ? `${label} · ${ageS}s` : `${label} · ${Math.round(ageS / 60)} min`
+}
+
 function makeIcon(v: MapVehicle): L.DivIcon {
   const color = vehicleColor(v.id)
   const label = escapeHtml(vehicleLabel(v))
@@ -88,9 +97,10 @@ export function VehicleLayer({ vehicles }: { vehicles: MapVehicle[] }) {
         existing.from = existing.cur
         existing.to = to
         existing.start = now
+        existing.marker.setTooltipContent(tooltipText(v))
       } else {
         const marker = L.marker(to, { icon: makeIcon(v), interactive: true, keyboard: false })
-          .bindTooltip(vehicleLabel(v), { direction: 'top', offset: [0, -6], opacity: 1 })
+          .bindTooltip(tooltipText(v), { direction: 'top', offset: [0, -6], opacity: 1 })
           .addTo(map)
         const entry: Entry = { marker, from: to, to, cur: to, start: now }
         entries.current.set(v.id, entry)

@@ -4,7 +4,10 @@ import useSWR from 'swr'
 import { getSupabase } from '@/lib/supabase'
 import type { NearbyStop } from '@/lib/types'
 
-const RADII = [500, 1000, 1500] as const
+// Escalating search rings — keep growing until SOMETHING is found, so a user
+// far from any stop still learns which public transport is nearest to them
+// (and how far it is) instead of hitting a dead "none within 1.5 km" wall.
+const RADII = [500, 1000, 1500, 3000, 5000, 10_000, 20_000] as const
 
 interface NearbyResult {
   stops: NearbyStop[]
@@ -31,7 +34,7 @@ export function useNearbyStops(lat: number, lon: number) {
   const { data, error, isLoading } = useSWR(
     key,
     () => fetchNearbyStops(lat, lon),
-    { refreshInterval: 60_000, revalidateOnFocus: false },
+    { refreshInterval: 60_000, revalidateOnFocus: true },
   )
   return {
     stops:      data?.stops      ?? [],

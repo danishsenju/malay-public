@@ -178,11 +178,35 @@ export default async function ReportPage() {
           />
         </div>
 
+        {/* ── Link out to /status — the receipts behind these grades ── */}
+        <Link
+          href="/status"
+          className="
+            plate pressable-sm mt-26 flex items-center justify-between gap-14 rounded-2xl p-16
+            [@media(hover:hover)_and_(pointer:fine)]:hover:bg-leaf-wash/60
+          "
+        >
+          <span className="min-w-0">
+            <span className="block font-sans text-[15px] font-bold leading-snug text-ink-black">
+              Semak status suapan langsung
+            </span>
+            <span className="mt-2 block font-mono text-[11px] font-medium text-sage-mute">
+              Kesihatan setiap sumber data.gov.my, masa nyata
+            </span>
+          </span>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-lime-spark text-ink-black">
+            <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </Link>
+
         {/* ── Methodology — grade our own homework in public ── */}
         <p className="mt-26 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
           Metodologi: kami sampel setiap suapan ± seminit · uptime = % sampel
           upstream menjawab · tren tersekat = tiada pergerakan &gt; 6 minit ·
-          lejar penuh boleh disemak di /status
+          lejar penuh boleh disemak di{' '}
+          <Link href="/status" className="underline">/status</Link>
         </p>
       </div>
     </div>
