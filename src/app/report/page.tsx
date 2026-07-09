@@ -5,7 +5,7 @@ import { gradeColors } from '@/lib/grades'
 import { ShareButton } from '@/components/ShareButton'
 import { BrandMark } from '@/components/BrandMark'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Laporan Harian — TransitMY',
