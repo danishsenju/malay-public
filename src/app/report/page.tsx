@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { fetchLedgerWindow, gradeRows, mytDate, UNMONITORED_LINES, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
+import { getServerLang, serverT } from '@/lib/serverLang'
+import { DAYS, MONTHS } from '@/lib/strings'
+import type { Lang } from '@/lib/i18n'
 import { ShareButton } from '@/components/ShareButton'
 import { BrandMark } from '@/components/BrandMark'
 
@@ -13,13 +16,10 @@ export const metadata: Metadata = {
     'Liga kelewatan pengangkutan awam Malaysia — gred kebolehpercayaan harian untuk KTM dan bas Rapid, dikira daripada data langsung data.gov.my. Dengan resit.',
 }
 
-const HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']
-const BULAN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember']
-
-function dateLabel(iso: string): string {
+function dateLabel(iso: string, lang: Lang): string {
   const [y, m, d] = iso.split('-').map(Number)
   const date = new Date(Date.UTC(y, m - 1, d)) // calendar date only — weekday is timezone-safe
-  return `${HARI[date.getUTCDay()]} · ${d} ${BULAN[m - 1]}`
+  return `${DAYS[lang][date.getUTCDay()]} · ${d} ${MONTHS[lang][m - 1]}`
 }
 
 function shareText(grades: NetworkGrade[], dayLabel: string): string {
@@ -32,7 +32,7 @@ function shareText(grades: NetworkGrade[], dayLabel: string): string {
 
 // ── Row: one network in the league table ────────────────────────────────────
 
-function GradeRow({ g, rank, index }: { g: NetworkGrade; rank: number; index: number }) {
+function GradeRow({ g, rank, index, t }: { g: NetworkGrade; rank: number; index: number; t: ReturnType<typeof serverT> }) {
   const c = gradeColors(g.grade)
   const noData = g.grade === '—'
   return (
@@ -47,7 +47,7 @@ function GradeRow({ g, rank, index }: { g: NetworkGrade; rank: number; index: nu
         <span
           className="flex h-48 w-48 shrink-0 items-center justify-center rounded-2xl border-2 border-ink-black font-mono text-[24px] font-bold"
           style={{ backgroundColor: c.bg, color: c.text }}
-          aria-label={noData ? 'Belum cukup data' : `Gred ${g.grade}`}
+          aria-label={noData ? t('report.noData') : `${t('report.grade')} ${g.grade}`}
         >
           {g.grade}
         </span>
@@ -59,13 +59,13 @@ function GradeRow({ g, rank, index }: { g: NetworkGrade; rank: number; index: nu
           </span>
           <span className="mt-2 block font-mono text-[11px] font-medium text-sage-mute">
             {noData
-              ? `Belum cukup sampel (${g.samples}) — lejar sedang belajar`
+              ? `${t('report.notEnough')} (${g.samples}) — ${t('report.learning')}`
               : [
                   `uptime ${g.uptimePct}%`,
-                  g.stallCount > 0 ? `${g.stallCount} tren tersekat` : null,
-                  g.gapMinutes > 0 ? `${g.gapMinutes} min tiada kenderaan` : null,
-                  g.outageMinutes > 0 ? `${g.outageMinutes} min suapan putus` : null,
-                ].filter(Boolean).join(' · ') || 'hari yang bersih ✓'}
+                  g.stallCount > 0 ? `${g.stallCount} ${t('report.stalled')}` : null,
+                  g.gapMinutes > 0 ? `${g.gapMinutes} ${t('report.noVehicles')}` : null,
+                  g.outageMinutes > 0 ? `${g.outageMinutes} ${t('report.outage')}` : null,
+                ].filter(Boolean).join(' · ') || t('report.cleanDay')}
           </span>
         </span>
       </div>
@@ -77,16 +77,18 @@ function GradeRow({ g, rank, index }: { g: NetworkGrade; rank: number; index: nu
 
 export default async function ReportPage() {
   const today = mytDate()
-  const [todayRows, weekRows] = await Promise.all([
+  const [todayRows, weekRows, lang] = await Promise.all([
     fetchLedgerWindow(1),
     fetchLedgerWindow(7),
+    getServerLang(),
   ])
+  const t = serverT(lang)
   // Today's raw numbers, graded over 7 days so a single bad hour doesn't
   // whipsaw the letter — grades should move slowly enough to argue about.
   const weekGrades = gradeRows(weekRows, 7)
   const todayByNet = new Map(gradeRows(todayRows, 1).map(g => [g.network, g]))
   const rows = weekGrades.map(g => ({ ...(todayByNet.get(g.network) ?? g), grade: g.grade }))
-  const day = dateLabel(today)
+  const day = dateLabel(today, lang)
 
   return (
     <div className="min-h-screen bg-linen-canvas">
@@ -97,7 +99,7 @@ export default async function ReportPage() {
           <Link
             href="/"
             className="plate pressable-sm flex h-40 w-40 items-center justify-center rounded-full-3 text-ink-black"
-            aria-label="Kembali ke laman utama"
+            aria-label={t('common.backHome')}
           >
             <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -112,7 +114,7 @@ export default async function ReportPage() {
             {day}
           </p>
           <h1 className="mt-10 font-sans text-[40px] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink-black">
-            Laporan
+            {t('report.title.1')}
             <br />
             <span className="relative inline-block">
               <span
@@ -120,24 +122,22 @@ export default async function ReportPage() {
                 className="-inset-x-1.5 absolute bottom-0.75 h-[0.42em] origin-left rounded-lg bg-lime-spark"
                 style={{ animation: 'highlightIn 380ms var(--ease-out) 300ms both' }}
               />
-              <span className="relative">Harian.</span>
+              <span className="relative">{t('report.title.2')}</span>
             </span>
           </h1>
           <p className="mt-14 font-sans text-body-sm leading-relaxed text-sage-mute">
-            Siapa lambat hari ini? Gred dikira daripada suapan langsung data.gov.my —
-            bukan kenyataan akhbar. Nombor hari ini, gred purata 7 hari.
+            {t('report.intro')}
           </p>
         </div>
 
         {/* ── League table ── */}
         <ol className="mt-26 space-y-10">
           {rows.map((g, i) => (
-            <GradeRow key={g.network} g={g} rank={i + 1} index={i} />
+            <GradeRow key={g.network} g={g} rank={i + 1} index={i} t={t} />
           ))}
           {rows.length === 0 && (
             <li className="plate rounded-2xl p-20 text-center font-sans text-body-sm text-sage-mute">
-              Lejar baru mula merekod. Semak semula sebentar lagi —
-              setiap pelawat membantu kami sampel suapan.
+              {t('report.empty')}
             </li>
           )}
         </ol>
@@ -148,11 +148,10 @@ export default async function ReportPage() {
           style={{ animation: `cardEnter 250ms var(--ease-out) ${rows.length * 60 + 60}ms both` }}
         >
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-white-plate/70">
-            Tidak dipantau
+            {t('report.unmonitored')}
           </p>
           <p className="mt-8 font-sans text-body-sm font-semibold leading-relaxed text-white-plate">
-            Prasarana tidak menyiarkan kedudukan tren LRT / MRT / Monorel secara
-            langsung. Kami tak boleh gred apa yang mereka tak tunjukkan.
+            {t('report.unmonitoredDesc')}
           </p>
           <div className="mt-3 flex flex-wrap gap-8">
             {UNMONITORED_LINES.map(l => (
@@ -188,10 +187,10 @@ export default async function ReportPage() {
         >
           <span className="min-w-0">
             <span className="block font-sans text-[15px] font-bold leading-snug text-ink-black">
-              Semak status suapan langsung
+              {t('report.statusLink')}
             </span>
             <span className="mt-2 block font-mono text-[11px] font-medium text-sage-mute">
-              Kesihatan setiap sumber data.gov.my, masa nyata
+              {t('report.statusLinkDesc')}
             </span>
           </span>
           <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-lime-spark text-ink-black">
@@ -203,9 +202,7 @@ export default async function ReportPage() {
 
         {/* ── Methodology — grade our own homework in public ── */}
         <p className="mt-26 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
-          Metodologi: kami sampel setiap suapan ± seminit · uptime = % sampel
-          upstream menjawab · tren tersekat = tiada pergerakan &gt; 6 minit ·
-          lejar penuh boleh disemak di{' '}
+          {t('report.methodology')}{' '}
           <Link href="/status" className="underline">/status</Link>
         </p>
       </div>

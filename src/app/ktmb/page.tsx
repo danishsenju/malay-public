@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getKtmbSchedule, type KtmbLine } from '@/lib/ktmbSchedule'
+import { getServerLang, serverT } from '@/lib/serverLang'
 import { BrandMark } from '@/components/BrandMark'
 
 export const dynamic = 'force-dynamic'
@@ -37,7 +38,7 @@ function Stat({ label, value, plus }: { label: string; value: string; plus?: boo
   )
 }
 
-function LineCard({ line, index }: { line: KtmbLine; index: number }) {
+function LineCard({ line, index, t }: { line: KtmbLine; index: number; t: ReturnType<typeof serverT> }) {
   return (
     <li
       // Staggered entrance — cardEnter (translateY + scale + opacity), fill-mode
@@ -72,10 +73,10 @@ function LineCard({ line, index }: { line: KtmbLine; index: number }) {
 
         {/* Stats: first / last train · stations · services */}
         <div className="mt-14 flex items-end justify-between gap-8 border-t-2 border-dashed border-silver-border pt-14">
-          <Stat label="Pertama" value={line.firstTrain} />
-          <Stat label="Akhir" value={line.lastTrain} plus={line.lastAfterMidnight} />
-          <Stat label="Stesen" value={String(line.stationCount)} />
-          <Stat label="Trip/hari" value={String(line.services)} />
+          <Stat label={t('ktmb.stat.first')} value={line.firstTrain} />
+          <Stat label={t('ktmb.stat.last')} value={line.lastTrain} plus={line.lastAfterMidnight} />
+          <Stat label={t('ktmb.stat.stations')} value={String(line.stationCount)} />
+          <Stat label={t('ktmb.stat.trips')} value={String(line.services)} />
         </div>
       </div>
     </li>
@@ -83,7 +84,11 @@ function LineCard({ line, index }: { line: KtmbLine; index: number }) {
 }
 
 export default async function KtmbPage() {
-  const { lines, fetchedAt, stale, message } = await getKtmbSchedule()
+  const [{ lines, fetchedAt, stale, message }, lang] = await Promise.all([
+    getKtmbSchedule(),
+    getServerLang(),
+  ])
+  const t = serverT(lang)
 
   const updatedLabel =
     fetchedAt > 0
@@ -104,7 +109,7 @@ export default async function KtmbPage() {
           <Link
             href="/"
             className="plate pressable-sm flex h-40 w-40 items-center justify-center rounded-full-3 text-ink-black"
-            aria-label="Kembali ke laman utama"
+            aria-label={t('common.backHome')}
           >
             <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -116,10 +121,10 @@ export default async function KtmbPage() {
         {/* ── Hero ── */}
         <div className="pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-sage-mute">
-            {updatedLabel ? `Dikemas kini ${updatedLabel} MYT` : 'Jadual KTM'}
+            {updatedLabel ? `${t('ktmb.updated')} ${updatedLabel} MYT` : t('ktmb.eyebrow')}
           </p>
           <h1 className="mt-10 font-sans text-[40px] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink-black">
-            Jadual tren
+            {t('ktmb.title.1')}
             <br />
             <span className="relative inline-block">
               <span
@@ -130,26 +135,25 @@ export default async function KtmbPage() {
                   animation: 'highlightIn 380ms var(--ease-out) 300ms both',
                 }}
               />
-              <span className="relative">KTM.</span>
+              <span className="relative">{t('ktmb.title.2')}</span>
             </span>
           </h1>
           <p className="mt-14 font-sans text-body-sm leading-relaxed text-sage-mute">
-            Tren pertama, tren akhir dan bilangan stesen untuk setiap laluan Komuter,
-            ETS &amp; Intercity — terus daripada GTFS rasmi, bukan tekaan.
+            {t('ktmb.intro')}
           </p>
         </div>
 
         {/* ── Source + freshness (radical transparency) ── */}
         <div className="mt-20 flex flex-wrap items-center gap-8">
           <span className="plate shadow-plate-sm inline-flex items-center rounded-full-2 px-14 py-1.25 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ink-black">
-            Sumber: data.gov.my
+            {t('common.source')}
           </span>
           {stale && (
             <span
               className="inline-flex items-center rounded-full-2 border-2 border-ink-black px-12 py-1.25 font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-ink-black"
               style={{ backgroundColor: 'var(--color-mustard-pop)' }}
             >
-              Data mungkin lewat
+              {t('ktmb.stale')}
             </span>
           )}
         </div>
@@ -174,7 +178,7 @@ export default async function KtmbPage() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-sans text-body font-extrabold leading-tight tracking-[-0.01em]">
-              Beli tiket KTM rasmi
+              {t('ktmb.buyTicket')}
             </span>
             <span className="mt-1 flex items-center gap-4 font-mono text-[11px] font-bold text-ink-black/70">
               online.ktmb.com.my
@@ -184,7 +188,7 @@ export default async function KtmbPage() {
             </span>
           </span>
           <span className="shrink-0 rounded-full-2 border-2 border-ink-black bg-white-plate px-10 py-4 font-mono text-[10px] font-bold uppercase tracking-widest">
-            Rasmi
+            {t('ktmb.official')}
           </span>
         </a>
 
@@ -193,11 +197,10 @@ export default async function KtmbPage() {
           // Total failure with nothing cached — stay honest, never a red crash.
           <div className="mt-26 rounded-2xl border-2 border-ink-black bg-white-plate p-20">
             <p className="font-sans text-body font-bold text-ink-black">
-              Jadual tak dapat dimuatkan sekarang.
+              {t('ktmb.loadFailed')}
             </p>
             <p className="mt-8 font-sans text-body-sm leading-relaxed text-sage-mute">
-              Sumber jadual di data.gov.my mungkin tumbang. Cuba muat semula sebentar lagi
-              — status penuh setiap suapan ada di <Link href="/status" className="underline">/status</Link>.
+              {t('ktmb.loadFailedDesc')} <Link href="/status" className="underline">/status</Link>.
             </p>
             {message && (
               <p className="mt-10 font-mono text-[11px] text-sage-mute/80">{message}</p>
@@ -207,17 +210,17 @@ export default async function KtmbPage() {
           // Empty ≠ error — a calm, plain state.
           <div className="mt-26 rounded-2xl border-2 border-ink-black bg-white-plate p-20">
             <p className="font-sans text-body font-bold text-ink-black">
-              Tiada jadual KTM buat masa ini.
+              {t('ktmb.empty')}
             </p>
             <p className="mt-8 font-sans text-body-sm leading-relaxed text-sage-mute">
-              Jadual belum dimuat naik ke pangkalan data. Jalankan <span className="font-mono">npm run ingest -- ktmb</span> untuk mengisinya.
+              {t('ktmb.emptyDesc')} <span className="font-mono">npm run ingest -- ktmb</span> {t('ktmb.emptyDesc2')}
             </p>
           </div>
         ) : (
           <>
             <div className="mt-24 flex items-baseline gap-8">
               <span className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-sage-mute">
-                {lines.length} laluan
+                {lines.length} {t('ktmb.lines')}
               </span>
               <span className="font-mono text-[11px] text-sage-mute/70">
                 · {komuter} Komuter · {intercity} Intercity
@@ -225,15 +228,14 @@ export default async function KtmbPage() {
             </div>
             <ul className="mt-14 space-y-14">
               {lines.map((line, i) => (
-                <LineCard key={line.routeId} line={line} index={i} />
+                <LineCard key={line.routeId} line={line} index={i} t={t} />
               ))}
             </ul>
           </>
         )}
 
         <p className="mt-26 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
-          Waktu berjadual MYT · jadual GTFS statik ·
-          kedudukan tren langsung di <Link href="/map" className="underline">/map</Link>
+          {t('ktmb.footnote')} <Link href="/map" className="underline">/map</Link>
         </p>
       </div>
     </div>

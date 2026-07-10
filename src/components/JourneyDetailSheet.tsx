@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { useLang } from '@/lib/i18n'
 import { formatDuration } from '@/lib/liveTime'
+import { headsignDestination } from '@/lib/transit'
 import type { JourneyLeg, JourneyOption, JourneyTransfer } from '@/lib/types'
 
 /**
@@ -50,7 +51,9 @@ function LegDetail({ leg }: { leg: JourneyLeg }) {
         </span>
         {leg.headsign && (
           <span className="min-w-0 truncate font-sans text-caption font-semibold text-sage-mute">
-            → {leg.headsign}
+            {/* "From Kajang to Kwasa Damansara" → "→ Kwasa Damansara": the arrow
+                already says "towards", so only the destination is repeated. */}
+            → {headsignDestination(leg.headsign)}
           </span>
         )}
       </div>
@@ -94,7 +97,9 @@ function SheetBody({ option }: { option: JourneyOption }) {
     : `${nTransfers} ${t('plan.transfers.n')}`
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col overflow-hidden">
+    // min-h-0 lets this flex item shrink to the drawer's max-height so the
+    // timeline below can actually scroll instead of being cut off.
+    <div className="mx-auto flex min-h-0 w-full max-w-md flex-col overflow-hidden">
       <Drawer.Handle className="mx-auto mb-0 mt-14 h-4 w-40 shrink-0 rounded-full-3 bg-ink-black/20" />
 
       {/* Header */}
@@ -119,7 +124,7 @@ function SheetBody({ option }: { option: JourneyOption }) {
 
       {/* Timeline */}
       <div
-        className="space-y-8 overflow-y-auto px-20 py-18"
+        className="min-h-0 space-y-8 overflow-y-auto px-20 py-18"
         style={{ paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }}
       >
         {option.startWalk && <WalkDetailRow transfer={option.startWalk} label={t('plan.walkStart')} />}
@@ -160,7 +165,7 @@ export function JourneyDetailSheet({ option, onClose }: JourneyDetailSheetProps)
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-ink-black/40" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 max-h-[85dvh] rounded-t-3xl-2 border-t-2 border-ink-black bg-linen-canvas outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-3xl-2 border-t-2 border-ink-black bg-linen-canvas outline-none">
           {lastOption && <SheetBody option={lastOption} />}
         </Drawer.Content>
       </Drawer.Portal>

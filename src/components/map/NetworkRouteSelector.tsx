@@ -63,7 +63,7 @@ export function NetworkRouteSelector({
       <div
         className="flex gap-8"
         role="tablist"
-        aria-label="Pilih rangkaian"
+        aria-label={t('map.pickNetwork')}
       >
         {TABS.map(tab => {
           const active = network === tab.id
@@ -127,13 +127,13 @@ export function NetworkRouteSelector({
             inputMode="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Cari laluan — cth. U2510, PJ01, Sunway"
+            placeholder={t('map.searchRoute')}
             className="
               w-full rounded-lg border-2 border-ink-black bg-white-plate px-12 py-8
               font-sans text-body-sm text-ink-black placeholder:text-sage-mute
               focus:outline-none focus-visible:ring-2 focus-visible:ring-cobalt-band
             "
-            aria-label="Cari laluan bas"
+            aria-label={t('map.searchRouteAria')}
             autoFocus={selectedRoute !== null}
           />
 

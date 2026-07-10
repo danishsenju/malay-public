@@ -40,3 +40,23 @@ export function getRailLine(stopId: string): LineInfo | null {
   }
   return null
 }
+
+/**
+ * Splits a directional GTFS name into [origin, destination]. Feeds mix three
+ * formats — "A ke arah B", "A → B" / "A -> B", and "From A to B" (rail
+ * trip_headsigns) — and all should render the same neutral "A → B" regardless
+ * of the UI language. Returns null when the text isn't directional.
+ */
+export function splitDirectional(text: string): [string, string] | null {
+  const fromTo = text.match(/^from\s+(.+?)\s+to\s+(.+)$/i)
+  if (fromTo) return [fromTo[1], fromTo[2]]
+  const arrow = text.match(/^(.+?)\s*(?:ke\s+arah|→|->)\s*(.+)$/i)
+  return arrow ? [arrow[1], arrow[2]] : null
+}
+
+/** The destination half of a directional name — "From A to B" → "B" — or the
+ *  text unchanged when it isn't directional. */
+export function headsignDestination(text: string): string {
+  const parts = splitDirectional(text)
+  return parts ? parts[1] : text
+}

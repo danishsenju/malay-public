@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { NETWORK_LABELS } from '@/lib/reliability'
+import { getServerLang, serverT } from '@/lib/serverLang'
 import { BrandMark } from '@/components/BrandMark'
 
 export const dynamic = 'force-dynamic'
@@ -66,9 +67,9 @@ interface OpenEvent {
   started_at: string
 }
 
-function StatusSticker({ ok, latencyMs }: { ok: boolean; latencyMs: number | null }) {
+function StatusSticker({ ok, latencyMs, t }: { ok: boolean; latencyMs: number | null; t: ReturnType<typeof serverT> }) {
   const slow = ok && latencyMs != null && latencyMs > 3000
-  const label = !ok ? 'GAGAL' : slow ? 'PERLAHAN' : 'OK'
+  const label = !ok ? t('status.fail') : slow ? t('status.slow') : t('status.ok')
   const bg = !ok ? 'var(--color-maroon-plate)' : slow ? 'var(--color-mustard-pop)' : 'var(--color-lime-spark)'
   const text = !ok ? 'var(--color-white-plate)' : 'var(--color-ink-black)'
   return (
@@ -81,13 +82,15 @@ function StatusSticker({ ok, latencyMs }: { ok: boolean; latencyMs: number | nul
   )
 }
 
-const EVENT_LABEL: Record<string, string> = {
-  stall:       'tren tersekat',
-  feed_outage: 'suapan terputus',
-  service_gap: 'tiada kenderaan dilaporkan',
-}
+const EVENT_KEY = {
+  stall:       'status.event.stall',
+  feed_outage: 'status.event.feed_outage',
+  service_gap: 'status.event.service_gap',
+} as const
 
 export default async function StatusPage() {
+  const lang = await getServerLang()
+  const t = serverT(lang)
   const db = getSupabaseAdmin()
 
   const [checks, dbCheck, snapshotsRes, openEventsRes] = await Promise.all([
@@ -124,7 +127,7 @@ export default async function StatusPage() {
           <Link
             href="/"
             className="plate pressable-sm flex h-40 w-40 items-center justify-center rounded-full-3 text-ink-black"
-            aria-label="Kembali ke laman utama"
+            aria-label={t('common.backHome')}
           >
             <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -136,10 +139,10 @@ export default async function StatusPage() {
         {/* ── Hero ── */}
         <div className="pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-sage-mute">
-            Disemak {checkedAt} MYT
+            {t('status.checked')} {checkedAt} MYT
           </p>
           <h1 className="mt-10 font-sans text-[40px] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink-black">
-            {allOk ? 'Semua sistem' : 'Ada sumber'}
+            {allOk ? t('status.allOk.1') : t('status.problem.1')}
             <br />
             <span className="relative inline-block">
               <span
@@ -150,13 +153,11 @@ export default async function StatusPage() {
                   animation: 'highlightIn 380ms var(--ease-out) 300ms both',
                 }}
               />
-              <span className="relative">{allOk ? 'berjalan.' : 'bermasalah.'}</span>
+              <span className="relative">{allOk ? t('status.allOk.2') : t('status.problem.2')}</span>
             </span>
           </h1>
           <p className="mt-14 font-sans text-body-sm leading-relaxed text-sage-mute">
-            Kami bukan sumber data — data.gov.my yang siarkan suapan ini.
-            Bila ia bermasalah, anda patut tahu bezanya antara &ldquo;aplikasi rosak&rdquo;
-            dan &ldquo;sumber tumbang&rdquo;.
+            {t('status.intro')}
           </p>
         </div>
 
@@ -170,10 +171,10 @@ export default async function StatusPage() {
                     {c.name}
                   </span>
                   <span className="mt-2 block font-mono text-[11px] font-medium text-sage-mute tabular-nums">
-                    {c.latencyMs != null ? `${c.latencyMs} ms` : 'tiada respons dalam 6s'}
+                    {c.latencyMs != null ? `${c.latencyMs} ms` : t('status.noResponse')}
                   </span>
                 </span>
-                <StatusSticker ok={c.ok} latencyMs={c.latencyMs} />
+                <StatusSticker ok={c.ok} latencyMs={c.latencyMs} t={t} />
               </div>
             </li>
           ))}
@@ -183,7 +184,7 @@ export default async function StatusPage() {
         {latest.size > 0 && (
           <div className="mt-26">
             <span className="plate shadow-plate-sm inline-flex items-center rounded-full-2 px-14 py-1.25 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-ink-black">
-              Sampel lejar terkini
+              {t('status.latestSamples')}
             </span>
             <ul className="mt-14 space-y-8">
               {[...latest.values()].map(s => {
@@ -197,7 +198,7 @@ export default async function StatusPage() {
                       {NETWORK_LABELS[s.network] ?? s.network}
                     </span>
                     <span className="font-mono text-[11px] font-medium text-sage-mute tabular-nums">
-                      {s.vehicle_count} kenderaan · {ageMin} min lalu
+                      {s.vehicle_count} {t('status.vehicles')} · {ageMin} {t('status.minAgo')}
                     </span>
                   </li>
                 )
@@ -210,14 +211,14 @@ export default async function StatusPage() {
         {openEvents.length > 0 && (
           <div className="mt-26 rounded-2xl border-2 border-ink-black bg-maroon-plate p-18">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-white-plate/70">
-              Insiden terbuka sekarang
+              {t('status.openIncidents')}
             </p>
             <ul className="mt-10 space-y-8">
               {openEvents.map((e, i) => (
                 <li key={i} className="flex items-center justify-between gap-10 font-sans text-caption font-semibold text-white-plate">
-                  <span>{NETWORK_LABELS[e.network] ?? e.network} — {EVENT_LABEL[e.event_type] ?? e.event_type}</span>
+                  <span>{NETWORK_LABELS[e.network] ?? e.network} — {e.event_type in EVENT_KEY ? t(EVENT_KEY[e.event_type as keyof typeof EVENT_KEY]) : e.event_type}</span>
                   <span className="shrink-0 font-mono text-[11px] text-white-plate/70">
-                    sejak {new Date(e.started_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })}
+                    {t('status.since')} {new Date(e.started_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })}
                   </span>
                 </li>
               ))}
@@ -226,8 +227,7 @@ export default async function StatusPage() {
         )}
 
         <p className="mt-26 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
-          Semakan langsung setiap kali halaman ini dibuka ·
-          lejar kelewatan penuh di <Link href="/report" className="underline">/report</Link>
+          {t('status.footnote')} <Link href="/report" className="underline">/report</Link>
         </p>
       </div>
     </div>

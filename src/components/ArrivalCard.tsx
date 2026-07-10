@@ -1,23 +1,10 @@
 'use client'
 
 import { FlapCountdown } from './FlapCountdown'
+import { DirectionalText } from './DirectionalText'
+import { useLang } from '@/lib/i18n'
+import { splitDirectional } from '@/lib/transit'
 import type { Network } from '@/lib/types'
-
-// Renders "KL SENTRAL KE ARAH SEREMBAN" as:
-//   KL SENTRAL  <→>  SEREMBAN
-// where the separator is dim so the destination reads first.
-// Also handles the → arrow character from some GTFS feeds.
-function HeadsignText({ text }: { text: string }) {
-  const match = text.match(/^(.+?)\s*(?:ke\s+arah|→|->)\s*(.+)$/i)
-  if (!match) return <>{text}</>
-  return (
-    <>
-      {match[1]}
-      <span className="mx-1.5 text-sage-mute/60">→</span>
-      {match[2]}
-    </>
-  )
-}
 
 export type { Network }
 
@@ -35,11 +22,11 @@ export interface ArrivalCardProps {
   onClick?: () => void
 }
 
-const NETWORK_LABEL: Record<Network, string> = {
-  'rapid-bus-kl':  'RapidKL',
-  'rapid-rail-kl': 'Rail',
-  'ktmb':          'KTM',
-}
+const NETWORK_KEY = {
+  'rapid-bus-kl':  'network.bus',
+  'rapid-rail-kl': 'network.rail',
+  'ktmb':          'network.ktmb',
+} as const
 
 export function ArrivalCard({
   routeShortName,
@@ -53,12 +40,15 @@ export function ArrivalCard({
   index = 0,
   onClick,
 }: ArrivalCardProps) {
+  const { t } = useLang()
   const chipBg   = routeColor     ? `#${routeColor}`     : 'var(--color-cobalt-band)'
   const chipText = routeTextColor ? `#${routeTextColor}` : '#ffffff'
 
-  const arrivalLabel  = minutesUntil <= 0 ? 'tiba sekarang' : `${minutesUntil} minit`
-  const headsignClean = headsign.replace(/\s*(?:ke\s+arah|→|->)\s*/gi, ' ke arah ')
-  const buttonLabel   = `${routeShortName} ke arah ${headsignClean}, ${arrivalLabel}`
+  const arrivalLabel  = minutesUntil <= 0 ? t('card.arrivingNow') : `${minutesUntil} ${t('common.min')}`
+  // Screen readers hear "KJL towards Gombak, 5 min" — destination only, so a
+  // directional headsign never stacks two "towards" in one sentence.
+  const parts         = splitDirectional(headsign)
+  const buttonLabel   = `${routeShortName} ${t('card.towards')} ${parts ? parts[1] : headsign}, ${arrivalLabel}`
 
   // Wrapper owns the entrance animation; the button owns the press. Keeping
   // them separate avoids animation fill-mode overriding :active transforms.
@@ -86,7 +76,7 @@ export function ArrivalCard({
               {routeShortName}
             </span>
             <span className="truncate font-sans text-caption font-semibold text-sage-mute">
-              {NETWORK_LABEL[network]}
+              {t(NETWORK_KEY[network])}
             </span>
           </div>
 
@@ -94,7 +84,7 @@ export function ArrivalCard({
           {isLive && !stale ? (
             <span
               className="flex shrink-0 items-center gap-1.5 rounded-full-2 border-2 border-ink-black bg-leaf-wash px-8 py-0.5"
-              aria-label="Data langsung"
+              aria-label={t('card.liveAria')}
             >
               <span className="relative flex h-1.5 w-1.5">
                 <span
@@ -110,14 +100,14 @@ export function ArrivalCard({
           ) : isLive && stale ? (
             <span
               className="h-2 w-2 shrink-0 rounded-full-3 border border-ink-black bg-mustard-pop"
-              aria-label="Data mungkin lewat"
+              aria-label={t('card.staleAria')}
             />
           ) : null}
         </div>
 
         {/* ── Row 2: headsign ── */}
         <p className="font-sans text-body-sm leading-snug text-midnight-ink/80">
-          <HeadsignText text={headsign} />
+          <DirectionalText text={headsign} />
         </p>
 
         {/* ── Row 3: the split-flap countdown, below a perforated ticket edge ── */}

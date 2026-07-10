@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { NetworkRouteSelector, type MapNetwork } from './NetworkRouteSelector'
 import { useLang, LangToggle } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
+import { useNow } from '@/hooks/useNow'
 import type { StaticLine } from './LiveMap'
 import { distanceMeters, projectToPolylines, snapToPolylines, vehicleMatchesRoute } from '@/lib/map'
 import type { MapVehicle, RouteSummary, ShapeResponse, Station } from '@/lib/map'
@@ -58,6 +59,16 @@ export function MapClient() {
   const { data: shape } = useSWR<ShapeResponse>(
     isBus && selectedRoute
       ? `/api/routes/${encodeURIComponent(selectedRoute.route_id)}/shape?network=rapid-bus-kl`
+      : null,
+    json,
+    { revalidateOnFocus: false },
+  )
+
+  // Drop-off checkpoints — every stop along the selected bus route, drawn as
+  // dots on the line so riders can see exactly where they can board/alight.
+  const { data: routeStops } = useSWR<{ stops: Station[] }>(
+    isBus && selectedRoute
+      ? `/api/routes/${encodeURIComponent(selectedRoute.route_id)}/stops?network=rapid-bus-kl`
       : null,
     json,
     { revalidateOnFocus: false },
@@ -147,6 +158,17 @@ export function MapClient() {
   const nearbyMode = isBus && !selectedRoute
   const stale = feed?.stale ?? false
 
+  // Freshest GPS report age among the plotted vehicles — surfacing it in the
+  // status chip tells riders exactly how far behind reality the dots run
+  // (upstream feed lag + our 15s cache), instead of leaving them to guess.
+  // useNow is the app's shared 10s clock, so the age keeps ticking between polls.
+  const now = useNow()
+  const gpsAgeS = useMemo<number | null>(() => {
+    const ts = vehicles.map(v => v.timestampMs).filter((n): n is number => n != null)
+    if (ts.length === 0) return null
+    return Math.max(0, Math.round((now - Math.max(...ts)) / 1000))
+  }, [vehicles, now])
+
   const statusText = nearbyMode
     ? userPos === null
       ? t('map.locateHint')
@@ -184,6 +206,8 @@ export function MapClient() {
         <LiveMap
           vehicles={vehicles}
           shape={isBus && selectedRoute ? shape ?? null : null}
+          routeStops={isBus && selectedRoute ? routeStops?.stops ?? [] : []}
+          stopLabel={t('map.stop')}
           stations={network === 'ktmb' ? visibleStations : []}
           staticLines={network === 'ktmb' ? ktmLines?.lines ?? [] : []}
           fitPoints={fitPoints}
@@ -250,6 +274,12 @@ export function MapClient() {
           </span>
           {stale ? (
             <span className="font-sans text-[10px] text-sage-mute">{t('map.maybeLate')}</span>
+          ) : gpsAgeS != null ? (
+            // Radical transparency: say exactly how old the freshest GPS
+            // report is, so "why is the dot behind the bus?" answers itself.
+            <span className="whitespace-nowrap font-sans text-[10px] text-sage-mute">
+              · GPS {gpsAgeS < 120 ? `${gpsAgeS}s` : `${Math.round(gpsAgeS / 60)} min`} {t('map.gpsAgo')}
+            </span>
           ) : (
             // Set the waiting expectation up front: dots refresh on a 15s poll.
             <span className="whitespace-nowrap font-sans text-[10px] text-sage-mute">{t('map.refresh')}</span>

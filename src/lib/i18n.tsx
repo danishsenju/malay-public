@@ -43,6 +43,9 @@ function subscribe(listener: () => void) {
 
 export function setLang(lang: Lang) {
   try { localStorage.setItem(STORAGE_KEY, lang) } catch {}
+  // Mirror into a cookie so server-rendered pages (/ktmb, /report, /status)
+  // can render in the chosen language too — localStorage never reaches them.
+  document.cookie = `transitmy-lang=${lang}; path=/; max-age=31536000; samesite=lax`
   document.documentElement.lang = lang
   listeners.forEach(l => l())
 }

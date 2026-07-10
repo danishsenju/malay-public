@@ -1,8 +1,8 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from 'react-leaflet'
+import { useEffect, useRef, useState } from 'react'
+import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { VehicleLayer } from './VehicleLayer'
 import type { MapVehicle, ShapeResponse, Station } from '@/lib/map'
@@ -18,6 +18,8 @@ export interface StaticLine {
 interface LiveMapProps {
   vehicles: MapVehicle[]
   shape: ShapeResponse | null // bus route shape; null for KTM / no selection
+  routeStops: Station[]       // bus stops along the selected route; empty otherwise
+  stopLabel: string           // localised "Stop" prefix for stop tooltips
   stations: Station[]         // KTM stations; empty for bus
   staticLines: StaticLine[]   // KTM line polylines (stop-to-stop); empty for bus
   /** Points to frame the initial view around (bus: route shape; KTM: active
@@ -68,7 +70,35 @@ function FlyToUser({ pos, token }: { pos: [number, number] | null; token: number
   return null
 }
 
-export function LiveMap({ vehicles, shape, stations, staticLines, fitPoints, fitToken, userPos, userLabel, flyToken }: LiveMapProps) {
+/** A dense route can carry ~80 stops — plotted at region zoom they merge into
+ *  lumps on the line, so the checkpoints only appear from neighbourhood zoom
+ *  in, the level where "which stop do I get off at?" is actually being asked. */
+const STOPS_MIN_ZOOM = 13
+
+function RouteStopsLayer({ stops, stopLabel }: { stops: Station[]; stopLabel: string }) {
+  const map = useMap()
+  const [zoom, setZoom] = useState(() => map.getZoom())
+  useMapEvents({ zoomend: () => setZoom(map.getZoom()) })
+  if (stops.length === 0 || zoom < STOPS_MIN_ZOOM) return null
+  return (
+    <>
+      {stops.map(s => (
+        <CircleMarker
+          key={`stop-${s.stop_id}`}
+          center={[s.stop_lat, s.stop_lon]}
+          radius={4}
+          pathOptions={{ color: '#000000', weight: 2, fillColor: '#ffffff', fillOpacity: 1 }}
+        >
+          <Tooltip direction="top" offset={[0, -4]} opacity={1}>
+            {stopLabel} · {s.stop_name}
+          </Tooltip>
+        </CircleMarker>
+      ))}
+    </>
+  )
+}
+
+export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, staticLines, fitPoints, fitToken, userPos, userLabel, flyToken }: LiveMapProps) {
   const lineColor = normalizeHex(shape?.color)
 
   return (
@@ -101,6 +131,11 @@ export function LiveMap({ vehicles, shape, stations, staticLines, fitPoints, fit
           pathOptions={{ color: lineColor, weight: 4, opacity: 1, lineJoin: 'round', lineCap: 'round' }}
         />
       ))}
+
+      {/* Bus stops along the selected route — the boarding / drop-off
+          checkpoints. Same white-plate dot language as KTM stations, drawn
+          over the route line so each one reads as a point ON the line. */}
+      <RouteStopsLayer stops={routeStops} stopLabel={stopLabel} />
 
       {/* KTM lines — same ink-casing treatment as bus shapes, one colour per
           route, drawn under the station dots so the network reads as LINES. */}

@@ -1,20 +1,7 @@
 'use client'
 
-// Styles "KE ARAH" in stop names as a dim separator so the destination
-// station reads clearly — e.g. "KL SENTRAL KE ARAH SEREMBAN" becomes:
-//   KL SENTRAL  <→>  SEREMBAN
-function StopName({ name }: { name: string }) {
-  const match = name.match(/^(.+?)\s*(?:ke\s+arah|→|->)\s*(.+)$/i)
-  if (!match) return <>{name}</>
-  return (
-    <>
-      {match[1]}
-      <span className="mx-1.5 font-normal text-sage-mute/60">→</span>
-      {match[2]}
-    </>
-  )
-}
 import { useState } from 'react'
+import { DirectionalText } from './DirectionalText'
 import { useLang } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNearbyStops } from '@/hooks/useNearbyStops'
@@ -93,7 +80,7 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
     <div className="space-y-14">
       <div className="flex items-baseline justify-between gap-14">
         <span className="min-w-0 truncate font-sans text-body font-bold leading-tight tracking-[-0.01em] text-ink-black">
-          <StopName name={stop.stop_name} />
+          <DirectionalText text={stop.stop_name} />
         </span>
         {distLabel && (
           <span className="shrink-0 rounded-full-2 border-2 border-ink-black bg-white-plate px-8 py-px font-mono text-[10px] font-bold tabular-nums text-ink-black">
@@ -117,7 +104,9 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
         <div className="mx-[-20px] flex gap-3 overflow-x-auto px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-x-visible lg:px-0 xl:grid-cols-3">
           {liveArrivals.slice(0, 3).map((a, i) => (
             <div
-              key={`${a.trip_id}:${a.arr_secs}`}
+              // trip_id:arr_secs alone can collide (feed sometimes emits
+              // duplicate rows) — the index disambiguates them.
+              key={`${a.trip_id}:${a.arr_secs}:${i}`}
               className="min-w-[260px] max-w-[260px] shrink-0 snap-start lg:min-w-0 lg:max-w-none lg:shrink"
             >
               <ArrivalCard

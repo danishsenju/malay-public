@@ -3,18 +3,7 @@
 import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { getRailLine } from '@/lib/transit'
-
-function StopNameText({ name }: { name: string }) {
-  const match = name.match(/^(.+?)\s*(?:ke\s+arah|→|->)\s*(.+)$/i)
-  if (!match) return <>{name}</>
-  return (
-    <>
-      {match[1]}
-      <span className="mx-1.5 font-normal text-sage-mute/60">→</span>
-      {match[2]}
-    </>
-  )
-}
+import { DirectionalText } from './DirectionalText'
 import { useRouter } from 'next/navigation'
 import { useLang } from '@/lib/i18n'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
@@ -80,6 +69,7 @@ function TicketIcon() {
 // ── Last Train Guardian footer ────────────────────────────────────────────────
 
 function LastTrainFooter({ stop }: { stop: NearbyStop }) {
+  const { t } = useLang()
   const { lastDepartures } = useLastTrain(stop.stop_id, stop.network)
   if (lastDepartures.length === 0) return null
 
@@ -98,7 +88,7 @@ function LastTrainFooter({ stop }: { stop: NearbyStop }) {
         <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
-        Perkhidmatan terakhir malam ini
+        {t('sheet.lastService')}
       </p>
       <ul className="mt-10 space-y-8">
         {rows.map(d => (
@@ -114,7 +104,7 @@ function LastTrainFooter({ stop }: { stop: NearbyStop }) {
                 {d.route_short_name ?? '—'}
               </span>
               <span className="truncate font-sans text-caption font-medium text-white-plate/80">
-                {d.trip_headsign ?? 'Perkhidmatan'}
+                {d.trip_headsign ? <DirectionalText text={d.trip_headsign} /> : t('plan.service')}
               </span>
             </span>
             <span className="shrink-0 font-mono text-body-sm font-bold text-lime-spark tabular-nums">
@@ -177,13 +167,16 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
   const distLabel = stop.distance_m == null
     ? null
     : stop.distance_m < 1000
-      ? `${Math.round(stop.distance_m)} m dari anda`
-      : `${(stop.distance_m / 1000).toFixed(1)} km dari anda`
+      ? `${Math.round(stop.distance_m)} m ${t('sheet.fromYou')}`
+      : `${(stop.distance_m / 1000).toFixed(1)} km ${t('sheet.fromYou')}`
 
   const line = stop.network === 'rapid-rail-kl' ? getRailLine(stop.stop_id) : null
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col overflow-hidden">
+    // min-h-0 lets this flex item shrink to the drawer's max-height instead of
+    // growing past the viewport — without it the arrivals list below never
+    // becomes scrollable and long boards are simply cut off.
+    <div className="mx-auto flex min-h-0 w-full max-w-md flex-col overflow-hidden">
       {/* Drag handle */}
       <Drawer.Handle className="mx-auto mb-0 mt-14 h-4 w-40 shrink-0 rounded-full-3 bg-ink-black/20" />
 
@@ -192,7 +185,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
         <div className="flex items-start justify-between gap-14">
           <div className="min-w-0">
             <Drawer.Title className="font-sans text-[19px] font-extrabold leading-snug tracking-[-0.02em] text-ink-black">
-              <StopNameText name={stop.stop_name} />
+              <DirectionalText text={stop.stop_name} />
             </Drawer.Title>
             <Drawer.Description className="mt-4 font-mono text-caption tabular-nums text-sage-mute">
               {distLabel ?? (NETWORK_LABEL[stop.network] ?? stop.network)}
@@ -242,7 +235,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
 
       {/* Arrivals list */}
       <div
-        className="space-y-10 overflow-y-auto px-20 py-18"
+        className="min-h-0 space-y-10 overflow-y-auto px-20 py-18"
         style={{ paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }}
       >
         {isLoading ? (
@@ -259,7 +252,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
         ) : (
           liveArrivals.map((a, i) => (
             <ArrivalCard
-              key={`${a.trip_id}:${a.arr_secs}`}
+              key={`${a.trip_id}:${a.arr_secs}:${i}`}
               routeShortName={a.route_short_name ?? stop.network.toUpperCase()}
               headsign={a.trip_headsign ?? '—'}
               minutesUntil={a.minutes_until}
@@ -304,7 +297,7 @@ export function StopSheet({ stop, onClose, isSaved, onSave, onRemove }: StopShee
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-ink-black/40" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 max-h-[85dvh] rounded-t-3xl-2 border-t-2 border-ink-black bg-linen-canvas outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-3xl-2 border-t-2 border-ink-black bg-linen-canvas outline-none">
           {lastStop && (
             <SheetBody
               stop={lastStop}
