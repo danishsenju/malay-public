@@ -3,13 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
+    "dev": "next dev",
     "start": "next start",
     "lint": "eslint",
-    "ingest": "tsx scripts/ingest-gtfs-static.ts"
+    "ingest": "tsx scripts/ingest-gtfs-static.ts",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
     "@supabase/supabase-js": "^2.109.0",
     "adm-zip": "^0.5.18",
     "csv-parse": "^7.0.1",
@@ -36,6 +41,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
     "typescript": "^5",
+    "wrangler": "^4.110.0",
     "ws": "^8.21.0"
   }
 }
