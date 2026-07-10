@@ -252,9 +252,12 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
         </div>
       </div>
 
-      {/* Arrivals list — or the mini live map for one tracked arrival */}
+      {/* Arrivals list — or the mini live map for one tracked arrival.
+          touch-pan-y: vaul sets touch-action:none on the drawer root so it can
+          own the drag-to-close gesture; without re-declaring pan-y here, that
+          also blocks native touch scrolling on this nested list. */}
       <div
-        className="min-h-0 space-y-10 overflow-y-auto px-20 py-18"
+        className="min-h-0 touch-pan-y space-y-10 overflow-y-auto px-20 py-18"
         style={{ paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }}
       >
         {trackedArrival ? (

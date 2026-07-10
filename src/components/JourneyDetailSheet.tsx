@@ -122,9 +122,11 @@ function SheetBody({ option }: { option: JourneyOption }) {
         </Drawer.Description>
       </div>
 
-      {/* Timeline */}
+      {/* Timeline — touch-pan-y re-enables native touch scrolling: vaul sets
+          touch-action:none on the drawer root to own the drag-to-close
+          gesture, which otherwise blocks scrolling on this nested list too. */}
       <div
-        className="min-h-0 space-y-8 overflow-y-auto px-20 py-18"
+        className="min-h-0 touch-pan-y space-y-8 overflow-y-auto px-20 py-18"
         style={{ paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }}
       >
         {option.startWalk && <WalkDetailRow transfer={option.startWalk} label={t('plan.walkStart')} />}
