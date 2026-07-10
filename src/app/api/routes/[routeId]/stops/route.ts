@@ -9,7 +9,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // representative trip per direction is enough for checkpoints. Stops shared by
 // both directions are deduped — the map only needs each physical stop once.
 
-const ALLOWED = new Set(['rapid-bus-kl'])
+const ALLOWED = new Set(['rapid-bus-kl', 'rapid-rail-kl', 'ktmb'])
 
 interface TripRow { trip_id: string; direction_id: number | null }
 interface StopTimeRow { trip_id: string; stop_id: string; stop_sequence: number }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Drawer } from 'vaul'
 import { getRailLine } from '@/lib/transit'
 import { DirectionalText } from './DirectionalText'
@@ -19,6 +20,19 @@ const NETWORK_LABEL: Record<string, string> = {
   'rapid-rail-kl': 'Rapid Rail',
   'ktmb':          'KTM',
 }
+
+// Leaflet touches window on import — client-only, loaded when first tracked.
+const ArrivalMiniMap = dynamic(
+  () => import('./ArrivalMiniMap').then(m => m.ArrivalMiniMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[260px] items-center justify-center rounded-2xl border-2 border-ink-black/15 bg-concrete-tile/20">
+        <span className="font-mono text-caption text-sage-mute">…</span>
+      </div>
+    ),
+  },
+)
 
 function SkeletonRow() {
   return <div className="h-27.5 rounded-2xl border-2 border-ink-black/15 bg-concrete-tile/20 animate-pulse" />
@@ -124,14 +138,19 @@ interface SheetBodyProps {
   isSaved:  boolean
   onSave:   () => void
   onRemove: () => void
+  /** Arrival to open the sheet on directly in map-tracking view (homepage
+   *  card tap) — null opens the usual arrivals list. */
+  initialArrival?: Arrival | null
 }
 
-function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
+function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: SheetBodyProps) {
   const { t } = useLang()
   const router = useRouter()
   const { arrivals, isLoading } = useUpcomingArrivals(stop.stop_id, stop.network)
   const live = useRealtimeVehicles()
   const now = useNow()
+  // The arrival being tracked on the mini map; null = show the list.
+  const [trackedArrival, setTrackedArrival] = useState<Arrival | null>(initialArrival)
 
   // Live countdown — same ticking-clock math as NearbySection, so the sheet
   // never shows a stale "1 min" while the vehicle has already left.
@@ -233,12 +252,47 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
         </div>
       </div>
 
-      {/* Arrivals list */}
+      {/* Arrivals list — or the mini live map for one tracked arrival */}
       <div
         className="min-h-0 space-y-10 overflow-y-auto px-20 py-18"
         style={{ paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }}
       >
-        {isLoading ? (
+        {trackedArrival ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setTrackedArrival(null)}
+              className="flex items-center gap-6 font-mono text-[11px] font-bold uppercase tracking-widest text-cobalt-band"
+            >
+              <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              {t('mini.back')}
+            </button>
+
+            {/* The tracked arrival's card, countdown still live (re-matched
+                against the polling list so it never freezes) */}
+            {(() => {
+              const current = liveArrivals.find(
+                a => a.trip_id === trackedArrival.trip_id && a.arr_secs === trackedArrival.arr_secs,
+              ) ?? trackedArrival
+              return (
+                <ArrivalCard
+                  routeShortName={current.route_short_name ?? stop.network.toUpperCase()}
+                  headsign={current.trip_headsign ?? '—'}
+                  minutesUntil={liveMinutesUntil(current.arr_secs, now)}
+                  network={stop.network}
+                  isLive={isLive}
+                  stale={stale}
+                  routeColor={current.route_color ?? undefined}
+                  routeTextColor={current.route_text_color ?? undefined}
+                />
+              )
+            })()}
+
+            <ArrivalMiniMap stop={stop} arrival={trackedArrival} />
+          </>
+        ) : isLoading ? (
           <>
             <SkeletonRow />
             <SkeletonRow />
@@ -262,12 +316,13 @@ function SheetBody({ stop, isSaved, onSave, onRemove }: SheetBodyProps) {
               routeColor={a.route_color ?? undefined}
               routeTextColor={a.route_text_color ?? undefined}
               index={i}
+              onClick={() => setTrackedArrival(a)}
             />
           ))
         )}
 
         {/* Last Train Guardian — settle the mamak bill in time */}
-        {!isLoading && <LastTrainFooter stop={stop} />}
+        {!isLoading && !trackedArrival && <LastTrainFooter stop={stop} />}
       </div>
     </div>
   )
@@ -281,9 +336,12 @@ interface StopSheetProps {
   isSaved:  boolean
   onSave:   (stop: NearbyStop) => void
   onRemove: (stop: NearbyStop) => void
+  /** When the tap that opened the sheet was on a specific arrival card, open
+   *  straight into that arrival's mini live map. */
+  initialArrival?: Arrival | null
 }
 
-export function StopSheet({ stop, onClose, isSaved, onSave, onRemove }: StopSheetProps) {
+export function StopSheet({ stop, onClose, isSaved, onSave, onRemove, initialArrival = null }: StopSheetProps) {
   // Retain the last non-null stop so SheetBody stays mounted during vaul's close
   // animation — prevents a flash of empty content while the drawer slides down.
   const [lastStop, setLastStop] = useState(stop)
@@ -300,10 +358,14 @@ export function StopSheet({ stop, onClose, isSaved, onSave, onRemove }: StopShee
         <Drawer.Content className="fixed inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-3xl-2 border-t-2 border-ink-black bg-linen-canvas outline-none">
           {lastStop && (
             <SheetBody
+              // Remount per stop so the tracked-arrival state never carries
+              // over from one stop's sheet to another's.
+              key={`${lastStop.stop_id}:${lastStop.network}:${initialArrival ? `${initialArrival.trip_id}:${initialArrival.arr_secs}` : ''}`}
               stop={lastStop}
               isSaved={isSaved}
               onSave={() => onSave(lastStop)}
               onRemove={() => onRemove(lastStop)}
+              initialArrival={initialArrival}
             />
           )}
         </Drawer.Content>

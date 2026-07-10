@@ -14,7 +14,7 @@ import { useCommutePattern } from '@/hooks/useCommutePattern'
 import { useSavedStops } from '@/hooks/useSavedStops'
 import { useLang, LangToggle, type Lang } from '@/lib/i18n'
 import { STRINGS, DAYS, MONTHS, QUOTES, type StringKey } from '@/lib/strings'
-import type { NearbyStop } from '@/lib/types'
+import type { Arrival, NearbyStop } from '@/lib/types'
 
 // ── Time-aware greeting + date eyebrow ──────────────────────────────────────
 
@@ -93,14 +93,18 @@ function Ticker({ lang }: { lang: Lang }) {
 export function HomeLayout() {
   const { lang } = useLang()
   const [selectedStop, setSelectedStop] = useState<NearbyStop | null>(null)
+  // Set when the tap was on a specific arrival card — the sheet then opens
+  // straight into that arrival's mini live map.
+  const [selectedArrival, setSelectedArrival] = useState<Arrival | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { saved, save, remove, isSaved, hydrated } = useSavedStops()
   const { prediction, recordVisit } = useCommutePattern()
 
   // Every stop the user opens feeds the on-device routine learner.
-  function openStop(stop: NearbyStop) {
+  function openStop(stop: NearbyStop, arrival?: Arrival) {
     recordVisit(stop)
     setSelectedStop(stop)
+    setSelectedArrival(arrival ?? null)
   }
 
   const getClockSnapshot = useCallback(() => clockSnapshotFor(lang), [lang])
@@ -235,10 +239,11 @@ export function HomeLayout() {
       {/* ── Stop detail sheet — shared across search, saved, nearby ─────── */}
       <StopSheet
         stop={selectedStop}
-        onClose={() => setSelectedStop(null)}
+        onClose={() => { setSelectedStop(null); setSelectedArrival(null) }}
         isSaved={selectedStop ? isSaved(selectedStop) : false}
         onSave={save}
         onRemove={remove}
+        initialArrival={selectedArrival}
       />
     </>
   )

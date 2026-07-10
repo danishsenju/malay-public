@@ -11,7 +11,7 @@ import { useNow } from '@/hooks/useNow'
 import { liveMinutesUntil } from '@/lib/liveTime'
 import { ArrivalCard } from './ArrivalCard'
 import { SectionLabel } from './SectionLabel'
-import type { NearbyStop } from '@/lib/types'
+import type { Arrival, NearbyStop } from '@/lib/types'
 
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
@@ -47,7 +47,9 @@ interface StopGroupProps {
   hasLiveKtmb: boolean
   busStale:    boolean
   ktmbStale:   boolean
-  onSelect:    (stop: NearbyStop) => void
+  /** Tapping a specific card passes its arrival so the sheet can open
+   *  straight into that arrival's mini live map. */
+  onSelect:    (stop: NearbyStop, arrival?: Arrival) => void
 }
 
 function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelect }: StopGroupProps) {
@@ -119,7 +121,7 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
                 routeColor={a.route_color ?? undefined}
                 routeTextColor={a.route_text_color ?? undefined}
                 index={i}
-                onClick={() => onSelect(stop)}
+                onClick={() => onSelect(stop, a)}
               />
             </div>
           ))}
@@ -142,7 +144,7 @@ const FILTER_NETWORK: Record<Exclude<NearbyFilter, 'all'>, NearbyStop['network']
 // ─── Main section ─────────────────────────────────────────────────────────────
 
 interface NearbySectionProps {
-  onSelectStop: (stop: NearbyStop) => void
+  onSelectStop: (stop: NearbyStop, arrival?: Arrival) => void
 }
 
 export function NearbySection({ onSelectStop }: NearbySectionProps) {

@@ -9,7 +9,9 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // shapes rows can exceed PostgREST's default 1000-row cap for a long route, so
 // we page through with .range() until a short page comes back.
 
-const ALLOWED = new Set(['rapid-bus-kl'])
+// ktmb ships no shapes.txt (see /api/ktmb/lines for its OSM geometry);
+// rail/bus shapes come straight from the ingested GTFS.
+const ALLOWED = new Set(['rapid-bus-kl', 'rapid-rail-kl'])
 const PAGE = 1000
 
 type ShapePoint = { shape_id: string; lat: number; lon: number }

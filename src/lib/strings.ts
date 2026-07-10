@@ -149,6 +149,11 @@ const ms = {
   'sheet.fromYou': 'dari anda',
   'sheet.lastService': 'Perkhidmatan terakhir malam ini',
 
+  // ── Arrival mini map ───────────────────────────────────────────────────────
+  'mini.back': 'Kembali ke senarai',
+  'mini.railHonesty': 'Prasarana tak siarkan kedudukan tren LRT / MRT / Monorel secara langsung — kami tunjuk laluan & hentian sahaja, tiada dot palsu.',
+  'mini.yourStop': 'Hentian anda',
+
   // ── Arrival card ───────────────────────────────────────────────────────────
   'card.arrivingNow': 'tiba sekarang',
   'card.towards': 'ke arah',
@@ -359,6 +364,10 @@ const en: Record<StringKey, string> = {
   'sheet.removeAria': 'Remove from saved',
   'sheet.fromYou': 'from you',
   'sheet.lastService': 'Last services tonight',
+
+  'mini.back': 'Back to list',
+  'mini.railHonesty': "Prasarana doesn't publish live LRT / MRT / Monorail train positions — we show the route & stops only, no fake dots.",
+  'mini.yourStop': 'Your stop',
 
   'card.arrivingNow': 'arriving now',
   'card.towards': 'towards',
