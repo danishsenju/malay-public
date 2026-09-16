@@ -109,10 +109,13 @@ export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, stat
       className="h-full w-full"
       // Leaflet paints its own controls; keep attribution (OSM/Carto require it).
     >
+      {/* CARTO's free anonymous "light_all" basemap now requires a signed-up
+          API key (every tile started returning an "API KEY REQUIRED" plate).
+          Standard OSM tiles need no key — busier styling, but it just works. */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        subdomains="abcd"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        subdomains="abc"
         maxZoom={19}
       />
 

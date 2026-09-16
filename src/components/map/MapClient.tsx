@@ -9,7 +9,7 @@ import { useLang, LangToggle } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNow } from '@/hooks/useNow'
 import type { StaticLine } from './LiveMap'
-import { distanceMeters, projectToPolylines, snapToPolylines, vehicleMatchesRoute } from '@/lib/map'
+import { distanceMeters, projectToPolylines, snapToPolylines, vehicleMatchesRoute, JOHOR_CENTER } from '@/lib/map'
 import type { MapVehicle, RouteSummary, ShapeResponse, Station } from '@/lib/map'
 
 const LiveMap = dynamic(() => import('./LiveMap').then(m => m.LiveMap), {
@@ -102,7 +102,9 @@ export function MapClient() {
   // even before a route is chosen — it powers "buses near you".
   const vehiclesKey = network === 'ktmb'
     ? '/api/vehicles/ktmb'
-    : '/api/vehicles/bus?category=rapid-bus-kl'
+    : network === 'mybas-johor'
+      ? '/api/vehicles/johor'
+      : '/api/vehicles/bus?category=rapid-bus-kl'
 
   const { data: feed, isLoading: feedLoading } = useSWR<VehicleFeed>(vehiclesKey, json, {
     refreshInterval: 15_000,
@@ -122,6 +124,9 @@ export function MapClient() {
         return { ...v, lat, lon }
       })
     }
+    // myBAS Johor has no static GTFS feed on data.gov.my — no routes/shapes to
+    // pick from or snap to, so every active bus in the state is shown as-is.
+    if (network === 'mybas-johor') return all
     // Route chosen → loose matching (realtime route ids don't always equal the
     // static ones byte-for-byte; strict equality dropped real buses).
     if (selectedRoute) return all.filter(v => vehicleMatchesRoute(v.routeId, selectedRoute))
@@ -130,9 +135,12 @@ export function MapClient() {
     return all.filter(v => distanceMeters(v.lat, v.lon, userPos[0], userPos[1]) <= NEARBY_RADIUS_M)
   }, [feed, network, selectedRoute, userPos, ktmLines])
 
+  // Namespaced by network so switching tabs always re-frames the view, even
+  // when two networks land on the same sub-state (e.g. both "no route, no
+  // user position" for rapid-bus-kl and mybas-johor).
   const fitToken = network === 'ktmb'
     ? 'ktmb'
-    : selectedRoute?.route_id ?? (userPos ? 'bus-near-me' : 'bus-none')
+    : `${network}:${selectedRoute?.route_id ?? (userPos ? 'near-me' : 'none')}`
 
   // What the initial view frames. Bus: the route shape. KTM: the active trains'
   // positions, so we open on live movement — falling back to all stations only
@@ -147,13 +155,20 @@ export function MapClient() {
       // Nearby-bus mode — frame the user plus the buses around them.
       return userPos ? [userPos, ...vehicles.map(v => [v.lat, v.lon] as [number, number])] : null
     }
+    if (network === 'mybas-johor') {
+      // No stations to fall back on (no static feed) — frame Johor Bahru
+      // itself while zero buses are active, rather than leaving the view
+      // wherever the previous tab left it.
+      if (!feed) return null
+      return vehicles.length > 0 ? vehicles.map(v => [v.lat, v.lon]) : [JOHOR_CENTER]
+    }
     // KTM — wait for the realtime feed to resolve before deciding.
     if (!feed) return null
     if (vehicles.length > 0) return vehicles.map(v => [v.lat, v.lon])
     return visibleStations.length > 0
       ? visibleStations.map(s => [s.stop_lat, s.stop_lon])
       : null
-  }, [isBus, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
+  }, [isBus, network, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
 
   const nearbyMode = isBus && !selectedRoute
   const stale = feed?.stale ?? false
@@ -180,7 +195,9 @@ export function MapClient() {
       : vehicles.length === 0
         ? network === 'ktmb'
           ? t('map.noTrains')
-          : t('map.noBuses')
+          : network === 'mybas-johor'
+            ? t('map.noJohorBuses')
+            : t('map.noBuses')
         : `${vehicles.length} ${network === 'ktmb' ? t('map.train') : t('map.bus')} ${t('map.liveSuffix')}`
 
   // The live dot only makes sense once a feed is actually being plotted.

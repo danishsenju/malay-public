@@ -5,7 +5,7 @@ import type { RouteSummary } from '@/lib/map'
 import { normalizeHex } from '@/lib/map'
 import { useLang } from '@/lib/i18n'
 
-export type MapNetwork = 'ktmb' | 'rapid-bus-kl'
+export type MapNetwork = 'ktmb' | 'rapid-bus-kl' | 'mybas-johor'
 
 interface Props {
   network: MapNetwork
@@ -19,6 +19,7 @@ interface Props {
 const TABS: { id: MapNetwork; label: string }[] = [
   { id: 'ktmb', label: 'KTM' },
   { id: 'rapid-bus-kl', label: 'Rapid KL Bus' },
+  { id: 'mybas-johor', label: 'myBAS Johor' },
 ]
 
 function routeText(r: RouteSummary): string {
@@ -89,6 +90,10 @@ export function NetworkRouteSelector({
       {network === 'ktmb' ? (
         <p className="mt-12 font-sans text-caption leading-snug text-sage-mute">
           {t('map.ktmInfo')}
+        </p>
+      ) : network === 'mybas-johor' ? (
+        <p className="mt-12 font-sans text-caption leading-snug text-sage-mute">
+          {t('map.johorInfo')}
         </p>
       ) : selectedRoute && !searching ? (
         /* Collapsed — a route is picked, so the map (with the route drawn on
