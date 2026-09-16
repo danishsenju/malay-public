@@ -49,6 +49,26 @@ export function MapClient() {
     [geo.status, geo.lat, geo.lon],
   )
 
+  // Frame the rider's real position the moment it resolves, so opening the
+  // map answers "where am I?" immediately instead of leaving them to spot a
+  // tiny dot inside a nationwide KTM overview. Routed through fitPoints/
+  // fitToken (below) rather than a separate flyTo — a competing effect would
+  // race the network-overview fit that fires once the KTM feed loads, and
+  // whichever settled last would silently win. Plain derived value (not
+  // state) so there's no setState-in-effect cascade: 'pending' holds off any
+  // fit at all until we know whether a fix is coming; 'user' locks onto it
+  // once it lands; 'network' (denied/unavailable, or the rider taps a tab /
+  // "my location" themselves — interactedRef latches permanently) hands
+  // framing back to the normal per-network logic and never reverts.
+  const [interacted, setInteracted] = useState(false)
+  const initialFocusMode: 'pending' | 'user' | 'network' = interacted
+    ? 'network'
+    : geo.status === 'located'
+      ? 'user'
+      : geo.status === 'denied' || geo.status === 'unavailable'
+        ? 'network'
+        : 'pending'
+
   // ── Data sources (null key disables the request) ──────────────────────────
   const { data: routes, isLoading: routesLoading } = useSWR<RouteSummary[]>(
     isBus ? '/api/routes?network=rapid-bus-kl' : null,
@@ -138,15 +158,19 @@ export function MapClient() {
   // Namespaced by network so switching tabs always re-frames the view, even
   // when two networks land on the same sub-state (e.g. both "no route, no
   // user position" for rapid-bus-kl and mybas-johor).
-  const fitToken = network === 'ktmb'
-    ? 'ktmb'
-    : `${network}:${selectedRoute?.route_id ?? (userPos ? 'near-me' : 'none')}`
+  const fitToken = initialFocusMode === 'user'
+    ? 'auto-user-locate'
+    : network === 'ktmb'
+      ? 'ktmb'
+      : `${network}:${selectedRoute?.route_id ?? (userPos ? 'near-me' : 'none')}`
 
   // What the initial view frames. Bus: the route shape. KTM: the active trains'
   // positions, so we open on live movement — falling back to all stations only
   // when zero trains are active. null while the source data is still loading, so
   // FitBounds waits rather than framing a half-loaded (or wrong) target.
   const fitPoints = useMemo<[number, number][] | null>(() => {
+    if (initialFocusMode === 'pending') return null
+    if (initialFocusMode === 'user') return userPos ? [userPos] : null
     if (isBus) {
       if (selectedRoute) {
         const pts = shape?.variants.flat() ?? []
@@ -168,7 +192,7 @@ export function MapClient() {
     return visibleStations.length > 0
       ? visibleStations.map(s => [s.stop_lat, s.stop_lon])
       : null
-  }, [isBus, network, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
+  }, [initialFocusMode, isBus, network, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
 
   const nearbyMode = isBus && !selectedRoute
   const stale = feed?.stale ?? false
@@ -204,11 +228,13 @@ export function MapClient() {
   const showLiveDot = !nearbyMode || userPos !== null
 
   function locateMe() {
+    setInteracted(true)
     geo.refresh()
     setFlyToken(n => n + 1)
   }
 
   function handleNetworkChange(n: MapNetwork) {
+    setInteracted(true)
     setNetwork(n)
     setSelectedRoute(null)
   }
