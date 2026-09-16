@@ -1,5 +1,5 @@
 /**
- * Multi-network journey graph — the piece that lets Rancang connect
+ * Multi-network journey graph - the piece that lets Rancang connect
  * MRT ↔ LRT ↔ Monorail ↔ KTM instead of refusing at network borders.
  *
  * GTFS gives every line its own stop_ids even at shared stations (Masjid
@@ -13,7 +13,7 @@
  *
  * Routing happens at LINE level: BFS over "which lines connect to which",
  * then each line-leg is timed against the real timetable with the existing
- * direct_journeys RPC. KTMB is one pseudo-line — its internal branch
+ * direct_journeys RPC. KTMB is one pseudo-line - its internal branch
  * transfers share physical stop_ids and are handled by the RPC layer.
  */
 
@@ -156,7 +156,7 @@ export async function getGraph(): Promise<Graph> {
   return graphPromise
 }
 
-/** Ways to be ON a given line starting from `stop` — itself (walk 0) plus any
+/** Ways to be ON a given line starting from `stop` - itself (walk 0) plus any
  *  transfer-linked stop on another line. */
 export function lineEntries(graph: Graph, stop: GraphStop): Map<string, { stop: GraphStop; walkSecs: number; distM: number }> {
   const entries = new Map<string, { stop: GraphStop; walkSecs: number; distM: number }>()

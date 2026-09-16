@@ -33,10 +33,10 @@ export interface Station {
   stop_lon: number
 }
 
-/** Kuala Lumpur — sensible default centre before a route/feed is chosen. */
+/** Kuala Lumpur - sensible default centre before a route/feed is chosen. */
 export const KL_CENTER: [number, number] = [3.139, 101.6869]
 
-/** Johor Bahru — fallback centre for the myBAS Johor tab when zero buses are active. */
+/** Johor Bahru - fallback centre for the myBAS Johor tab when zero buses are active. */
 export const JOHOR_CENTER: [number, number] = [1.4927, 103.7414]
 
 /**
@@ -55,7 +55,7 @@ const VEHICLE_PALETTE = [
   '#0f766e', // teal
 ] as const
 
-/** Stable colour per vehicle id — same bus keeps its colour across polls. */
+/** Stable colour per vehicle id - same bus keeps its colour across polls. */
 export function vehicleColor(id: string): string {
   let h = 0
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
@@ -75,7 +75,7 @@ export function vehicleLabel(v: MapVehicle): string {
   return v.label && v.label.trim() !== '' ? v.label.trim() : v.id
 }
 
-/** Great-circle distance in metres (haversine) — used for "buses near you". */
+/** Great-circle distance in metres (haversine) - used for "buses near you". */
 export function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: number): number {
   const R = 6_371_000
   const toRad = (d: number) => (d * Math.PI) / 180
@@ -89,18 +89,18 @@ export function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: n
 
 /**
  * Map-match a vehicle onto the drawn network. KTMB ships no shapes.txt, so
- * the lines are station-to-station chords — a train's true GPS position sits
+ * the lines are station-to-station chords - a train's true GPS position sits
  * beside the drawn line on every curve, which reads as "the dot is wrong"
  * even though the dot is the truth. Standard map-matching fixes the *display*:
  * project the dot onto the nearest line segment, but only when it's within
- * SNAP_MAX_M — a train genuinely far from the drawn network (depot, siding,
+ * SNAP_MAX_M - a train genuinely far from the drawn network (depot, siding,
  * unmapped branch) stays at its real GPS position rather than being faked
  * onto a line.
  */
 const SNAP_MAX_M = 500
 
 /** Nearest point on any polyline, with its distance in metres. Local
- *  equirectangular projection per query point — the cos(lat) factor is
+ *  equirectangular projection per query point - the cos(lat) factor is
  *  computed per-point so this works Tumpat to JB. */
 export function projectToPolylines(
   lat: number,
@@ -149,7 +149,7 @@ export function snapToPolylines(
 /**
  * Loose route matching between a GTFS-REALTIME vehicle and a GTFS-STATIC
  * route. The two feeds don't always agree on formatting (case, stray spaces,
- * "U6250" vs "6250") — strict equality silently drops real buses, which reads
+ * "U6250" vs "6250") - strict equality silently drops real buses, which reads
  * as "the bus is in front of me but not on the map". Match on normalised
  * route_id OR route_short_name, tolerating a single leading letter prefix.
  */

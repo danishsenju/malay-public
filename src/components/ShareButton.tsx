@@ -25,7 +25,7 @@ export function ShareButton({ title, text, url, className }: ShareButtonProps) {
         await navigator.share({ title, text, url: shareUrl })
         return
       } catch {
-        // User dismissed the sheet — do nothing.
+        // User dismissed the sheet - do nothing.
         return
       }
     }
@@ -34,7 +34,7 @@ export function ShareButton({ title, text, url, className }: ShareButtonProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Clipboard blocked — silently degrade.
+      // Clipboard blocked - silently degrade.
     }
   }
 

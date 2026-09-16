@@ -33,7 +33,7 @@ interface Clock {
 }
 
 // One positive quote per visit. Chosen once on the client (this whole snapshot
-// is client-only — getServerClock returns null — so there's no SSR/hydration
+// is client-only - getServerClock returns null - so there's no SSR/hydration
 // mismatch) and shared across languages, so toggling BM/EN keeps the same line.
 let quoteIndex: number | null = null
 
@@ -93,7 +93,7 @@ function Ticker({ lang }: { lang: Lang }) {
 export function HomeLayout() {
   const { lang } = useLang()
   const [selectedStop, setSelectedStop] = useState<NearbyStop | null>(null)
-  // Set when the tap was on a specific arrival card — the sheet then opens
+  // Set when the tap was on a specific arrival card - the sheet then opens
   // straight into that arrival's mini live map.
   const [selectedArrival, setSelectedArrival] = useState<Arrival | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -112,7 +112,7 @@ export function HomeLayout() {
 
   return (
     <>
-      {/* ── Masthead — expands to max-w-6xl on desktop ───────────────────── */}
+      {/* ── Masthead - expands to max-w-6xl on desktop ───────────────────── */}
       <header className="sticky top-0 z-20 bg-linen-canvas/85 px-16 pb-10 pt-3 backdrop-blur-md lg:px-[32px]">
         <div className="mx-auto max-w-md lg:max-w-6xl">
           <div className="plate shadow-plate-sm flex items-center justify-between rounded-full-2 py-2.25 pl-2.5 pr-18">
@@ -149,7 +149,7 @@ export function HomeLayout() {
         {/* Desktop: 2-column grid. Mobile: single column. */}
         <div className="lg:grid lg:grid-cols-[420px_1fr] lg:items-start lg:gap-x-48">
 
-          {/* ── LEFT COLUMN — hero + ticker + search + saved ─────────────── */}
+          {/* ── LEFT COLUMN - hero + ticker + search + saved ─────────────── */}
           {/* Sticky on desktop so search + saved stay visible while the user
               scrolls through nearby arrivals on the right. */}
           <div className="lg:sticky lg:top-17 lg:pb-40">
@@ -165,7 +165,7 @@ export function HomeLayout() {
                     {clock.greetHead}
                     <br />
                     <span className="relative inline-block">
-                      {/* Highlighter swipe — scaleX reveal from the left */}
+                      {/* Highlighter swipe - scaleX reveal from the left */}
                       <span
                         aria-hidden
                         className="-inset-x-1.5 absolute bottom-0.75 h-[0.42em] origin-left rounded-lg bg-lime-spark"
@@ -179,7 +179,7 @@ export function HomeLayout() {
                 )}
               </h1>
 
-              {/* Feel-good line — a small positive nudge under the greeting.
+              {/* Feel-good line - a small positive nudge under the greeting.
                   Seen every home visit, so it rides the hero's riseIn and adds
                   no motion of its own (Emil: frequency rule). */}
               {clock?.quote && (
@@ -199,12 +199,12 @@ export function HomeLayout() {
               <SearchBar onClick={() => setIsSearchOpen(true)} />
             </div>
 
-            {/* Network Pulse — the live heartbeat of the whole country */}
+            {/* Network Pulse - the live heartbeat of the whole country */}
             <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 160ms both' }}>
               <NetworkPulse />
             </div>
 
-            {/* Smart Commute — the zero-tap answer, learned on-device */}
+            {/* Smart Commute - the zero-tap answer, learned on-device */}
             {prediction && (
               <div className="mt-48">
                 <SmartCommuteCard stop={prediction.stop} onSelect={openStop} />
@@ -217,7 +217,7 @@ export function HomeLayout() {
             </div>
           </div>
 
-          {/* ── RIGHT COLUMN — nearby stops ──────────────────────────────── */}
+          {/* ── RIGHT COLUMN - nearby stops ──────────────────────────────── */}
           {/* mt-48 on mobile (stacked below saved); pt-26 on desktop (aligns
               with the hero top inside the left column). */}
           <div className="mt-48 lg:mt-0 lg:pt-26">
@@ -236,7 +236,7 @@ export function HomeLayout() {
         }}
       />
 
-      {/* ── Stop detail sheet — shared across search, saved, nearby ─────── */}
+      {/* ── Stop detail sheet - shared across search, saved, nearby ─────── */}
       <StopSheet
         stop={selectedStop}
         onClose={() => { setSelectedStop(null); setSelectedArrival(null) }}

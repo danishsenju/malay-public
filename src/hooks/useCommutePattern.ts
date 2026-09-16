@@ -4,12 +4,12 @@ import { useCallback, useSyncExternalStore } from 'react'
 import type { NearbyStop } from '@/lib/types'
 
 /**
- * Smart Commute — learns the rider's routine ENTIRELY on-device.
+ * Smart Commute - learns the rider's routine ENTIRELY on-device.
  *
  * Every stop the user opens is counted into a (daypart × weekday/weekend)
  * slot in localStorage. When the same slot recurs often enough, the home
  * screen surfaces that stop before the user searches for it. Nothing is
- * ever sent to a server — privacy is the feature.
+ * ever sent to a server - privacy is the feature.
  *
  * Implemented as a tiny external store + useSyncExternalStore, so the
  * localStorage read is hydration-safe (server snapshot is null) without
@@ -63,7 +63,7 @@ function writeStore(store: Store) {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
   } catch {
-    // Storage full or blocked — the routine just won't be learned. Fine.
+    // Storage full or blocked - the routine just won't be learned. Fine.
   }
 }
 

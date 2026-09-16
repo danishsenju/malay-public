@@ -17,8 +17,8 @@ export interface ArrivalCardProps {
   stale?: boolean          // true = mustard "stale" dot instead of live pulse
   routeColor?: string      // hex without # from GTFS (e.g. "009EE0"); null → cobalt
   routeTextColor?: string  // hex without # from GTFS; null → white
-  dark?: boolean           // kept for call-site compatibility — plates are always light now
-  index?: number           // position in list — drives 50ms per-card entrance stagger
+  dark?: boolean           // kept for call-site compatibility - plates are always light now
+  index?: number           // position in list - drives 50ms per-card entrance stagger
   onClick?: () => void
 }
 
@@ -45,7 +45,7 @@ export function ArrivalCard({
   const chipText = routeTextColor ? `#${routeTextColor}` : '#ffffff'
 
   const arrivalLabel  = minutesUntil <= 0 ? t('card.arrivingNow') : `${minutesUntil} ${t('common.min')}`
-  // Screen readers hear "KJL towards Gombak, 5 min" — destination only, so a
+  // Screen readers hear "KJL towards Gombak, 5 min" - destination only, so a
   // directional headsign never stacks two "towards" in one sentence.
   const parts         = splitDirectional(headsign)
   const buttonLabel   = `${routeShortName} ${t('card.towards')} ${parts ? parts[1] : headsign}, ${arrivalLabel}`
@@ -68,7 +68,7 @@ export function ArrivalCard({
         {/* ── Row 1: route chip + network + live chip ── */}
         <div className="flex items-center justify-between gap-8">
           <div className="flex min-w-0 items-center gap-8">
-            {/* Route chip — Departure Mono on the GTFS route colour, ink stroke */}
+            {/* Route chip - Departure Mono on the GTFS route colour, ink stroke */}
             <span
               className="shrink-0 rounded-lg border-2 border-ink-black px-8 py-1 font-mono text-[13px] font-bold leading-none tracking-[0.02em]"
               style={{ backgroundColor: chipBg, color: chipText }}
@@ -80,7 +80,7 @@ export function ArrivalCard({
             </span>
           </div>
 
-          {/* Live indicator — only when the network has a realtime feed */}
+          {/* Live indicator - only when the network has a realtime feed */}
           {isLive && !stale ? (
             <span
               className="flex shrink-0 items-center gap-1.5 rounded-full-2 border-2 border-ink-black bg-leaf-wash px-8 py-0.5"

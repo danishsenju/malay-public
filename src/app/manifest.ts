@@ -2,10 +2,10 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'TransitMY — Penjejak Transit Malaysia',
+    name: 'TransitMY - Penjejak Transit Malaysia',
     short_name: 'TransitMY',
     description:
-      'LRT, MRT, Monorel, KTM & bas Rapid dalam satu aplikasi — masa nyata, dengan resit.',
+      'LRT, MRT, Monorel, KTM & bas Rapid dalam satu aplikasi - masa nyata, dengan resit.',
     start_url: '/',
     display: 'standalone',
     background_color: '#f3f3f1',

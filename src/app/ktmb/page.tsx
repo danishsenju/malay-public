@@ -7,16 +7,16 @@ import { BrandMark } from '@/components/BrandMark'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Jadual KTM — TransitMY',
+  title: 'Jadual KTM - TransitMY',
   description:
-    'Jadual setiap laluan KTM Komuter, ETS dan Intercity — tren pertama, tren akhir dan bilangan stesen, terus daripada GTFS rasmi data.gov.my.',
+    'Jadual setiap laluan KTM Komuter, ETS dan Intercity - tren pertama, tren akhir dan bilangan stesen, terus daripada GTFS rasmi data.gov.my.',
 }
 
 /**
- * /ktmb — the KTM timetable at a glance. One plate per line: first train, last
+ * /ktmb - the KTM timetable at a glance. One plate per line: first train, last
  * train, station count and services/day, read from the ingested GTFS static
  * feed. Source + freshness are shown in the open, per the radical-transparency
- * positioning — every screen says where the data came from and how fresh it is.
+ * positioning - every screen says where the data came from and how fresh it is.
  */
 
 const TRAIN_ICON =
@@ -41,7 +41,7 @@ function Stat({ label, value, plus }: { label: string; value: string; plus?: boo
 function LineCard({ line, index, t }: { line: KtmbLine; index: number; t: ReturnType<typeof serverT> }) {
   return (
     <li
-      // Staggered entrance — cardEnter (translateY + scale + opacity), fill-mode
+      // Staggered entrance - cardEnter (translateY + scale + opacity), fill-mode
       // both so each item stays invisible during its delay. Capped so a long
       // list never front-loads a slow cascade.
       style={{ animation: `cardEnter 260ms var(--ease-out) ${Math.min(index, 8) * 45}ms both` }}
@@ -158,7 +158,7 @@ export default async function KtmbPage() {
           )}
         </div>
 
-        {/* ── Buy ticket CTA — the one lime action on this screen, linking out
+        {/* ── Buy ticket CTA - the one lime action on this screen, linking out
             to KTMB's own booking portal. Domain shown up front + real
             external-link affordance so it reads as trustworthy, not a scam
             redirect. */}
@@ -194,7 +194,7 @@ export default async function KtmbPage() {
 
         {/* ── Body ── */}
         {fetchedAt === 0 ? (
-          // Total failure with nothing cached — stay honest, never a red crash.
+          // Total failure with nothing cached - stay honest, never a red crash.
           <div className="mt-26 rounded-2xl border-2 border-ink-black bg-white-plate p-20">
             <p className="font-sans text-body font-bold text-ink-black">
               {t('ktmb.loadFailed')}
@@ -207,7 +207,7 @@ export default async function KtmbPage() {
             )}
           </div>
         ) : lines.length === 0 ? (
-          // Empty ≠ error — a calm, plain state.
+          // Empty ≠ error - a calm, plain state.
           <div className="mt-26 rounded-2xl border-2 border-ink-black bg-white-plate p-20">
             <p className="font-sans text-body font-bold text-ink-black">
               {t('ktmb.empty')}

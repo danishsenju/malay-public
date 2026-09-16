@@ -5,9 +5,9 @@ import { PwaRegister } from "@/components/PwaRegister";
 import { BottomNav } from "@/components/AppNav";
 import "./globals.css";
 
-// Departure Mono v1.500 — Helena Zhang, SIL Open Font License 1.1
+// Departure Mono v1.500 - Helena Zhang, SIL Open Font License 1.1
 // Source: https://departuremono.com / https://github.com/rektdeckard/departure-mono
-// See CREDITS.md — reserved for data: countdown digits, route codes, tickers.
+// See CREDITS.md - reserved for data: countdown digits, route codes, tickers.
 const departureMono = localFont({
   src: "../fonts/DepartureMono-Regular.woff2",
   variable: "--font-departure-mono",
@@ -24,7 +24,7 @@ const linksansSub = Inter({
   display: "swap",
 });
 
-// Absolute base for OG/Twitter images — share cards must unfurl with full
+// Absolute base for OG/Twitter images - share cards must unfurl with full
 // URLs on Threads/X. Set NEXT_PUBLIC_SITE_URL in production; Vercel's own
 // URL is the fallback.
 const siteUrl =
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "TransitMY",
   description:
-    "Live Malaysian transit tracker — LRT, MRT, Monorail, KTMB & Rapid buses. Real-time arrivals, journey planner, delay tracking.",
+    "Live Malaysian transit tracker - LRT, MRT, Monorail, KTMB & Rapid buses. Real-time arrivals, journey planner, delay tracking.",
   applicationName: "TransitMY",
 };
 

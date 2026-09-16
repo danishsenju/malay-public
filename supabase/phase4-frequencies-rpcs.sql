@@ -1,11 +1,11 @@
 -- =============================================================================
--- Sampai Bila? — Phase 4 Migration
+-- Sampai Bila? - Phase 4 Migration
 -- Apply in: Supabase → SQL Editor → New query → Run
 --
 -- Changes:
 --   1. CREATE TABLE frequencies  (required for rapid-rail-kl + rapid-bus-kl)
---   2. CREATE FUNCTION nearby_stops   — PostGIS proximity search (all 3 networks)
---   3. CREATE FUNCTION upcoming_arrivals  — departure board data (fixed + freq-based)
+--   2. CREATE FUNCTION nearby_stops   - PostGIS proximity search (all 3 networks)
+--   3. CREATE FUNCTION upcoming_arrivals  - departure board data (fixed + freq-based)
 --
 -- After applying this SQL:
 --   Re-run the ingestion script for ALL THREE networks to populate frequencies
@@ -32,8 +32,8 @@
 CREATE TABLE IF NOT EXISTS frequencies (
   trip_id      TEXT     NOT NULL,
   network      TEXT     NOT NULL,
-  start_time   TEXT     NOT NULL,  -- HH:MM:SS — window open time
-  end_time     TEXT     NOT NULL,  -- HH:MM:SS — window close time
+  start_time   TEXT     NOT NULL,  -- HH:MM:SS - window open time
+  end_time     TEXT     NOT NULL,  -- HH:MM:SS - window close time
   headway_secs INTEGER  NOT NULL,  -- seconds between consecutive trip starts
   exact_times  SMALLINT NOT NULL DEFAULT 0,  -- 0 = approximate, 1 = exact
   PRIMARY KEY (trip_id, network, start_time)
@@ -254,13 +254,13 @@ BEGIN
       ON  f.trip_id = st.trip_id
       AND f.network  = st.network
     CROSS JOIN LATERAL generate_series(
-      -- Start: whichever is later — window open time, or (now − 1 h)
+      -- Start: whichever is later - window open time, or (now − 1 h)
       GREATEST(
         SPLIT_PART(f.start_time, ':', 1)::int * 3600
           + SPLIT_PART(f.start_time, ':', 2)::int * 60,
         v_now_secs - 3600
       )::bigint,
-      -- End: whichever is earlier — last valid instance, or (now + ahead_min)
+      -- End: whichever is earlier - last valid instance, or (now + ahead_min)
       LEAST(
         SPLIT_PART(f.end_time, ':', 1)::int * 3600
           + SPLIT_PART(f.end_time, ':', 2)::int * 60

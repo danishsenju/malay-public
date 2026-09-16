@@ -1,12 +1,12 @@
 import { getSupabaseAdmin } from './supabase'
 
 /**
- * KTM line schedule summaries — read from the ingested GTFS static tables,
+ * KTM line schedule summaries - read from the ingested GTFS static tables,
  * never fetched live per-request.
  *
  * IMPORTANT (see CLAUDE.md): the upstream endpoint
  *   GET https://api.data.gov.my/gtfs-static/ktmb
- * is NOT JSON — it 301/302-redirects to an S3 `.zip` of GTFS CSVs
+ * is NOT JSON - it 301/302-redirects to an S3 `.zip` of GTFS CSVs
  * (trips, routes, stops, stop_times, calendar, agency). Calling `.json()` on
  * it throws. That zip is parsed ONCE by `scripts/ingest-gtfs-static.ts` into
  * Supabase (network = 'ktmb'); everything here reads those tables.
@@ -42,7 +42,7 @@ export interface KtmbScheduleResult {
   message?: string
 }
 
-// Fallback colours for intercity routes whose GTFS route_color is null —
+// Fallback colours for intercity routes whose GTFS route_color is null -
 // kept in sync with src/app/api/ktmb/lines/route.ts.
 const FALLBACK_COLOR: Record<string, string> = {
   ETS: 'B58500',
@@ -107,7 +107,7 @@ async function compute(): Promise<KtmbLine[]> {
 
   for (const route of routesRes.data ?? []) {
     const tripIds = tripsByRoute.get(route.route_id) ?? []
-    if (tripIds.length === 0) continue // route with no ingested trips — no schedule to show
+    if (tripIds.length === 0) continue // route with no ingested trips - no schedule to show
 
     const { data: st, error } = await db
       .from('stop_times')
@@ -138,7 +138,7 @@ async function compute(): Promise<KtmbLine[]> {
     }
     if (longest.length < 2 || originDepartures.length === 0) continue
 
-    originDepartures.sort() // GTFS times are zero-padded fixed-width — lexical sort is chronological
+    originDepartures.sort() // GTFS times are zero-padded fixed-width - lexical sort is chronological
     const first = formatTime(originDepartures[0])
     const last = formatTime(originDepartures[originDepartures.length - 1])
 
@@ -150,8 +150,8 @@ async function compute(): Promise<KtmbLine[]> {
       kind,
       color: route.route_color || FALLBACK_COLOR[route.route_id] || '2665d6',
       textColor: route.route_text_color || 'FFFFFF',
-      origin: stopName.get(longest[0].stop_id) ?? '—',
-      destination: stopName.get(longest[longest.length - 1].stop_id) ?? '—',
+      origin: stopName.get(longest[0].stop_id) ?? '-',
+      destination: stopName.get(longest[longest.length - 1].stop_id) ?? '-',
       stationCount: longest.length,
       services: byTrip.size,
       firstTrain: first.hm,
@@ -170,7 +170,7 @@ async function compute(): Promise<KtmbLine[]> {
 /**
  * Returns cached KTM line schedules, refreshing at most every 6h.
  * On upstream (Supabase) failure, falls back to the last good cache and marks
- * the result `stale` — never a broken empty state if we have anything to show.
+ * the result `stale` - never a broken empty state if we have anything to show.
  */
 export async function getKtmbSchedule(): Promise<KtmbScheduleResult> {
   const now = Date.now()
@@ -195,7 +195,7 @@ export async function getKtmbSchedule(): Promise<KtmbScheduleResult> {
         lines: cache.lines,
         fetchedAt: cache.at,
         stale: true,
-        message: `Jadual cache ${ageMin} min lalu — sumber tak dapat dicapai`,
+        message: `Jadual cache ${ageMin} min lalu - sumber tak dapat dicapai`,
       }
     }
     return { lines: [], fetchedAt: 0, stale: true, message: reason }

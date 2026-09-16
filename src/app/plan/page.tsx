@@ -17,7 +17,7 @@ import type {
 } from '@/lib/types'
 
 /**
- * Rancang — journey planner over the WHOLE network. Direct rides, cross-line
+ * Rancang - journey planner over the WHOLE network. Direct rides, cross-line
  * transfers (MRT ↔ LRT ↔ Monorail) and cross-network hops (rail ↔ KTM) all
  * come from /api/journey; this page renders them as one honest timeline.
  */
@@ -89,7 +89,7 @@ function LegChip({ leg }: { leg: JourneyLeg }) {
         color:           leg.routeTextColor ? `#${leg.routeTextColor}` : '#ffffff',
       }}
     >
-      {leg.routeShortName ?? '—'}
+      {leg.routeShortName ?? '-'}
     </span>
   )
 }
@@ -360,7 +360,7 @@ export default function PlanPage() {
     }
   }, [])
 
-  // Search is driven by the events that change the pair — no effect needed.
+  // Search is driven by the events that change the pair - no effect needed.
   function applyStops(nextFrom: NearbyStop | null, nextTo: NearbyStop | null) {
     setFrom(nextFrom)
     setTo(nextTo)
@@ -384,7 +384,7 @@ export default function PlanPage() {
     navigator.geolocation.getCurrentPosition(
       async pos => {
         try {
-          // Wide ring — even a user far from any stop gets their nearest
+          // Wide ring - even a user far from any stop gets their nearest
           // boarding point instead of a silent no-op.
           const { data } = await getSupabase().rpc('nearby_stops', {
             p_lat: pos.coords.latitude,
@@ -461,7 +461,7 @@ export default function PlanPage() {
               onClick={() => setPicker('to')}
             />
 
-            {/* Swap — pinned to the seam between the two rows */}
+            {/* Swap - pinned to the seam between the two rows */}
             <button
               type="button"
               aria-label={t('plan.swap')}
@@ -561,7 +561,7 @@ export default function PlanPage() {
         <PlacesSection onPick={pickPlace} />
       </div>
 
-      {/* ── Journey detail sheet — tap a card to see the full breakdown ── */}
+      {/* ── Journey detail sheet - tap a card to see the full breakdown ── */}
       <JourneyDetailSheet option={detailOption} onClose={() => setDetailOption(null)} />
 
       {/* ── Stop picker overlay (shared search UI) ── */}

@@ -36,7 +36,7 @@ export function NetworkRouteSelector({
 }: Props) {
   const { t } = useLang()
   const [query, setQuery] = useState('')
-  // Once a route is picked, the whole point is to look at the map — the
+  // Once a route is picked, the whole point is to look at the map - the
   // search input + hundreds-of-routes list would otherwise bury it every
   // time. Collapse to a compact chip and only reopen on explicit request.
   const [searching, setSearching] = useState(true)
@@ -96,7 +96,7 @@ export function NetworkRouteSelector({
           {t('map.johorInfo')}
         </p>
       ) : selectedRoute && !searching ? (
-        /* Collapsed — a route is picked, so the map (with the route drawn on
+        /* Collapsed - a route is picked, so the map (with the route drawn on
            it) is the point. One compact row: chip, name, change, clear. */
         <div className="mt-12 flex items-center gap-8">
           <span
@@ -164,7 +164,7 @@ export function NetworkRouteSelector({
             </div>
           )}
 
-          {/* Route count + scroll cue — the list holds hundreds of routes, so
+          {/* Route count + scroll cue - the list holds hundreds of routes, so
               say so out loud; the chevron nudges twice to teach the scroll. */}
           {!routesLoading && filtered.length > 1 && (
             <p className="mt-10 flex items-center gap-4 font-mono text-[10px] font-bold uppercase tracking-widest text-sage-mute">
@@ -185,7 +185,7 @@ export function NetworkRouteSelector({
             </p>
           )}
 
-          {/* Route list — max-height chosen to cut the last visible row in
+          {/* Route list - max-height chosen to cut the last visible row in
               half: the strongest "there's more below" affordance there is. */}
           <div className="scrollbar-none mt-8 max-h-66 overflow-y-auto overscroll-contain">
             {routesLoading ? (

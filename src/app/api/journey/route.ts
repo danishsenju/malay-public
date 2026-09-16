@@ -17,7 +17,7 @@ import type { JourneyLeg, JourneyOption, JourneyResponse, JourneyTransfer, Netwo
  *
  * 1. Same network → direct_journeys RPC (single ride, fixed + frequency).
  * 2. Same network, no direct → transfer_points RPC (shared-stop_id
- *    interchanges — mainly KTMB branches).
+ *    interchanges - mainly KTMB branches).
  * 3. Anything rail/KTM (same or cross network, cross LINE) → line-graph
  *    planner: BFS over lines joined by walking interchanges, each leg timed
  *    against the real timetable, chained with walk buffers.
@@ -141,7 +141,7 @@ async function planViaGraph(
           const fromStop = i === 0 ? entry.stop : junctions[i - 1].to
           const toStop = i === path.length - 1 ? exit.stop : junctions[i].from
           // Origin already standing at the junction (or dest is one): no ride
-          // needed on this line — only valid at the path ends.
+          // needed on this line - only valid at the path ends.
           if (fromStop.stop_id === toStop.stop_id && fromStop.network === toStop.network) return null
 
           const net = networkOfLine(path[i])
@@ -284,7 +284,7 @@ export async function GET(request: Request) {
   try {
     let options: JourneyOption[] = []
 
-    // 1. Single ride on one trip (same network only — cheap and exact).
+    // 1. Single ride on one trip (same network only - cheap and exact).
     if (fromNet === toNet) {
       const rows = await directLeg(db, fromId, toId, fromNet, null, 6)
       options = rows.map(r => ({

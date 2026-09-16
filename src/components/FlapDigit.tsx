@@ -11,7 +11,7 @@ interface FlapDigitProps {
  * One character cell that animates like a physical split-flap board when its
  * value changes. Uses a two-phase CSS transition: rotates to -90° (current
  * character disappears), swaps the character, then rotates back to 0°
- * (new character appears). No keyframes — CSS transitions retarget mid-flight,
+ * (new character appears). No keyframes - CSS transitions retarget mid-flight,
  * which is essential for a component that receives live arrival-time updates.
  *
  * prefers-reduced-motion: globals.css sets transition-duration: 0.01ms !important,
@@ -48,7 +48,7 @@ export function FlapDigit({ value, delay = 0 }: FlapDigitProps) {
       style={{
         display: 'inline-block',
         // perspective() in the transform (not on parent) so each digit has its
-        // own vanishing point — correct for a mechanism where each flap is
+        // own vanishing point - correct for a mechanism where each flap is
         // physically independent.
         transform: isOut
           ? 'perspective(400px) rotateX(-90deg)'

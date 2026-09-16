@@ -62,7 +62,7 @@ export function useSavedStops() {
   const save = useCallback((stop: NearbyStop) => {
     const current = getSnapshot()
     if (current.some(s => s.stop_id === stop.stop_id && s.network === stop.network)) return
-    // Strip distance_m — not meaningful once saved out of proximity context
+    // Strip distance_m - not meaningful once saved out of proximity context
     const rest = { ...stop }
     delete rest.distance_m
     write([...current, rest])

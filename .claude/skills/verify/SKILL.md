@@ -1,6 +1,6 @@
 ---
 name: verify
-description: How to runtime-verify TransitMY (Next.js PWA) changes on this machine — launch, drive with CDP, and the flows worth exercising.
+description: How to runtime-verify TransitMY (Next.js PWA) changes on this machine - launch, drive with CDP, and the flows worth exercising.
 ---
 
 # Verifying TransitMY
@@ -9,12 +9,12 @@ description: How to runtime-verify TransitMY (Next.js PWA) changes on this machi
 
 - A dev server is usually ALREADY running on port 3000 (the user's own). It
   serves this same directory with Turbopack hot reload, so just drive
-  `http://localhost:3000` — do NOT kill it, and don't start a second server
+  `http://localhost:3000` - do NOT kill it, and don't start a second server
   (it will fail with "Another next dev server is already running").
 - `npm run build` for compile/type safety, `npm run lint` for ESLint
-  (react-hooks/set-state-in-effect is enforced — no sync setState in effects).
+  (react-hooks/set-state-in-effect is enforced - no sync setState in effects).
 
-## Drive (CDP over ws — no Playwright/puppeteer installed)
+## Drive (CDP over ws - no Playwright/puppeteer installed)
 
 1. Launch headless Chrome with its own profile:
    `& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --remote-debugging-port=9333 --user-data-dir=<scratch>\chrome-profile --no-first-run about:blank`
@@ -28,7 +28,7 @@ description: How to runtime-verify TransitMY (Next.js PWA) changes on this machi
    `Browser.grantPermissions {permissions:['geolocation']}` (browser-level, no
    sessionId), `Emulation.setGeolocationOverride`.
 4. Reusable driver from a past session:
-   scratchpad `cdp.mjs` pattern — `Runtime.evaluate {returnByValue, awaitPromise}`
+   scratchpad `cdp.mjs` pattern - `Runtime.evaluate {returnByValue, awaitPromise}`
    to click buttons / read DOM, `Page.captureScreenshot` for evidence.
 5. To set React inputs (SearchOverlay), use the native value setter +
    `dispatchEvent(new Event('input', {bubbles:true}))`.
@@ -42,13 +42,13 @@ description: How to runtime-verify TransitMY (Next.js PWA) changes on this machi
 - Map vehicle dots: `.veh-marker` / labels `.veh-label`; map network tabs are
   buttons "KTM" / "Rapid KL Bus"; locate button `aria-label="Lokasi saya"`.
 - Saved stops localStorage key: `sampai-bila:saved`.
-- Live countdown check: snapshot flap texts, wait ~75s, snapshot again —
+- Live countdown check: snapshot flap texts, wait ~75s, snapshot again -
   minutes must decrease / rows expire.
 
 ## Gotchas
 
-- This machine reports `prefers-reduced-motion: reduce` — animations are
+- This machine reports `prefers-reduced-motion: reduce` - animations are
   near-instant; don't diagnose "broken animation" from that.
 - Live feeds are real (data.gov.my): KTM has few trains late at night; bus
-  headsigns are often `—` (missing trip_headsign upstream) — data gaps, not
+  headsigns are often `-` (missing trip_headsign upstream) - data gaps, not
   bugs.

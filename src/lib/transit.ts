@@ -2,7 +2,7 @@
  * Derives the transit line and transport type from a Prasarana GTFS stop_id prefix.
  * Longer prefixes are checked first so "BRT" is matched before "B", etc.
  *
- * Source: Prasarana open GTFS stops.txt — stop_ids follow a consistent
+ * Source: Prasarana open GTFS stops.txt - stop_ids follow a consistent
  * {LINE_CODE}{sequence} format (e.g. "KJ13", "MR5", "PY22").
  */
 
@@ -10,7 +10,7 @@ export type TransportType = 'LRT' | 'MRT' | 'Monorail' | 'BRT' | 'ERL'
 
 export interface LineInfo {
   name:  string           // e.g. "Kelana Jaya Line"
-  type:  TransportType    // e.g. "LRT" — shown to users who don't know line names
+  type:  TransportType    // e.g. "LRT" - shown to users who don't know line names
   color: string           // hex, matches official line colour
 }
 
@@ -43,8 +43,8 @@ export function getRailLine(stopId: string): LineInfo | null {
 
 /**
  * Splits a directional GTFS name into [origin, destination]. Feeds mix three
- * formats — "A ke arah B", "A → B" / "A -> B", and "From A to B" (rail
- * trip_headsigns) — and all should render the same neutral "A → B" regardless
+ * formats - "A ke arah B", "A → B" / "A -> B", and "From A to B" (rail
+ * trip_headsigns) - and all should render the same neutral "A → B" regardless
  * of the UI language. Returns null when the text isn't directional.
  */
 export function splitDirectional(text: string): [string, string] | null {
@@ -54,7 +54,7 @@ export function splitDirectional(text: string): [string, string] | null {
   return arrow ? [arrow[1], arrow[2]] : null
 }
 
-/** The destination half of a directional name — "From A to B" → "B" — or the
+/** The destination half of a directional name - "From A to B" → "B" - or the
  *  text unchanged when it isn't directional. */
 export function headsignDestination(text: string): string {
   const parts = splitDirectional(text)

@@ -31,7 +31,7 @@ async function fetchPulse(url: string): Promise<PulseResponse> {
 }
 
 /**
- * The Network Pulse — "N vehicles tracked live right now" as a departure-board
+ * The Network Pulse - "N vehicles tracked live right now" as a departure-board
  * counter. The count arrives via SWR every 15s; digit changes ride the same
  * split-flap mechanism as arrival countdowns, so the whole app speaks one
  * motion language. Data-driven flips are state indication, not decoration.
@@ -47,7 +47,7 @@ export function NetworkPulse() {
   const total = data?.total ?? 0
   const anyLive = (data?.networks ?? []).some(n => n.count > 0 && !n.stale)
   // Fixed 3-char field keeps digit positions (and React keys) stable, exactly
-  // like FlapCountdown — the same DOM nodes flip between values.
+  // like FlapCountdown - the same DOM nodes flip between values.
   const display = loading ? '···' : String(Math.min(total, 999)).padStart(3, ' ')
 
   return (
@@ -73,7 +73,7 @@ export function NetworkPulse() {
         )}
       </div>
 
-      {/* The count — split-flap, Departure Mono, one loud number */}
+      {/* The count - split-flap, Departure Mono, one loud number */}
       <div className="mt-10 flex items-baseline gap-3">
         <span
           className="font-mono text-[56px] font-bold leading-none tracking-[-0.02em] text-ink-black tabular-nums"
@@ -107,7 +107,7 @@ export function NetworkPulse() {
         ))}
       </div>
 
-      {/* Honesty line — the trust engine, on every screen */}
+      {/* Honesty line - the trust engine, on every screen */}
       <p className="mt-3 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-sage-mute/80">
         {t('home.pulse.honesty')}
       </p>

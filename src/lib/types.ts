@@ -70,7 +70,7 @@ export interface JourneyOption {
 
 export interface JourneyResponse {
   options: JourneyOption[]
-  /** false only when a bus stop is paired with a different network — the one
+  /** false only when a bus stop is paired with a different network - the one
    *  combination we don't plan yet. */
   supported:   boolean
   generatedAt: number

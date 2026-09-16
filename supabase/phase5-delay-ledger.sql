@@ -1,5 +1,5 @@
 -- =============================================================================
--- Sampai Bila? — Phase 5 Migration: The Delay Ledger + Trust Core RPCs
+-- Sampai Bila? - Phase 5 Migration: The Delay Ledger + Trust Core RPCs
 -- Apply in: Supabase → SQL Editor → New query → Run
 --
 -- One pipeline, many features. A snapshot job (Vercel cron and/or opportunistic
@@ -8,20 +8,20 @@
 --   Daily Delay Report · reliability grades · /status history · Transit Wrapped.
 --
 -- Changes:
---   1. CREATE TABLE feed_snapshots   — one row per network per sample
---   2. CREATE TABLE vehicle_state    — last-known position per vehicle (stall detection)
---   3. CREATE TABLE delay_events     — the ledger: stall / feed_outage / service_gap
+--   1. CREATE TABLE feed_snapshots   - one row per network per sample
+--   2. CREATE TABLE vehicle_state    - last-known position per vehicle (stall detection)
+--   3. CREATE TABLE delay_events     - the ledger: stall / feed_outage / service_gap
 --   4. RLS: snapshots + events publicly readable; vehicle_state service-role only
---   5. CREATE INDEX stop_times_stop_idx — needed by the new schedule RPCs
---   6. CREATE FUNCTION daily_report      — per-network health for one MYT day
---   7. CREATE FUNCTION last_departures   — last scheduled service tonight at a stop
---   8. CREATE FUNCTION direct_journeys   — A→B direct trips (fixed + frequency-based)
---   9. CREATE FUNCTION transfer_points   — candidate interchange stops for A→B
+--   5. CREATE INDEX stop_times_stop_idx - needed by the new schedule RPCs
+--   6. CREATE FUNCTION daily_report      - per-network health for one MYT day
+--   7. CREATE FUNCTION last_departures   - last scheduled service tonight at a stop
+--   8. CREATE FUNCTION direct_journeys   - A→B direct trips (fixed + frequency-based)
+--   9. CREATE FUNCTION transfer_points   - candidate interchange stops for A→B
 -- =============================================================================
 
 
 -- =============================================================================
--- 1. feed_snapshots — one row per network each time the sampler runs
+-- 1. feed_snapshots - one row per network each time the sampler runs
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS feed_snapshots (
@@ -38,7 +38,7 @@ CREATE INDEX IF NOT EXISTS feed_snapshots_net_time_idx
 
 
 -- =============================================================================
--- 2. vehicle_state — sampler working memory for stall detection
+-- 2. vehicle_state - sampler working memory for stall detection
 -- =============================================================================
 -- Not public. One row per (network, vehicle). The sampler compares the incoming
 -- position against this row: moved > ~40 m resets last_moved_at; a vehicle that
@@ -58,12 +58,12 @@ CREATE TABLE IF NOT EXISTS vehicle_state (
 
 
 -- =============================================================================
--- 3. delay_events — the ledger itself
+-- 3. delay_events - the ledger itself
 -- =============================================================================
 -- Event types (all observed, never inferred from schedules we can't verify):
---   'stall'       — a live vehicle stopped moving mid-service beyond threshold
---   'feed_outage' — data.gov.my upstream failed while we were sampling
---   'service_gap' — zero vehicles reported during service hours, feed healthy
+--   'stall'       - a live vehicle stopped moving mid-service beyond threshold
+--   'feed_outage' - data.gov.my upstream failed while we were sampling
+--   'service_gap' - zero vehicles reported during service hours, feed healthy
 --
 -- ended_at IS NULL means the event is still open.
 
@@ -118,7 +118,7 @@ CREATE INDEX IF NOT EXISTS stop_times_stop_idx
 
 
 -- =============================================================================
--- 6. daily_report — per-network health for one Malaysia-time day
+-- 6. daily_report - per-network health for one Malaysia-time day
 -- =============================================================================
 -- Event durations are clipped to the day window so a stall spanning midnight
 -- counts the right minutes on each side.
@@ -208,7 +208,7 @@ $$;
 
 
 -- =============================================================================
--- 7. last_departures — the last scheduled service tonight at a stop
+-- 7. last_departures - the last scheduled service tonight at a stop
 -- =============================================================================
 -- Powers the Last Train Guardian. Same calendar + frequency semantics as
 -- upcoming_arrivals (phase 4): fixed trips read arrival_time directly; for
@@ -317,7 +317,7 @@ $$;
 
 
 -- =============================================================================
--- 8. direct_journeys — A→B on a single trip (the journey planner's core)
+-- 8. direct_journeys - A→B on a single trip (the journey planner's core)
 -- =============================================================================
 -- Joins stop_times to itself: same trip, from-stop sequence < to-stop sequence.
 -- Frequency-based trips are expanded exactly like upcoming_arrivals; fixed
@@ -458,7 +458,7 @@ $$;
 
 
 -- =============================================================================
--- 9. transfer_points — candidate interchange stops between A and B
+-- 9. transfer_points - candidate interchange stops between A and B
 -- =============================================================================
 -- Pure topology: stops reachable onward from A that can also reach B, ranked by
 -- total hop count. The API layer then times each leg with direct_journeys.

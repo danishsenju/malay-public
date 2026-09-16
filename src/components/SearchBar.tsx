@@ -19,7 +19,7 @@ export function SearchBar({ onClick }: SearchBarProps) {
         [@media(hover:hover)_and_(pointer:fine)]:hover:bg-leaf-wash
       "
     >
-      {/* Magnifier sits in a lime sticker — the plate's one accent */}
+      {/* Magnifier sits in a lime sticker - the plate's one accent */}
       <span className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-lime-spark">
         <svg
           aria-hidden

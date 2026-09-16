@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-// KL Sentral — shown while geolocation is pending or denied.
+// KL Sentral - shown while geolocation is pending or denied.
 const DEFAULT_LAT = 3.1343
 const DEFAULT_LON = 101.6865
 
@@ -16,7 +16,7 @@ export interface GeolocationResult {
   /** true while a position request is in flight */
   isPending: boolean
   status:    GeoStatus
-  /** Re-request the CURRENT position (maximumAge 0, high accuracy) — wired to
+  /** Re-request the CURRENT position (maximumAge 0, high accuracy) - wired to
    *  the "detect my location" buttons so the user can force a fresh fix. */
   refresh:   () => void
 }
@@ -26,7 +26,7 @@ export function useGeolocation(): GeolocationResult {
   const [status, setStatus] = useState<GeoStatus>('pending')
   const [isPending, setIsPending] = useState(true)
 
-  // All state updates happen inside the (async) geolocation callbacks — never
+  // All state updates happen inside the (async) geolocation callbacks - never
   // synchronously in an effect body.
   const request = useCallback((options: PositionOptions) => {
     navigator.geolocation.getCurrentPosition(
@@ -44,7 +44,7 @@ export function useGeolocation(): GeolocationResult {
   }, [])
 
   useEffect(() => {
-    // No geolocation API — resolve on the next tick, matching the async shape
+    // No geolocation API - resolve on the next tick, matching the async shape
     // of the supported path.
     if (!navigator?.geolocation) {
       const id = window.setTimeout(() => {

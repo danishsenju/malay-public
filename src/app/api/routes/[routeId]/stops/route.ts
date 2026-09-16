@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 // Returns the ordered stops (boarding / drop-off checkpoints) for a bus route,
-// so the map can draw them as dots along the route line — the same affordance
+// so the map can draw them as dots along the route line - the same affordance
 // PULSE gives riders for "where exactly can I get off?".
 //
 // A route runs many trips with near-identical stop patterns, so one
 // representative trip per direction is enough for checkpoints. Stops shared by
-// both directions are deduped — the map only needs each physical stop once.
+// both directions are deduped - the map only needs each physical stop once.
 
 const ALLOWED = new Set(['rapid-bus-kl', 'rapid-rail-kl', 'ktmb'])
 

@@ -31,11 +31,11 @@ interface LiveMapProps {
   userPos: [number, number] | null
   /** Tooltip label for the user marker (localised upstream). */
   userLabel: string
-  /** Increments each time the user taps "my location" — fly the view there. */
+  /** Increments each time the user taps "my location" - fly the view there. */
   flyToken: number
 }
 
-/** Frames the view around `points` exactly ONCE per `token` — as soon as the
+/** Frames the view around `points` exactly ONCE per `token` - as soon as the
  *  points are available. Firing on token alone would no-op when the data hasn't
  *  loaded yet; firing on every points change would yank the viewport on each
  *  15s poll. Tracking the last-fitted token gives us "fit once, when ready". */
@@ -46,7 +46,7 @@ function FitBounds({ points, token }: { points: [number, number][] | null; token
     if (!points || points.length === 0) return
     if (lastFitted.current === token) return
     if (points.length === 1) {
-      // A lone train would zoom to max — pick a sensible neighbourhood zoom.
+      // A lone train would zoom to max - pick a sensible neighbourhood zoom.
       map.setView(points[0], Math.max(map.getZoom(), 13), { animate: true })
     } else {
       map.fitBounds(L.latLngBounds(points), { padding: [48, 48], animate: true })
@@ -58,7 +58,7 @@ function FitBounds({ points, token }: { points: [number, number][] | null; token
 
 /** Flies the view to the user's position, once per locate tap. The position
  *  can arrive AFTER the tap (a fresh GPS fix is async), so this re-fires when
- *  either the token or the position lands — guarded by the last-flown token. */
+ *  either the token or the position lands - guarded by the last-flown token. */
 function FlyToUser({ pos, token }: { pos: [number, number] | null; token: number }) {
   const map = useMap()
   const lastFlown = useRef(0)
@@ -70,7 +70,7 @@ function FlyToUser({ pos, token }: { pos: [number, number] | null; token: number
   return null
 }
 
-/** A dense route can carry ~80 stops — plotted at region zoom they merge into
+/** A dense route can carry ~80 stops - plotted at region zoom they merge into
  *  lumps on the line, so the checkpoints only appear from neighbourhood zoom
  *  in, the level where "which stop do I get off at?" is actually being asked. */
 const STOPS_MIN_ZOOM = 13
@@ -111,7 +111,7 @@ export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, stat
     >
       {/* CARTO's free anonymous "light_all" basemap now requires a signed-up
           API key (every tile started returning an "API KEY REQUIRED" plate).
-          Standard OSM tiles need no key — busier styling, but it just works. */}
+          Standard OSM tiles need no key - busier styling, but it just works. */}
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -119,7 +119,7 @@ export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, stat
         maxZoom={19}
       />
 
-      {/* Route line — ink casing under a coloured stroke for the plate aesthetic. */}
+      {/* Route line - ink casing under a coloured stroke for the plate aesthetic. */}
       {shape?.variants.map((variant, i) => (
         <Polyline
           key={`case-${i}`}
@@ -135,12 +135,12 @@ export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, stat
         />
       ))}
 
-      {/* Bus stops along the selected route — the boarding / drop-off
+      {/* Bus stops along the selected route - the boarding / drop-off
           checkpoints. Same white-plate dot language as KTM stations, drawn
           over the route line so each one reads as a point ON the line. */}
       <RouteStopsLayer stops={routeStops} stopLabel={stopLabel} />
 
-      {/* KTM lines — same ink-casing treatment as bus shapes, one colour per
+      {/* KTM lines - same ink-casing treatment as bus shapes, one colour per
           route, drawn under the station dots so the network reads as LINES. */}
       {staticLines.map(line => (
         <Polyline
@@ -159,7 +159,7 @@ export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, stat
         </Polyline>
       ))}
 
-      {/* KTM stations — static white plate dots. */}
+      {/* KTM stations - static white plate dots. */}
       {stations.map(s => (
         <CircleMarker
           key={s.stop_id}
@@ -173,7 +173,7 @@ export function LiveMap({ vehicles, shape, routeStops, stopLabel, stations, stat
         </CircleMarker>
       ))}
 
-      {/* You are here — cobalt dot ringed in ink, halo underneath */}
+      {/* You are here - cobalt dot ringed in ink, halo underneath */}
       {userPos && (
         <>
           <CircleMarker

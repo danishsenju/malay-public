@@ -21,7 +21,7 @@ const NETWORK_LABEL: Record<string, string> = {
   'ktmb':          'KTM',
 }
 
-// Leaflet touches window on import — client-only, loaded when first tracked.
+// Leaflet touches window on import - client-only, loaded when first tracked.
 const ArrivalMiniMap = dynamic(
   () => import('./ArrivalMiniMap').then(m => m.ArrivalMiniMap),
   {
@@ -87,7 +87,7 @@ function LastTrainFooter({ stop }: { stop: NearbyStop }) {
   const { lastDepartures } = useLastTrain(stop.stop_id, stop.network)
   if (lastDepartures.length === 0) return null
 
-  // One row per destination, latest first — the "settle the mamak bill" number.
+  // One row per destination, latest first - the "settle the mamak bill" number.
   const seen = new Set<string>()
   const rows = lastDepartures.filter(d => {
     const key = `${d.route_id}:${d.trip_headsign ?? d.direction_id}`
@@ -115,7 +115,7 @@ function LastTrainFooter({ stop }: { stop: NearbyStop }) {
                   color:           d.route_text_color ? `#${d.route_text_color}` : 'var(--color-ink-black)',
                 }}
               >
-                {d.route_short_name ?? '—'}
+                {d.route_short_name ?? '-'}
               </span>
               <span className="truncate font-sans text-caption font-medium text-white-plate/80">
                 {d.trip_headsign ? <DirectionalText text={d.trip_headsign} /> : t('plan.service')}
@@ -139,7 +139,7 @@ interface SheetBodyProps {
   onSave:   () => void
   onRemove: () => void
   /** Arrival to open the sheet on directly in map-tracking view (homepage
-   *  card tap) — null opens the usual arrivals list. */
+   *  card tap) - null opens the usual arrivals list. */
   initialArrival?: Arrival | null
 }
 
@@ -152,13 +152,13 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
   // The arrival being tracked on the mini map; null = show the list.
   const [trackedArrival, setTrackedArrival] = useState<Arrival | null>(initialArrival)
 
-  // Live countdown — same ticking-clock math as NearbySection, so the sheet
+  // Live countdown - same ticking-clock math as NearbySection, so the sheet
   // never shows a stale "1 min" while the vehicle has already left.
   const liveArrivals = arrivals
     .map(a => ({ ...a, minutes_until: liveMinutesUntil(a.arr_secs, now) }))
     .filter(a => a.minutes_until >= 0)
 
-  // Delay Receipt — snapshot the departure board into a shareable ticket.
+  // Delay Receipt - snapshot the departure board into a shareable ticket.
   function openReceipt(next: Arrival | null) {
     const lineInfo = stop.network === 'rapid-rail-kl' ? getRailLine(stop.stop_id) : null
     const q = new URLSearchParams({ stop: stop.stop_name.slice(0, 48) })
@@ -193,7 +193,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
 
   return (
     // min-h-0 lets this flex item shrink to the drawer's max-height instead of
-    // growing past the viewport — without it the arrivals list below never
+    // growing past the viewport - without it the arrivals list below never
     // becomes scrollable and long boards are simply cut off.
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-col overflow-hidden">
       {/* Drag handle */}
@@ -212,7 +212,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
           </div>
 
           <div className="mt-2 flex shrink-0 items-center gap-8">
-            {/* Delay Receipt — turn this departure board into a shareable ticket */}
+            {/* Delay Receipt - turn this departure board into a shareable ticket */}
             <button
               type="button"
               aria-label={t('sheet.share')}
@@ -223,7 +223,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
               <TicketIcon />
             </button>
 
-            {/* Badge — colour swatch + "LRT · Kelana Jaya" on a white pill so
+            {/* Badge - colour swatch + "LRT · Kelana Jaya" on a white pill so
                 the label stays legible on every line colour */}
             <span className="flex items-center gap-1.5 rounded-full-2 border-2 border-ink-black bg-white-plate px-8 py-2 font-mono text-[10px] font-bold text-ink-black">
               {line && (
@@ -235,7 +235,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
               {line ? `${line.type} · ${line.name}` : (NETWORK_LABEL[stop.network] ?? stop.network)}
             </span>
 
-            {/* Save / unsave — fills lime when saved */}
+            {/* Save / unsave - fills lime when saved */}
             <button
               type="button"
               aria-label={isSaved ? t('sheet.removeAria') : t('sheet.saveAria')}
@@ -252,7 +252,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
         </div>
       </div>
 
-      {/* Arrivals list — or the mini live map for one tracked arrival.
+      {/* Arrivals list - or the mini live map for one tracked arrival.
           touch-pan-y: vaul sets touch-action:none on the drawer root so it can
           own the drag-to-close gesture; without re-declaring pan-y here, that
           also blocks native touch scrolling on this nested list. */}
@@ -282,7 +282,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
               return (
                 <ArrivalCard
                   routeShortName={current.route_short_name ?? stop.network.toUpperCase()}
-                  headsign={current.trip_headsign ?? '—'}
+                  headsign={current.trip_headsign ?? '-'}
                   minutesUntil={liveMinutesUntil(current.arr_secs, now)}
                   network={stop.network}
                   isLive={isLive}
@@ -311,7 +311,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
             <ArrivalCard
               key={`${a.trip_id}:${a.arr_secs}:${i}`}
               routeShortName={a.route_short_name ?? stop.network.toUpperCase()}
-              headsign={a.trip_headsign ?? '—'}
+              headsign={a.trip_headsign ?? '-'}
               minutesUntil={a.minutes_until}
               network={stop.network}
               isLive={isLive}
@@ -324,7 +324,7 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
           ))
         )}
 
-        {/* Last Train Guardian — settle the mamak bill in time */}
+        {/* Last Train Guardian - settle the mamak bill in time */}
         {!isLoading && !trackedArrival && <LastTrainFooter stop={stop} />}
       </div>
     </div>
@@ -346,7 +346,7 @@ interface StopSheetProps {
 
 export function StopSheet({ stop, onClose, isSaved, onSave, onRemove, initialArrival = null }: StopSheetProps) {
   // Retain the last non-null stop so SheetBody stays mounted during vaul's close
-  // animation — prevents a flash of empty content while the drawer slides down.
+  // animation - prevents a flash of empty content while the drawer slides down.
   const [lastStop, setLastStop] = useState(stop)
   if (stop !== null && stop !== lastStop) setLastStop(stop)
 

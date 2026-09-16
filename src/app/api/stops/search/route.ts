@@ -13,7 +13,7 @@ import type { NearbyStop } from '@/lib/types'
  * We now over-fetch, then score each hit so that: exact names win, then
  * word-start matches, then rail/KTM stations over bus poles (a bus stop named
  * after a station is almost never what someone typing the station name wants),
- * then shorter (closer) names. The list still contains every match — just in
+ * then shorter (closer) names. The list still contains every match - just in
  * the order a human means.
  */
 

@@ -1,14 +1,14 @@
 /**
  * Client-side live countdown math.
  *
- * The upcoming_arrivals RPC computes minutes_until at FETCH time — between
+ * The upcoming_arrivals RPC computes minutes_until at FETCH time - between
  * polls that number goes stale ("1 min" stuck on screen while the train has
  * already left). Instead of trusting the snapshot, we recompute minutes from
  * the raw scheduled second-of-day (arr_secs) against a ticking clock, so the
  * flap board counts down in real time and flips to ARR exactly on schedule.
  */
 
-/** Malaysia is UTC+8 with no DST — derive second-of-day in MYT from a UTC
+/** Malaysia is UTC+8 with no DST - derive second-of-day in MYT from a UTC
  *  timestamp so the countdown is correct even on a mis-zoned device. */
 export function mytSecondsSinceMidnight(nowMs: number): number {
   return Math.floor(nowMs / 1000 + 8 * 3600) % 86_400
@@ -19,7 +19,7 @@ export function mytSecondsSinceMidnight(nowMs: number): number {
  * the service day and may exceed 86400 for post-midnight trips.
  *
  * Returns 0 during the final minute before the scheduled time ("ARR"), and
- * negative once it has passed — callers should drop negative rows.
+ * negative once it has passed - callers should drop negative rows.
  */
 export function liveMinutesUntil(arrSecs: number, nowMs: number): number {
   const now = mytSecondsSinceMidnight(nowMs)
@@ -30,7 +30,7 @@ export function liveMinutesUntil(arrSecs: number, nowMs: number): number {
 }
 
 /**
- * Human duration — "80 min" reads like an error code; "1 jam 20 min" reads
+ * Human duration - "80 min" reads like an error code; "1 jam 20 min" reads
  * like a person. Under an hour stays plain minutes.
  */
 export function formatDuration(totalMin: number, lang: 'ms' | 'en'): string {

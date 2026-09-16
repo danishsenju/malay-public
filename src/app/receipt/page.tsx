@@ -4,7 +4,7 @@ import { ShareButton } from '@/components/ShareButton'
 import { BrandMark } from '@/components/BrandMark'
 
 /**
- * The Delay Receipt — a share-first page. The OG image (the actual ticket)
+ * The Delay Receipt - a share-first page. The OG image (the actual ticket)
  * is what unfurls on Threads/X; this page is where the sharer lands to hit
  * "Kongsi" and where recipients land to see the live app one tap away.
  */
@@ -34,11 +34,11 @@ export async function generateMetadata(
   const stop = p.stop?.slice(0, 48) || 'hentian anda'
   const mins = parseInt(p.mins ?? '', 10)
   const title = Number.isFinite(mins)
-    ? `${stop} — seterusnya dalam ${Math.max(0, mins)} min · TransitMY`
+    ? `${stop} - seterusnya dalam ${Math.max(0, mins)} min · TransitMY`
     : `${stop} · TransitMY`
   return {
     title,
-    description: 'Resit perjalanan langsung daripada papan berlepas TransitMY — masa nyata, dengan resit.',
+    description: 'Resit perjalanan langsung daripada papan berlepas TransitMY - masa nyata, dengan resit.',
     openGraph: { title, images: [{ url: ogUrl(p), width: 1200, height: 630 }] },
     twitter: { card: 'summary_large_image', images: [ogUrl(p)] },
   }
@@ -54,7 +54,7 @@ export default async function ReceiptPage(
   const time = p.time?.slice(0, 5) ?? ''
   const minsNum = parseInt(p.mins ?? '', 10)
   const hasMins = Number.isFinite(minsNum)
-  const bigLabel = !hasMins ? '— —' : minsNum <= 0 ? 'TIBA' : `${Math.min(minsNum, 999)} MIN`
+  const bigLabel = !hasMins ? '- -' : minsNum <= 0 ? 'TIBA' : `${Math.min(minsNum, 999)} MIN`
 
   const shareText = hasMins
     ? `Sampai bila? ${stop}: ${minsNum <= 0 ? 'tren dah tiba' : `seterusnya dalam ${minsNum} min`} 🎫`

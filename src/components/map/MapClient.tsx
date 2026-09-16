@@ -29,7 +29,7 @@ interface VehicleFeed {
   message?: string
 }
 
-// "Buses near you" search ring — when no route is picked but the user has
+// "Buses near you" search ring - when no route is picked but the user has
 // shared their location, we plot every live bus within this distance so the
 // bus physically in front of them is on the map.
 const NEARBY_RADIUS_M = 3_000
@@ -39,7 +39,7 @@ export function MapClient() {
   const [network, setNetwork] = useState<MapNetwork>('ktmb')
   const [selectedRoute, setSelectedRoute] = useState<RouteSummary | null>(null)
   const geo = useGeolocation()
-  // Incremented on each "my location" tap — tells the map to fly there.
+  // Incremented on each "my location" tap - tells the map to fly there.
   const [flyToken, setFlyToken] = useState(0)
 
   const isBus = network === 'rapid-bus-kl'
@@ -52,13 +52,13 @@ export function MapClient() {
   // Frame the rider's real position the moment it resolves, so opening the
   // map answers "where am I?" immediately instead of leaving them to spot a
   // tiny dot inside a nationwide KTM overview. Routed through fitPoints/
-  // fitToken (below) rather than a separate flyTo — a competing effect would
+  // fitToken (below) rather than a separate flyTo - a competing effect would
   // race the network-overview fit that fires once the KTM feed loads, and
   // whichever settled last would silently win. Plain derived value (not
   // state) so there's no setState-in-effect cascade: 'pending' holds off any
   // fit at all until we know whether a fix is coming; 'user' locks onto it
   // once it lands; 'network' (denied/unavailable, or the rider taps a tab /
-  // "my location" themselves — interactedRef latches permanently) hands
+  // "my location" themselves - interactedRef latches permanently) hands
   // framing back to the normal per-network logic and never reverts.
   const [interacted, setInteracted] = useState(false)
   const initialFocusMode: 'pending' | 'user' | 'network' = interacted
@@ -84,7 +84,7 @@ export function MapClient() {
     { revalidateOnFocus: false },
   )
 
-  // Drop-off checkpoints — every stop along the selected bus route, drawn as
+  // Drop-off checkpoints - every stop along the selected bus route, drawn as
   // dots on the line so riders can see exactly where they can board/alight.
   const { data: routeStops } = useSWR<{ stops: Station[] }>(
     isBus && selectedRoute
@@ -100,7 +100,7 @@ export function MapClient() {
     { revalidateOnFocus: false },
   )
 
-  // KTM route polylines — real OSM track geometry so the network draws as
+  // KTM route polylines - real OSM track geometry so the network draws as
   // the actual railway, not station-to-station chords.
   const { data: ktmLines } = useSWR<{ lines: StaticLine[] }>(
     network === 'ktmb' ? '/api/ktmb/lines' : null,
@@ -110,7 +110,7 @@ export function MapClient() {
 
   // A handful of KTMB feed stations carry junk coordinates (232 km off, in
   // the wrong state). A station dot nowhere near any railway is feed noise,
-  // not a station — hide it rather than plot fiction. Runs once per load.
+  // not a station - hide it rather than plot fiction. Runs once per load.
   const visibleStations = useMemo<Station[]>(() => {
     const all = stations ?? []
     const paths = (ktmLines?.lines ?? []).map(l => l.path)
@@ -119,7 +119,7 @@ export function MapClient() {
   }, [stations, ktmLines])
 
   // Poll whichever realtime feed the network needs. The bus feed is fetched
-  // even before a route is chosen — it powers "buses near you".
+  // even before a route is chosen - it powers "buses near you".
   const vehiclesKey = network === 'ktmb'
     ? '/api/vehicles/ktmb'
     : network === 'mybas-johor'
@@ -144,7 +144,7 @@ export function MapClient() {
         return { ...v, lat, lon }
       })
     }
-    // myBAS Johor has no static GTFS feed on data.gov.my — no routes/shapes to
+    // myBAS Johor has no static GTFS feed on data.gov.my - no routes/shapes to
     // pick from or snap to, so every active bus in the state is shown as-is.
     if (network === 'mybas-johor') return all
     // Route chosen → loose matching (realtime route ids don't always equal the
@@ -165,7 +165,7 @@ export function MapClient() {
       : `${network}:${selectedRoute?.route_id ?? (userPos ? 'near-me' : 'none')}`
 
   // What the initial view frames. Bus: the route shape. KTM: the active trains'
-  // positions, so we open on live movement — falling back to all stations only
+  // positions, so we open on live movement - falling back to all stations only
   // when zero trains are active. null while the source data is still loading, so
   // FitBounds waits rather than framing a half-loaded (or wrong) target.
   const fitPoints = useMemo<[number, number][] | null>(() => {
@@ -176,17 +176,17 @@ export function MapClient() {
         const pts = shape?.variants.flat() ?? []
         return pts.length > 0 ? pts : null
       }
-      // Nearby-bus mode — frame the user plus the buses around them.
+      // Nearby-bus mode - frame the user plus the buses around them.
       return userPos ? [userPos, ...vehicles.map(v => [v.lat, v.lon] as [number, number])] : null
     }
     if (network === 'mybas-johor') {
-      // No stations to fall back on (no static feed) — frame Johor Bahru
+      // No stations to fall back on (no static feed) - frame Johor Bahru
       // itself while zero buses are active, rather than leaving the view
       // wherever the previous tab left it.
       if (!feed) return null
       return vehicles.length > 0 ? vehicles.map(v => [v.lat, v.lon]) : [JOHOR_CENTER]
     }
-    // KTM — wait for the realtime feed to resolve before deciding.
+    // KTM - wait for the realtime feed to resolve before deciding.
     if (!feed) return null
     if (vehicles.length > 0) return vehicles.map(v => [v.lat, v.lon])
     return visibleStations.length > 0
@@ -197,7 +197,7 @@ export function MapClient() {
   const nearbyMode = isBus && !selectedRoute
   const stale = feed?.stale ?? false
 
-  // Freshest GPS report age among the plotted vehicles — surfacing it in the
+  // Freshest GPS report age among the plotted vehicles - surfacing it in the
   // status chip tells riders exactly how far behind reality the dots run
   // (upstream feed lag + our 15s cache), instead of leaving them to guess.
   // useNow is the app's shared 10s clock, so the age keeps ticking between polls.
@@ -294,7 +294,7 @@ export function MapClient() {
         </div>
       </div>
 
-      {/* Status chip — lifted clear of the persistent bottom nav on mobile;
+      {/* Status chip - lifted clear of the persistent bottom nav on mobile;
           on desktop (lg:) there's no bottom nav, so it sits at the edge. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-1000 flex items-center justify-center gap-10 px-14 pb-18.5 pt-14 lg:pb-14">
         <div className="plate shadow-plate-sm flex items-center gap-8 rounded-full-2 px-14 py-8">
@@ -329,7 +329,7 @@ export function MapClient() {
           )}
         </div>
 
-        {/* My location — fresh GPS fix + fly the map there */}
+        {/* My location - fresh GPS fix + fly the map there */}
         <button
           type="button"
           aria-label={geo.isPending ? t('map.locating') : t('map.locate')}

@@ -9,7 +9,7 @@ export interface Vehicle {
   lon: number;
   bearing?: number;
   speed?: number;
-  /** Unix timestamp in ms — ready for new Date(v.timestampMs) */
+  /** Unix timestamp in ms - ready for new Date(v.timestampMs) */
   timestampMs?: number;
   currentStatus?: 'INCOMING_AT' | 'STOPPED_AT' | 'IN_TRANSIT_TO';
   stopId?: string;
@@ -31,7 +31,7 @@ interface CacheEntry {
 const CACHE_TTL_MS = 15_000;
 const FETCH_TIMEOUT_MS = 8_000;
 
-// Module-level — persists across requests in the same Node.js process.
+// Module-level - persists across requests in the same Node.js process.
 const cache = new Map<string, CacheEntry>();
 const inflight = new Map<string, Promise<FeedResult>>();
 
@@ -100,7 +100,7 @@ async function doFetch(url: string, cached: CacheEntry | undefined): Promise<Fee
         vehicles: cached.vehicles,
         stale: true,
         fetchedAt: cached.fetchedAt,
-        message: `Showing cached data from ${ageSecs}s ago — live feed unavailable`,
+        message: `Showing cached data from ${ageSecs}s ago - live feed unavailable`,
       };
     }
 
@@ -109,7 +109,7 @@ async function doFetch(url: string, cached: CacheEntry | undefined): Promise<Fee
       vehicles: [],
       stale: true,
       fetchedAt: 0,
-      message: `No live data right now — ${reason}`,
+      message: `No live data right now - ${reason}`,
     };
   }
 }

@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 /**
- * Receipt share image — a physical-looking transit ticket. Every frustrated
+ * Receipt share image - a physical-looking transit ticket. Every frustrated
  * (or smug) commuter becomes a distribution channel; the card is evidence,
  * not just a complaint. Params are user-supplied display strings, so each is
  * length-capped and the colour is validated.
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const minsRaw = parseInt(searchParams.get('mins') ?? '', 10)
   const mins = Number.isFinite(minsRaw) ? Math.max(0, Math.min(minsRaw, 999)) : null
 
-  const bigLabel = mins == null ? '— —' : mins <= 0 ? 'TIBA' : `${mins} MIN`
+  const bigLabel = mins == null ? '- -' : mins <= 0 ? 'TIBA' : `${mins} MIN`
 
   return new ImageResponse(
     (
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
           backgroundColor: '#f3f3f1',
         }}
       >
-        {/* The ticket — tilted like a sticker peeled from a sheet */}
+        {/* The ticket - tilted like a sticker peeled from a sheet */}
         <div
           style={{
             display: 'flex',

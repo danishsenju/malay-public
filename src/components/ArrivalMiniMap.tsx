@@ -14,8 +14,8 @@ import type { Arrival, NearbyStop } from '@/lib/types'
 
 /**
  * Mini live map for one arrival, embedded in the StopSheet: the route line,
- * every checkpoint (stop) along it, the rider's own stop highlighted, and —
- * where a realtime feed exists (bus, KTM) — the actual vehicles gliding on it.
+ * every checkpoint (stop) along it, the rider's own stop highlighted, and -
+ * where a realtime feed exists (bus, KTM) - the actual vehicles gliding on it.
  * Rapid Rail has no vehicle-position feed, so it gets route + stops and an
  * honest note instead of invented dots (DESIGN.md honesty principle).
  */
@@ -27,7 +27,7 @@ interface VehicleFeed {
   stale: boolean
 }
 
-/** Frame the view once per token — when vehicles land, reframe to include them. */
+/** Frame the view once per token - when vehicles land, reframe to include them. */
 function FitOnce({ points, token }: { points: [number, number][]; token: string }) {
   const map = useMap()
   const lastFitted = useRef<string | null>(null)
@@ -52,14 +52,14 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
   const isRail = stop.network === 'rapid-rail-kl'
   const routeId = arrival.route_id
 
-  // Checkpoints — every stop on this arrival's route, in riding order.
+  // Checkpoints - every stop on this arrival's route, in riding order.
   const { data: cps } = useSWR<{ stops: Station[] }>(
     routeId ? `/api/routes/${encodeURIComponent(routeId)}/stops?network=${stop.network}` : null,
     json,
     { revalidateOnFocus: false },
   )
 
-  // Route geometry — GTFS shapes exist for bus + rail; KTMB ships none, but
+  // Route geometry - GTFS shapes exist for bus + rail; KTMB ships none, but
   // its checkpoint dots trace the corridor well enough at this map size.
   const { data: shape } = useSWR<ShapeResponse>(
     !isKtmb && routeId ? `/api/routes/${encodeURIComponent(routeId)}/shape?network=${stop.network}` : null,
@@ -67,7 +67,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
     { revalidateOnFocus: false },
   )
 
-  // Live vehicles — same SWR keys as useRealtimeVehicles / the map page, so
+  // Live vehicles - same SWR keys as useRealtimeVehicles / the map page, so
   // this dedupes with the polls the homepage is already running.
   const { data: feed } = useSWR<VehicleFeed>(
     isBus ? '/api/vehicles/bus?category=rapid-bus-kl' : isKtmb ? '/api/vehicles/ktmb' : null,
@@ -89,7 +89,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
     }
     if (isKtmb) {
       // KTMB realtime carries no reliable per-route ids (the big map shows all
-      // trains for the same reason) — keep the trains near this route's
+      // trains for the same reason) - keep the trains near this route's
       // corridor so the minimap stays about THIS journey.
       if (checkpoints.length === 0) return all
       return all.filter(v =>
@@ -112,7 +112,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
 
   const lineColor = normalizeHex(shape?.color ?? arrival.route_color)
 
-  // Freshest GPS age — the same transparency as the big map's status chip.
+  // Freshest GPS age - the same transparency as the big map's status chip.
   const gpsAgeS = useMemo<number | null>(() => {
     const ts = vehicles.map(v => v.timestampMs).filter((n): n is number => n != null)
     if (ts.length === 0) return null
@@ -153,7 +153,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
             maxZoom={19}
           />
 
-          {/* Route line — ink casing under the route colour, as on the big map */}
+          {/* Route line - ink casing under the route colour, as on the big map */}
           {shape?.variants.map((variant, i) => (
             <Polyline
               key={`case-${i}`}
@@ -169,7 +169,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
             />
           ))}
 
-          {/* Checkpoints — every boarding / drop-off point on the route */}
+          {/* Checkpoints - every boarding / drop-off point on the route */}
           {checkpoints.map(s => (
             <CircleMarker
               key={`cp-${s.stop_id}`}
@@ -183,7 +183,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
             </CircleMarker>
           ))}
 
-          {/* The rider's own stop — cobalt, ringed, on top of its checkpoint */}
+          {/* The rider's own stop - cobalt, ringed, on top of its checkpoint */}
           <CircleMarker
             center={[stop.stop_lat, stop.stop_lon]}
             radius={7}

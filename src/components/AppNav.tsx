@@ -8,11 +8,11 @@ import type { StringKey } from '@/lib/strings'
 /**
  * App navigation, two renditions of one item list:
  *
- * - BottomNav (mobile) — a floating plate bar pinned above the safe area.
+ * - BottomNav (mobile) - a floating plate bar pinned above the safe area.
  *   It's on screen 100% of the time, so per Emil's frequency rule it earns
  *   NO entrance animation and no decorative motion: the only movement is
  *   press feedback (scale) and a background-color fade on the active sticker.
- * - HeaderNav (desktop ≥ lg) — the same links inline in the TransitMY
+ * - HeaderNav (desktop ≥ lg) - the same links inline in the TransitMY
  *   masthead pill, ghost text with a lime sticker on the active route.
  *
  * Active state is colour, not motion: lime-spark is the app's single loud
@@ -33,7 +33,7 @@ const ITEMS: NavItem[] = [
   { href: '/report', label: 'nav.report', icon: 'M9 17V9m4 8V5m4 12v-4M4 21h16' },
 ]
 
-// /status is intentionally not in the bar — it's a rarely-visited transparency
+// /status is intentionally not in the bar - it's a rarely-visited transparency
 // page, kept discoverable via the footer links on Home, Report and KTM. Its
 // nav.status string stays in strings.ts in case it returns to the bar.
 
@@ -64,7 +64,7 @@ export function BottomNav() {
               className="flex min-w-0 flex-1 flex-col items-center gap-[2px] rounded-full-2 py-[4px] active:scale-[0.94]"
               style={{ transition: 'transform 120ms var(--ease-out)' }}
             >
-              {/* Icon sticker — lime only on the current tab */}
+              {/* Icon sticker - lime only on the current tab */}
               <span
                 className="flex h-[22px] w-[30px] items-center justify-center rounded-full-2"
                 style={{

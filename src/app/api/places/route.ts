@@ -6,7 +6,7 @@ import type { NearbyStop } from '@/lib/types'
 /**
  * Transit-accessible places: each curated place is checked against the live
  * stops table and returned WITH its nearest stop. Places with no stop within
- * WALK_RADIUS_M are dropped — "accessible by public transport" is verified,
+ * WALK_RADIUS_M are dropped - "accessible by public transport" is verified,
  * not asserted.
  *
  * The whole list is computed at most once per REFRESH_MS per server instance
@@ -34,7 +34,7 @@ async function compute(): Promise<AccessiblePlace[]> {
       batch.map(async place => {
         // Wide limit matters: around a mall the nearest 4 stops are ALWAYS
         // bus poles, so a small limit never surfaces the rail station 600 m
-        // away — and a bus-anchored place can't be journey-planned from a
+        // away - and a bus-anchored place can't be journey-planned from a
         // rail origin (bus cross-network is unsupported). 24 reaches past
         // the pole cluster to the station.
         const { data, error } = await db.rpc('nearby_stops', {
@@ -44,7 +44,7 @@ async function compute(): Promise<AccessiblePlace[]> {
           p_limit: 24,
         })
         if (error || !data) return null
-        // Prefer rail/KTM stations over bus poles — a station anchors the
+        // Prefer rail/KTM stations over bus poles - a station anchors the
         // journey planner better; fall back to the nearest bus stop.
         const stops = data as NearbyStop[]
         const access =

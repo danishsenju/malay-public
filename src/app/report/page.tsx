@@ -11,30 +11,30 @@ import { BrandMark } from '@/components/BrandMark'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Laporan Harian — TransitMY',
+  title: 'Laporan Harian - TransitMY',
   description:
-    'Liga kelewatan pengangkutan awam Malaysia — gred kebolehpercayaan harian untuk KTM dan bas Rapid, dikira daripada data langsung data.gov.my. Dengan resit.',
+    'Liga kelewatan pengangkutan awam Malaysia - gred kebolehpercayaan harian untuk KTM dan bas Rapid, dikira daripada data langsung data.gov.my. Dengan resit.',
 }
 
 function dateLabel(iso: string, lang: Lang): string {
   const [y, m, d] = iso.split('-').map(Number)
-  const date = new Date(Date.UTC(y, m - 1, d)) // calendar date only — weekday is timezone-safe
+  const date = new Date(Date.UTC(y, m - 1, d)) // calendar date only - weekday is timezone-safe
   return `${DAYS[lang][date.getUTCDay()]} · ${d} ${MONTHS[lang][m - 1]}`
 }
 
 function shareText(grades: NetworkGrade[], dayLabel: string): string {
   const lines = grades
-    .filter(g => g.grade !== '—')
+    .filter(g => g.grade !== '-')
     .map(g => `${g.label}: gred ${g.grade} (uptime ${g.uptimePct}%)`)
-  const body = lines.length > 0 ? lines.join(' · ') : 'Lejar baru mula merekod — semak semula esok.'
-  return `Laporan Harian TransitMY — ${dayLabel}\n${body}\nLRT/MRT? Prasarana tak siarkan kedudukan tren. Kami gred apa yang mereka tunjuk. 🧾`
+  const body = lines.length > 0 ? lines.join(' · ') : 'Lejar baru mula merekod - semak semula esok.'
+  return `Laporan Harian TransitMY - ${dayLabel}\n${body}\nLRT/MRT? Prasarana tak siarkan kedudukan tren. Kami gred apa yang mereka tunjuk. 🧾`
 }
 
 // ── Row: one network in the league table ────────────────────────────────────
 
 function GradeRow({ g, rank, index, t }: { g: NetworkGrade; rank: number; index: number; t: ReturnType<typeof serverT> }) {
   const c = gradeColors(g.grade)
-  const noData = g.grade === '—'
+  const noData = g.grade === '-'
   return (
     <li style={{ animation: `cardEnter 250ms var(--ease-out) ${index * 60}ms both` }}>
       <div className="plate shadow-plate flex items-center gap-16 rounded-2xl p-16">
@@ -43,7 +43,7 @@ function GradeRow({ g, rank, index, t }: { g: NetworkGrade; rank: number; index:
           {rank}
         </span>
 
-        {/* Grade sticker — the loud element of each row */}
+        {/* Grade sticker - the loud element of each row */}
         <span
           className="flex h-48 w-48 shrink-0 items-center justify-center rounded-2xl border-2 border-ink-black font-mono text-[24px] font-bold"
           style={{ backgroundColor: c.bg, color: c.text }}
@@ -59,7 +59,7 @@ function GradeRow({ g, rank, index, t }: { g: NetworkGrade; rank: number; index:
           </span>
           <span className="mt-2 block font-mono text-[11px] font-medium text-sage-mute">
             {noData
-              ? `${t('report.notEnough')} (${g.samples}) — ${t('report.learning')}`
+              ? `${t('report.notEnough')} (${g.samples}) - ${t('report.learning')}`
               : [
                   `uptime ${g.uptimePct}%`,
                   g.stallCount > 0 ? `${g.stallCount} ${t('report.stalled')}` : null,
@@ -84,7 +84,7 @@ export default async function ReportPage() {
   ])
   const t = serverT(lang)
   // Today's raw numbers, graded over 7 days so a single bad hour doesn't
-  // whipsaw the letter — grades should move slowly enough to argue about.
+  // whipsaw the letter - grades should move slowly enough to argue about.
   const weekGrades = gradeRows(weekRows, 7)
   const todayByNet = new Map(gradeRows(todayRows, 1).map(g => [g.network, g]))
   const rows = weekGrades.map(g => ({ ...(todayByNet.get(g.network) ?? g), grade: g.grade }))
@@ -142,7 +142,7 @@ export default async function ReportPage() {
           )}
         </ol>
 
-        {/* ── The unmonitored callout — say the quiet part loudly ── */}
+        {/* ── The unmonitored callout - say the quiet part loudly ── */}
         <div
           className="mt-16 rounded-2xl border-2 border-ink-black bg-maroon-plate p-18"
           style={{ animation: `cardEnter 250ms var(--ease-out) ${rows.length * 60 + 60}ms both` }}
@@ -172,12 +172,12 @@ export default async function ReportPage() {
         {/* ── Share ── */}
         <div className="mt-26 flex justify-center">
           <ShareButton
-            title="Laporan Harian — TransitMY"
+            title="Laporan Harian - TransitMY"
             text={shareText(rows, day)}
           />
         </div>
 
-        {/* ── Link out to /status — the receipts behind these grades ── */}
+        {/* ── Link out to /status - the receipts behind these grades ── */}
         <Link
           href="/status"
           className="
@@ -200,7 +200,7 @@ export default async function ReportPage() {
           </span>
         </Link>
 
-        {/* ── Methodology — grade our own homework in public ── */}
+        {/* ── Methodology - grade our own homework in public ── */}
         <p className="mt-26 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
           {t('report.methodology')}{' '}
           <Link href="/status" className="underline">/status</Link>

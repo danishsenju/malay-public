@@ -30,7 +30,7 @@ const FALLBACK_COLOR: Record<string, string> = {
 }
 
 const REFRESH_MS = 24 * 60 * 60 * 1000
-// Wide sample — short workings (e.g. Batu Caves–KL only) are common early in
+// Wide sample - short workings (e.g. Batu Caves–KL only) are common early in
 // the trip list, and we want the trip that covers the whole line.
 const TRIP_SAMPLE = 30
 

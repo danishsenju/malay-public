@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react'
 
 /**
- * Shared ticking clock — one interval for the whole app, 10s granularity.
+ * Shared ticking clock - one interval for the whole app, 10s granularity.
  * Drives live countdowns (see lib/liveTime) so every ArrivalCard on screen
  * ticks down together instead of waiting for the next network poll.
  *

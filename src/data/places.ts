@@ -3,7 +3,7 @@
  *
  * Coordinates are the venue itself; /api/places verifies each one against the
  * live stops table (nearby_stops RPC) and only returns places that really have
- * a rail/KTM/bus stop within walking distance — the honesty filter. A place
+ * a rail/KTM/bus stop within walking distance - the honesty filter. A place
  * with no stop nearby silently drops out instead of lying.
  */
 
@@ -19,7 +19,7 @@ export interface Place {
 }
 
 export const PLACES: Place[] = [
-  // ── Malls — Klang Valley ─────────────────────────────────────────────────
+  // ── Malls - Klang Valley ─────────────────────────────────────────────────
   { id: 'suria-klcc',        name: 'Suria KLCC',              category: 'mall', city: 'Kuala Lumpur',  lat: 3.1578,  lon: 101.7123 },
   { id: 'pavilion-kl',       name: 'Pavilion Kuala Lumpur',   category: 'mall', city: 'Bukit Bintang', lat: 3.1489,  lon: 101.7133 },
   { id: 'lot-10',            name: 'Lot 10',                  category: 'mall', city: 'Bukit Bintang', lat: 3.1468,  lon: 101.7109 },
@@ -49,7 +49,7 @@ export const PLACES: Place[] = [
   { id: 'evolve-concept',    name: 'Evolve Concept Mall',     category: 'mall', city: 'Ara Damansara', lat: 3.1123,  lon: 101.5768 },
   { id: 'klang-parade',      name: 'Klang Parade',            category: 'mall', city: 'Klang',         lat: 3.0428,  lon: 101.4557 },
 
-  // ── Malls — outside Klang Valley (KTM-reachable) ─────────────────────────
+  // ── Malls - outside Klang Valley (KTM-reachable) ─────────────────────────
   { id: 'penang-sentral',    name: 'Penang Sentral',          category: 'mall', city: 'Butterworth',   lat: 5.3980,  lon: 100.3639 },
   { id: 'jb-city-square',    name: 'Johor Bahru City Square', category: 'mall', city: 'Johor Bahru',   lat: 1.4622,  lon: 103.7649 },
   { id: 'seremban-prima',    name: 'Seremban Prima Mall',     category: 'mall', city: 'Seremban',      lat: 2.7195,  lon: 101.9400 },

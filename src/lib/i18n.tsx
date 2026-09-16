@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * TransitMY language layer — BM (default) / EN.
+ * TransitMY language layer - BM (default) / EN.
  *
  * A localStorage-backed module store read through useSyncExternalStore, the
  * same pattern as useSavedStops: no provider, no setState-in-effect, and the
@@ -44,7 +44,7 @@ function subscribe(listener: () => void) {
 export function setLang(lang: Lang) {
   try { localStorage.setItem(STORAGE_KEY, lang) } catch {}
   // Mirror into a cookie so server-rendered pages (/ktmb, /report, /status)
-  // can render in the chosen language too — localStorage never reaches them.
+  // can render in the chosen language too - localStorage never reaches them.
   document.cookie = `transitmy-lang=${lang}; path=/; max-age=31536000; samesite=lax`
   document.documentElement.lang = lang
   listeners.forEach(l => l())
@@ -56,7 +56,7 @@ export function useLang() {
   return { lang, setLang, t }
 }
 
-/** Compact BM|EN switch — a plate pill with the active language stamped lime. */
+/** Compact BM|EN switch - a plate pill with the active language stamped lime. */
 export function LangToggle({ className = '' }: { className?: string }) {
   const { lang } = useLang()
   return (

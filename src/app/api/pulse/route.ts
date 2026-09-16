@@ -3,7 +3,7 @@ import { fetchFeed } from '@/lib/gtfsRealtime';
 import { LEDGER_NETWORKS, takeSnapshot } from '@/lib/ledger';
 
 /**
- * The Network Pulse — how many vehicles are being tracked live right now,
+ * The Network Pulse - how many vehicles are being tracked live right now,
  * across every feed that publishes positions.
  *
  * Side effect: after responding, opportunistically takes a Delay Ledger

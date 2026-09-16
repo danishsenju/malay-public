@@ -8,7 +8,7 @@ import { vehicleColor, vehicleLabel } from '@/lib/map'
 
 // How long a dot takes to glide from its previous position to the newly-reported
 // one. This is on-screen movement, so ease-in-out (per the motion skill). It's
-// deliberately longer than a UI micro-interaction — it represents a physical
+// deliberately longer than a UI micro-interaction - it represents a physical
 // vehicle moving, not a control responding.
 const TWEEN_MS = 1500
 const FADE_MS = 340 // must match .veh-marker opacity transition in globals.css
@@ -39,7 +39,7 @@ function escapeHtml(s: string): string {
   )
 }
 
-/** Tooltip text with the GPS report's age — radical transparency: every dot
+/** Tooltip text with the GPS report's age - radical transparency: every dot
  *  says exactly how fresh its position is. */
 function tooltipText(v: MapVehicle): string {
   const label = vehicleLabel(v)
@@ -67,7 +67,7 @@ function makeIcon(v: MapVehicle): L.DivIcon {
  * Imperative layer that plots live vehicle dots and animates them.
  * - New vehicles fade in (opacity only).
  * - Moved vehicles glide to their new position via a rAF tween.
- * - Vehicles that drop out of the feed fade out, then are removed — never left
+ * - Vehicles that drop out of the feed fade out, then are removed - never left
  *   frozen as a stale dot (DESIGN.md honesty principle, opacity-only, no blur).
  */
 export function VehicleLayer({ vehicles }: { vehicles: MapVehicle[] }) {
@@ -86,7 +86,7 @@ export function VehicleLayer({ vehicles }: { vehicles: MapVehicle[] }) {
       const existing = entries.current.get(v.id)
 
       if (existing) {
-        // Cancel any pending removal — it's back in the feed.
+        // Cancel any pending removal - it's back in the feed.
         if (existing.removeTimer) {
           clearTimeout(existing.removeTimer)
           existing.removeTimer = undefined

@@ -8,7 +8,7 @@ import { headsignDestination } from '@/lib/transit'
 import type { JourneyLeg, JourneyOption, JourneyTransfer } from '@/lib/types'
 
 /**
- * Full journey breakdown for one Rancang option — opened by tapping an
+ * Full journey breakdown for one Rancang option - opened by tapping an
  * OptionCard. Same vaul drawer pattern as StopSheet: keeps the last non-null
  * option mounted so the close animation never shows an empty sheet.
  */
@@ -47,7 +47,7 @@ function LegDetail({ leg }: { leg: JourneyLeg }) {
             color: leg.routeTextColor ? `#${leg.routeTextColor}` : '#ffffff',
           }}
         >
-          {leg.routeShortName ?? '—'}
+          {leg.routeShortName ?? '-'}
         </span>
         {leg.headsign && (
           <span className="min-w-0 truncate font-sans text-caption font-semibold text-sage-mute">
@@ -122,7 +122,7 @@ function SheetBody({ option }: { option: JourneyOption }) {
         </Drawer.Description>
       </div>
 
-      {/* Timeline — touch-pan-y re-enables native touch scrolling: vaul sets
+      {/* Timeline - touch-pan-y re-enables native touch scrolling: vaul sets
           touch-action:none on the drawer root to own the drag-to-close
           gesture, which otherwise blocks scrolling on this nested list too. */}
       <div

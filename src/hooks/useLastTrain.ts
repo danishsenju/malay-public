@@ -26,7 +26,7 @@ async function fetchLastDepartures(stopId: string, network: Network): Promise<La
 }
 
 /**
- * Last Train Guardian — the last scheduled service tonight at a stop.
+ * Last Train Guardian - the last scheduled service tonight at a stop.
  * Schedule data only changes daily, so refresh lazily.
  */
 export function useLastTrain(stopId: string, network: Network) {

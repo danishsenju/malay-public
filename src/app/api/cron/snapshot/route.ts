@@ -6,7 +6,7 @@ import { takeSnapshot } from '@/lib/ledger';
  *
  * Called by Vercel cron (vercel.json) or any external scheduler
  * (e.g. cron-job.org on the free tier). If CRON_SECRET is set, requests
- * must carry `Authorization: Bearer <CRON_SECRET>` — Vercel cron does this
+ * must carry `Authorization: Bearer <CRON_SECRET>` - Vercel cron does this
  * automatically when the env var exists.
  */
 export async function GET(request: Request) {

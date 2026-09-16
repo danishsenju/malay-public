@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 // Lists every route for a network, for the map's route picker.
-// Only networks that support per-route filtering are exposed here — KTM is a
+// Only networks that support per-route filtering are exposed here - KTM is a
 // single unified live view (its realtime feed carries no routeId), so it is not
 // a valid value.
 const ALLOWED = new Set(['rapid-bus-kl'])

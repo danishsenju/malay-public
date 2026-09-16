@@ -1,10 +1,10 @@
 /**
- * Sampai Bila? service worker — the "MRT tunnel" survival layer.
+ * Sampai Bila? service worker - the "MRT tunnel" survival layer.
  *
  * Strategy, in the app's own honesty language:
  *   - App shell + static assets: cache-first (hashed /_next/static is immutable)
  *   - Pages + API responses:     network-first, fall back to the last good copy
- * A stale answer beats a broken empty screen — same rule as the server cache.
+ * A stale answer beats a broken empty screen - same rule as the server cache.
  */
 
 const CACHE = 'sampai-bila-v1';

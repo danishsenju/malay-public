@@ -25,7 +25,7 @@ const TILE_FILLS = [
 
 // ── Live next-departure line ─────────────────────────────────────────────────
 // Each saved tile carries its own live countdown, pulled from the same
-// upcoming_arrivals RPC as everywhere else — so "Disimpan" is a departure
+// upcoming_arrivals RPC as everywhere else - so "Disimpan" is a departure
 // board at a glance, not a static bookmark.
 
 function NextDeparture({ stop }: { stop: NearbyStop }) {

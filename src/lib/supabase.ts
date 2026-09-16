@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-// NEXT_PUBLIC_ vars must be accessed as literal property names — Next.js only
+// NEXT_PUBLIC_ vars must be accessed as literal property names - Next.js only
 // inlines them at build time when it can statically see the full identifier.
 // process.env[dynamicKey] is NOT inlined and returns undefined in the browser.
 
@@ -14,7 +14,7 @@ export function getSupabase() {
   );
 }
 
-/** Server-only admin client (service role key — never expose to browser). */
+/** Server-only admin client (service role key - never expose to browser). */
 export function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

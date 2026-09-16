@@ -8,22 +8,22 @@ import { BrandMark } from '@/components/BrandMark'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Status — TransitMY',
+  title: 'Status - TransitMY',
   description:
-    'Kesihatan langsung setiap suapan data.gov.my yang kami guna. Bila sumber bermasalah, kami cakap — supaya anda tahu siapa yang patut dipersalahkan.',
+    'Kesihatan langsung setiap suapan data.gov.my yang kami guna. Bila sumber bermasalah, kami cakap - supaya anda tahu siapa yang patut dipersalahkan.',
 }
 
 /**
- * The /status page — the difference between "the app is broken" and
+ * The /status page - the difference between "the app is broken" and
  * "the source is down", in public. When data.gov.my stumbles, users learn
  * to blame the right party. Official apps can't publish this page.
  */
 
 const UPSTREAMS = [
-  { name: 'KTMB — kedudukan tren',        url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/ktmb' },
-  { name: 'Rapid KL — kedudukan bas',     url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl' },
-  { name: 'myBAS Johor — kedudukan bas',  url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor' },
-  { name: 'Rapid Rail — jadual statik',   url: 'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl' },
+  { name: 'KTMB - kedudukan tren',        url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/ktmb' },
+  { name: 'Rapid KL - kedudukan bas',     url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl' },
+  { name: 'myBAS Johor - kedudukan bas',  url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor' },
+  { name: 'Rapid Rail - jadual statik',   url: 'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl' },
 ]
 
 interface Check {
@@ -36,7 +36,7 @@ async function checkUpstream(name: string, url: string): Promise<Check> {
   const started = Date.now()
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(6000), cache: 'no-store' })
-    // Headers are enough for a health check — don't download megabytes of ZIP.
+    // Headers are enough for a health check - don't download megabytes of ZIP.
     res.body?.cancel().catch(() => {})
     return { name, ok: res.ok, latencyMs: Date.now() - started }
   } catch {
@@ -47,7 +47,7 @@ async function checkUpstream(name: string, url: string): Promise<Check> {
 async function checkSupabase(db: ReturnType<typeof getSupabaseAdmin>): Promise<Check> {
   const started = Date.now()
   const { error } = await db.from('stops').select('stop_id').limit(1)
-  return { name: 'Supabase — jadual & lejar', ok: !error, latencyMs: Date.now() - started }
+  return { name: 'Supabase - jadual & lejar', ok: !error, latencyMs: Date.now() - started }
 }
 
 function minutesAgo(iso: string): number {
@@ -216,7 +216,7 @@ export default async function StatusPage() {
             <ul className="mt-10 space-y-8">
               {openEvents.map((e, i) => (
                 <li key={i} className="flex items-center justify-between gap-10 font-sans text-caption font-semibold text-white-plate">
-                  <span>{NETWORK_LABELS[e.network] ?? e.network} — {e.event_type in EVENT_KEY ? t(EVENT_KEY[e.event_type as keyof typeof EVENT_KEY]) : e.event_type}</span>
+                  <span>{NETWORK_LABELS[e.network] ?? e.network} - {e.event_type in EVENT_KEY ? t(EVENT_KEY[e.event_type as keyof typeof EVENT_KEY]) : e.event_type}</span>
                   <span className="shrink-0 font-mono text-[11px] text-white-plate/70">
                     {t('status.since')} {new Date(e.started_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })}
                   </span>

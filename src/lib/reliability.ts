@@ -1,11 +1,11 @@
 import { getSupabaseAdmin } from './supabase';
 
 /**
- * Reliability grading — reads the Delay Ledger, never computes delays ad-hoc.
+ * Reliability grading - reads the Delay Ledger, never computes delays ad-hoc.
  *
  * The grade philosophy: we only grade what we can observe. KTMB and the bus
  * networks publish live positions, so they get graded. Rapid Rail (LRT/MRT/
- * Monorail) publishes NO realtime feed — those lines are listed as
+ * Monorail) publishes NO realtime feed - those lines are listed as
  * "unmonitored", loudly. We can't grade what Prasarana doesn't show.
  */
 
@@ -22,7 +22,7 @@ export interface DailyReportRow {
 export interface NetworkGrade {
   network: string;
   label: string;
-  grade: string;        // 'A+' … 'E', or '—' when there isn't enough data yet
+  grade: string;        // 'A+' … 'E', or '-' when there isn't enough data yet
   score: number | null; // 0–100
   uptimePct: number | null;
   stallCount: number;
@@ -39,7 +39,7 @@ export const NETWORK_LABELS: Record<string, string> = {
   'mybas-johor': 'myBAS Johor',
 };
 
-/** Rapid Rail lines with no published realtime feed — shown as unmonitored. */
+/** Rapid Rail lines with no published realtime feed - shown as unmonitored. */
 export const UNMONITORED_LINES = [
   { name: 'Kelana Jaya Line',  type: 'LRT',      color: '#009EE0' },
   { name: 'Ampang Line',       type: 'LRT',      color: '#FF8000' },
@@ -98,7 +98,7 @@ export function gradeRows(rows: DailyReportRow[], days: number): NetworkGrade[] 
     if (uptimePct == null || samples < 20) {
       grades.push({
         network, label: NETWORK_LABELS[network] ?? network,
-        grade: '—', score: null, uptimePct, stallCount, stallMinutes,
+        grade: '-', score: null, uptimePct, stallCount, stallMinutes,
         gapMinutes, outageMinutes, samples, days,
       });
       continue;

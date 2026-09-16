@@ -4,13 +4,13 @@ import type { ReactNode } from 'react'
 
 interface SectionLabelProps {
   children: ReactNode
-  /** Optional right-aligned meta (count or location) — mono, muted. */
+  /** Optional right-aligned meta (count or location) - mono, muted. */
   trailing?: ReactNode
 }
 
 /**
  * Section eyebrow as a stamped tag: a white pill with an ink stroke and a small
- * hard shadow — reads like a label physically stuck onto the canvas. Trailing
+ * hard shadow - reads like a label physically stuck onto the canvas. Trailing
  * meta sits quiet on the right so the tag stays the anchor.
  */
 export function SectionLabel({ children, trailing }: SectionLabelProps) {

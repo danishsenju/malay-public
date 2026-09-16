@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ────────────────────────────────────────────────────────────────────────────
-   Sampai Bila? — poster-plate design system (Bento-derived tokens)
+   Sampai Bila? - poster-plate design system (Bento-derived tokens)
    Linen canvas · ink strokes on every shape · one loud lime CTA accent
    ──────────────────────────────────────────────────────────────────────────── */
 
@@ -25,18 +25,26 @@
   --color-leaf-wash: #ebffc5;
   --color-moss-tint: #e8efd6;
 
-  /* Typography — Linksans is not distributable; Inter is the substitute the
+  /* Typography - Linksans is not distributable; Inter is the substitute the
      token sheet itself recommends. Departure Mono stays for data/digits. */
-  --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-linksans: var(--font-linksans-sub), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-linksans-linksansvf: var(--font-linksans-sub), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-yerk: 'yerk', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arial:
+    "Arial", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+  --font-linksans:
+    var(--font-linksans-sub), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-linksans-linksansvf:
+    var(--font-linksans-sub), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-yerk:
+    "yerk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
 
   /* Map the framework defaults so font-sans / font-mono resolve to the system */
   --font-sans: var(--font-linksans-sub), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-departure-mono), monospace;
 
-  /* Typography — Scale */
+  /* Typography - Scale */
   --text-caption: 12px;
   --leading-caption: 1.5;
   --tracking-caption: 0.12px;
@@ -94,7 +102,7 @@
 /* ── Motion + shared primitives ──────────────────────────────────────────── */
 :root {
   /*
-   * Easing — never ease-in on UI; it delays the frame the user watches most.
+   * Easing - never ease-in on UI; it delays the frame the user watches most.
    *   --ease-out    entering / exiting elements
    *   --ease-in-out moving / morphing on screen (flap digits)
    *   --ease-pop    tiny overshoot for playful stickers (rare-use only)
@@ -123,17 +131,21 @@ body {
 }
 
 /* ── Plate: the core surface. Every card is a white plate with an ink stroke
-      and a hard offset shadow — pressing physically pushes it into the page. */
+      and a hard offset shadow - pressing physically pushes it into the page. */
 .plate {
   background: var(--color-white-plate);
   border: 2px solid var(--color-ink-black);
 }
 
-.shadow-plate    { box-shadow: 4px 4px 0 0 var(--color-ink-black); }
-.shadow-plate-sm { box-shadow: 3px 3px 0 0 var(--color-ink-black); }
+.shadow-plate {
+  box-shadow: 4px 4px 0 0 var(--color-ink-black);
+}
+.shadow-plate-sm {
+  box-shadow: 3px 3px 0 0 var(--color-ink-black);
+}
 
 /* Pressable: the tactile signature. The element travels the exact distance of
-   its shadow so it lands flush — like pressing a physical key. Transform does
+   its shadow so it lands flush - like pressing a physical key. Transform does
    the motion; the shadow collapse sells the depth. Snappy both ways (140ms). */
 .pressable {
   box-shadow: 4px 4px 0 0 var(--color-ink-black);
@@ -168,7 +180,7 @@ body {
   transition: transform 140ms var(--ease-out);
 }
 .pressable-gpu::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -186,51 +198,91 @@ body {
 
 /* ── Keyframes (transform + opacity only) ────────────────────────────────── */
 
-/* Card entrance — rises from below at 97% scale; used with fill-mode:both so
+/* Card entrance - rises from below at 97% scale; used with fill-mode:both so
    staggered items stay invisible during their delay. */
 @keyframes cardEnter {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-/* First-paint rise for hero blocks — once per app open. */
+/* First-paint rise for hero blocks - once per app open. */
 @keyframes riseIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Highlighter swipe behind the greeting word — scaleX from the left, like a
+/* Highlighter swipe behind the greeting word - scaleX from the left, like a
    marker pen drawn under the word. Origin set on the element. */
 @keyframes highlightIn {
-  from { transform: scaleX(0) rotate(-1deg); }
-  to   { transform: scaleX(1) rotate(-1deg); }
+  from {
+    transform: scaleX(0) rotate(-1deg);
+  }
+  to {
+    transform: scaleX(1) rotate(-1deg);
+  }
 }
 
-/* Live-position ring — expands outward from the dot and fades. */
+/* Live-position ring - expands outward from the dot and fades. */
 @keyframes livePulseRing {
-  0%   { transform: scale(1);   opacity: 0.6; }
-  70%  { transform: scale(2.5); opacity: 0;   }
-  100% { transform: scale(2.5); opacity: 0;   }
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
-/* Scroll-affordance chevron — a small downward dip, run a fixed number of
+/* Scroll-affordance chevron - a small downward dip, run a fixed number of
    times on mount (never infinite: it's a teaching cue, not ambient motion). */
 @keyframes scrollNudge {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(3px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
 }
 
 /* Search overlay entrance */
 @keyframes searchIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Marquee ticker — linear is correct here: constant ambient motion.
+/* Marquee ticker - linear is correct here: constant ambient motion.
    Track holds two identical copies; -50% loops seamlessly. */
 @keyframes marqueeX {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 .marquee-track {
   display: flex;
@@ -240,7 +292,7 @@ body {
 
 /* ── Live map markers (Leaflet divIcons) ─────────────────────────────────── */
 
-/* Root wrapper on every vehicle marker — opacity is the ONLY thing we animate
+/* Root wrapper on every vehicle marker - opacity is the ONLY thing we animate
    for enter/exit (no blur, per DESIGN.md). Position tween is done imperatively
    via setLatLng, so we never transition Leaflet's left/top. */
 .veh-marker {
@@ -250,9 +302,11 @@ body {
   transition: opacity 320ms var(--ease-out);
   will-change: opacity;
 }
-.veh-marker[data-shown='1'] { opacity: 1; }
+.veh-marker[data-shown="1"] {
+  opacity: 1;
+}
 
-/* The dot itself — ink stroke, per-vehicle colour fill set inline. */
+/* The dot itself - ink stroke, per-vehicle colour fill set inline. */
 .veh-dot {
   width: 14px;
   height: 14px;
@@ -283,7 +337,7 @@ body {
   align-items: center;
 }
 
-/* KTM station dot — smaller, always white plate with ink ring. */
+/* KTM station dot - smaller, always white plate with ink ring. */
 .station-dot {
   width: 9px;
   height: 9px;
@@ -294,8 +348,12 @@ body {
 }
 
 /* ── Utility: hide native scrollbar on horizontal card rows ──────────────── */
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
 
 /* ── Reduced motion: keep opacity/color, strip movement ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
@@ -307,7 +365,7 @@ body {
     transition-duration: 0.01ms !important;
   }
 
-  /* The line ticker is ambient signage, not motion reacting to a user action —
+  /* The line ticker is ambient signage, not motion reacting to a user action -
      it stays scrolling under reduced motion (exempted from the wildcard
      above), same as a stock ticker or departure board would. */
   .marquee-track {

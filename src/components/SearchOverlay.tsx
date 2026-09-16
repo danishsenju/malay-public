@@ -58,7 +58,7 @@ interface SearchOverlayProps {
 
 export function SearchOverlay({ isOpen, onClose, onSelect }: SearchOverlayProps) {
   // The panel holds all search state, so closing unmounts it and reopening
-  // starts fresh — no reset-state-in-effect needed.
+  // starts fresh - no reset-state-in-effect needed.
   if (!isOpen) return null
   return <SearchPanel onClose={onClose} onSelect={onSelect} />
 }
@@ -97,7 +97,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
       const data = (await res.json()) as NearbyStop[]
       setResults(Array.isArray(data) ? data : [])
     } catch {
-      // Silent degrade — blank result list is safe
+      // Silent degrade - blank result list is safe
     } finally {
       setIsFetching(false)
     }
@@ -124,7 +124,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
   const hasResults = results.length > 0
 
   return (
-    // Backdrop — full linen on mobile, dark overlay on desktop.
+    // Backdrop - full linen on mobile, dark overlay on desktop.
     // Click outside the panel (desktop) to close.
     <div
       role="dialog"
@@ -133,7 +133,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
       className="fixed inset-0 z-50 flex flex-col bg-linen-canvas md:items-center md:justify-center md:bg-ink-black/60 md:backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Panel — full-screen on mobile, centered modal on desktop */}
+      {/* Panel - full-screen on mobile, centered modal on desktop */}
       <div
         className="flex h-full w-full flex-col bg-linen-canvas md:h-auto md:max-h-[80dvh] md:max-w-140 md:overflow-hidden md:rounded-3xl-2 md:border-2 md:border-ink-black"
         style={{ animation: 'searchIn 180ms var(--ease-out) both' }}
@@ -143,7 +143,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
         {/* ── Top bar: back + input ──────────────────────────────────────── */}
         <div className="flex w-full shrink-0 items-center gap-8 px-16 py-14">
 
-          {/* Back chevron — bordered disc */}
+          {/* Back chevron - bordered disc */}
           <button
             type="button"
             aria-label={t('search.close')}
@@ -156,7 +156,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
             </svg>
           </button>
 
-          {/* Search input — a full pill plate */}
+          {/* Search input - a full pill plate */}
           <div className="relative flex-1">
             <input
               ref={inputRef}
@@ -232,7 +232,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
         {/* ── Body ────────────────────────────────────────────────────────── */}
         <div className="w-full flex-1 overflow-y-auto overscroll-contain">
 
-          {/* Idle state — no query yet */}
+          {/* Idle state - no query yet */}
           {!hasQuery && (
             <div className="flex flex-col items-center gap-14 px-40 pt-64 text-center">
               {/* Lime sticker with the magnifier */}
@@ -296,7 +296,7 @@ function SearchPanel({ onClose, onSelect }: Omit<SearchOverlayProps, 'isOpen'>) 
             </div>
           )}
 
-          {/* Result list — each hit is a plate */}
+          {/* Result list - each hit is a plate */}
           {hasResults && (
             <ul role="listbox" className="space-y-10 px-16 py-16">
               {results.map((stop, i) => {

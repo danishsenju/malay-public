@@ -1,12 +1,12 @@
 /**
- * Sampai Bila? — real KTMB track geometry builder
+ * Sampai Bila? - real KTMB track geometry builder
  *
  * The KTMB GTFS feed ships no shapes.txt, so the live map used to draw each
- * line as station-to-station straight chords — visibly wrong next to the real
+ * line as station-to-station straight chords - visibly wrong next to the real
  * curving railway on the basemap. This script builds true track polylines:
  *
  *   1. Pulls each route's station sequence from the running dev server
- *      (http://localhost:3000/api/ktmb/lines — the chord version).
+ *      (http://localhost:3000/api/ktmb/lines - the chord version).
  *   2. Downloads every railway=rail way in Peninsular Malaysia from
  *      OpenStreetMap (Overpass API), cached locally between runs.
  *   3. Builds a rail graph and Dijkstra-routes every consecutive station
@@ -36,12 +36,12 @@ const OVERPASS_ENDPOINTS = [
 ]
 
 // A real station sits ON the railway. One with no track node within this is
-// mislocated in the feed (Mengkuang is 232 km off) — drop it entirely rather
+// mislocated in the feed (Mengkuang is 232 km off) - drop it entirely rather
 // than draw a chord out to a phantom point.
 const STATION_ON_RAIL_M = 1200
 // Give up a pair when Dijkstra cost exceeds this cap. Generous on purpose:
 // snapping is restricted to the connected mainline, so any path found IS the
-// real track — the cap only guards against runaway searches. (The KKB
+// real track - the cap only guards against runaway searches. (The KKB
 // realignment legitimately detours far west of the station chord.)
 const maxCost = chord => Math.max(chord * 8, chord + 80_000)
 const SIMPLIFY_TOLERANCE_M = 8
@@ -77,7 +77,7 @@ async function fetchOsmRail() {
     return JSON.parse(readFileSync(OSM_CACHE, 'utf8'))
   }
   // Keep crossovers: on double-tracked lines the two parallel tracks only
-  // join through service=crossover ways — dropping them cuts the graph into
+  // join through service=crossover ways - dropping them cuts the graph into
   // disjoint parallel strands and Dijkstra fails across them.
   const query = `[out:json][timeout:300];way["railway"="rail"]["service"!~"yard|siding|spur"](${BBOX});out geom;`
   let lastErr
@@ -89,7 +89,7 @@ async function fetchOsmRail() {
         body: 'data=' + encodeURIComponent(query),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          // overpass-api.de 406s anonymous default UAs — identify ourselves.
+          // overpass-api.de 406s anonymous default UAs - identify ourselves.
           'User-Agent': 'TransitMY-shape-builder/1.0 (one-time GTFS shape generation)',
         },
       })
@@ -318,11 +318,11 @@ let chordFallbacks = 0
  * share one placeholder point, and a few stations are flat-out mislocated
  * (Mengkuang sits 232 km away in the wrong state). Clean the sequence first:
  * collapse duplicate points, then drop any station whose detour
- * (prev→it→next) is absurd versus the direct prev→next hop — a mislocated
+ * (prev→it→next) is absurd versus the direct prev→next hop - a mislocated
  * point, not a real routing.
  */
 function cleanStations(path) {
-  // 0. Drop stations that aren't on (or near) any mainline track — their
+  // 0. Drop stations that aren't on (or near) any mainline track - their
   //    coordinates are wrong in the feed, so routing to them draws fiction.
   const onRail = path.filter(p => graph.nearest(p[0], p[1], STATION_ON_RAIL_M) !== -1)
   if (onRail.length < path.length) {
@@ -395,5 +395,5 @@ const kb = Math.round(Buffer.byteLength(JSON.stringify(shapes)) / 1024)
 console.log(`\nwrote ${OUT_FILE} (${kb} KB)`)
 console.log(`pairs: ${totalPairs}, chord fallbacks: ${chordFallbacks} (${((chordFallbacks / totalPairs) * 100).toFixed(1)}%)`)
 if (chordFallbacks / totalPairs > 0.1) {
-  console.warn('⚠ more than 10% of station pairs fell back to straight chords — check OSM coverage')
+  console.warn('⚠ more than 10% of station pairs fell back to straight chords - check OSM coverage')
 }

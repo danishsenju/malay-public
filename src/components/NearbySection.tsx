@@ -58,7 +58,7 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
   const now = useNow()
 
   // Recompute minutes against the ticking clock so the flap board counts down
-  // in real time between polls — never a "1 min" frozen on screen. Rows whose
+  // in real time between polls - never a "1 min" frozen on screen. Rows whose
   // scheduled time has passed drop out immediately.
   const liveArrivals = arrivals
     .map(a => ({ ...a, minutes_until: liveMinutesUntil(a.arr_secs, now) }))
@@ -107,13 +107,13 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
           {liveArrivals.slice(0, 3).map((a, i) => (
             <div
               // trip_id:arr_secs alone can collide (feed sometimes emits
-              // duplicate rows) — the index disambiguates them.
+              // duplicate rows) - the index disambiguates them.
               key={`${a.trip_id}:${a.arr_secs}:${i}`}
               className="min-w-[260px] max-w-[260px] shrink-0 snap-start lg:min-w-0 lg:max-w-none lg:shrink"
             >
               <ArrivalCard
                 routeShortName={a.route_short_name ?? stop.network.toUpperCase()}
-                headsign={a.trip_headsign ?? '—'}
+                headsign={a.trip_headsign ?? '-'}
                 minutesUntil={a.minutes_until}
                 network={stop.network}
                 isLive={isLive}
@@ -184,7 +184,7 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
     </div>
   )
 
-  // Detect-location button — lives in the section header so "near WHERE?" is
+  // Detect-location button - lives in the section header so "near WHERE?" is
   // always one tap from being answered with a fresh, exact GPS fix.
   const locateLabel = geo.isPending ? t('home.nearby.locating')
                     : geo.isDefault ? t('home.nearby.detect')
@@ -214,7 +214,7 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
     <section className="space-y-18">
       <SectionLabel trailing={locateButton}>{t('home.nearby')}</SectionLabel>
 
-      {/* Location denied — say so honestly instead of quietly showing KL Sentral */}
+      {/* Location denied - say so honestly instead of quietly showing KL Sentral */}
       {!geo.isPending && geo.status === 'denied' && (
         <p className="font-sans text-caption leading-relaxed text-sage-mute">
           {t('home.nearby.geoDenied')}
@@ -230,10 +230,10 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
         </div>
       )}
 
-      {/* Network filter — answers "which of these can I actually ride?" */}
+      {/* Network filter - answers "which of these can I actually ride?" */}
       {!showSkeleton && !error && stops.length > 0 && filterChips}
 
-      {/* Stop groups — one per nearby stop */}
+      {/* Stop groups - one per nearby stop */}
       {!showSkeleton && visibleStops.length > 0 && (
         <div className="space-y-40">
           {visibleStops.map(stop => (
@@ -250,14 +250,14 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
         </div>
       )}
 
-      {/* Filter matched nothing (but stops exist) — point back to "All" */}
+      {/* Filter matched nothing (but stops exist) - point back to "All" */}
       {!showSkeleton && !error && stops.length > 0 && visibleStops.length === 0 && (
         <p className="py-8 text-center font-sans text-body-sm text-sage-mute">
           {t('home.nearby.filterNone')}
         </p>
       )}
 
-      {/* Error state — the maroon tray makes white type glow; honest copy */}
+      {/* Error state - the maroon tray makes white type glow; honest copy */}
       {!showSkeleton && error && (
         <div className="rounded-2xl border-2 border-ink-black bg-maroon-plate px-20 py-24 text-center space-y-8">
           <p className="font-sans text-body-sm font-semibold text-white-plate">
@@ -267,7 +267,7 @@ export function NearbySection({ onSelectStop }: NearbySectionProps) {
         </div>
       )}
 
-      {/* Empty state — an invitation on a moss plate, never a dead end */}
+      {/* Empty state - an invitation on a moss plate, never a dead end */}
       {!showSkeleton && !error && stops.length === 0 && (
         <div className="rounded-2xl border-2 border-ink-black bg-moss-tint px-20 py-40 text-center space-y-8">
           <p className="font-sans text-body-sm font-semibold text-ink-black">

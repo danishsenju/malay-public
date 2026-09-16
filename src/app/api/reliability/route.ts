@@ -3,7 +3,7 @@ import { fetchLedgerWindow, gradeRows, UNMONITORED_LINES } from '@/lib/reliabili
 
 /**
  * Rolling reliability grades (default 7 days) from the Delay Ledger.
- * Publicly cached for a minute — grades move slowly by design.
+ * Publicly cached for a minute - grades move slowly by design.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

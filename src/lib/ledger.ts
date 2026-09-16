@@ -4,17 +4,17 @@ import { getSupabaseAdmin } from './supabase';
 /**
  * The Delay Ledger sampler.
  *
- * Observes every GTFS-realtime feed and writes what it SEES to Supabase —
+ * Observes every GTFS-realtime feed and writes what it SEES to Supabase -
  * never what a schedule claims. Three event types, all directly observable:
  *
- *   'feed_outage'  — data.gov.my failed to answer
- *   'service_gap'  — feed healthy but zero vehicles during service hours
- *   'stall'        — a KTMB train stopped moving mid-service beyond threshold
+ *   'feed_outage'  - data.gov.my failed to answer
+ *   'service_gap'  - feed healthy but zero vehicles during service hours
+ *   'stall'        - a KTMB train stopped moving mid-service beyond threshold
  *
  * Runs two ways:
  *   1. Vercel cron → /api/cron/snapshot (every 5 min on paid plans)
  *   2. Opportunistically after /api/pulse traffic (via next/server `after`),
- *      throttled below — so on the free tier, riders power the ledger.
+ *      throttled below - so on the free tier, riders power the ledger.
  */
 
 export const LEDGER_NETWORKS = [
@@ -28,7 +28,7 @@ export const LEDGER_NETWORKS = [
     network: 'rapid-bus-kl',
     label: 'Bas Rapid KL',
     url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl',
-    trackStalls: false, // buses idle at terminals/traffic — stall signal too noisy
+    trackStalls: false, // buses idle at terminals/traffic - stall signal too noisy
   },
   {
     network: 'mybas-johor',
@@ -44,7 +44,7 @@ const SNAPSHOT_MIN_INTERVAL_MS = 55_000; // never sample more than ~1/min
 const STALL_THRESHOLD_MS = 6 * 60_000;   // unmoved this long = stall event
 const MOVE_THRESHOLD_M = 40;             // GPS jitter guard
 
-// Module-level throttle — survives across requests in a warm serverless instance.
+// Module-level throttle - survives across requests in a warm serverless instance.
 let lastSnapshotAt = 0;
 let snapshotInflight: Promise<void> | null = null;
 
@@ -79,7 +79,7 @@ interface VehicleStateRow {
 
 type Admin = ReturnType<typeof getSupabaseAdmin>;
 
-/** Opens an event if none is open for (network, type); returns nothing on error — the ledger is best-effort. */
+/** Opens an event if none is open for (network, type); returns nothing on error - the ledger is best-effort. */
 async function openNetworkEvent(
   db: Admin,
   network: string,
@@ -184,7 +184,7 @@ async function detectStalls(db: Admin, network: string, vehicles: Vehicle[]) {
     });
   }
 
-  // Vehicles that left the feed: close their stalls — we can no longer observe them.
+  // Vehicles that left the feed: close their stalls - we can no longer observe them.
   for (const gone of prevById.values()) {
     if (gone.open_event_id != null) eventsToClose.push(gone.open_event_id);
   }
@@ -205,7 +205,7 @@ async function detectStalls(db: Admin, network: string, vehicles: Vehicle[]) {
 /**
  * One full sampling pass across every network. Throttled to ~1/min unless
  * forced (the cron route forces; opportunistic /api/pulse calls don't).
- * All failures are swallowed — the ledger must never break user-facing routes.
+ * All failures are swallowed - the ledger must never break user-facing routes.
  */
 export async function takeSnapshot(force = false): Promise<void> {
   const now = Date.now();

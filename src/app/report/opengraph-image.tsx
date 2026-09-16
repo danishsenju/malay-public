@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { fetchLedgerWindow, gradeRows, mytDate, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
 
-export const alt = 'Laporan Harian TransitMY — liga kelewatan pengangkutan awam Malaysia'
+export const alt = 'Laporan Harian TransitMY - liga kelewatan pengangkutan awam Malaysia'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -78,14 +78,14 @@ export default async function OgImage() {
             color: '#000000',
           }}
         >
-          Laporan Harian — siapa lambat?
+          Laporan Harian - siapa lambat?
         </div>
 
         {/* League rows */}
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 28, gap: 16, flexGrow: 1 }}>
           {grades.slice(0, 3).map((g, i) => {
             const c = gradeColors(g.grade)
-            const facts = g.grade === '—'
+            const facts = g.grade === '-'
               ? 'lejar sedang belajar'
               : [
                   `uptime ${g.uptimePct}%`,
@@ -154,12 +154,12 @@ export default async function OgImage() {
                 boxShadow: '5px 5px 0 0 #000000',
               }}
             >
-              Lejar baru mula merekod — semak semula esok.
+              Lejar baru mula merekod - semak semula esok.
             </div>
           )}
         </div>
 
-        {/* Footer — the honesty line */}
+        {/* Footer - the honesty line */}
         <div
           style={{
             display: 'flex',

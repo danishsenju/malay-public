@@ -1,8 +1,8 @@
 /**
- * Sampai Bila? — GTFS static ingestion
+ * Sampai Bila? - GTFS static ingestion
  *
  * Downloads GTFS static ZIP files from data.gov.my, parses them, and upserts
- * data into Supabase. Safe to re-run — all operations are upserts.
+ * data into Supabase. Safe to re-run - all operations are upserts.
  *
  * Usage:
  *   npm run ingest                                      # all three networks
@@ -72,7 +72,7 @@ async function downloadZip(url: string): Promise<AdmZip> {
   const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT) })
   if (!res.ok) throw new Error(`HTTP ${res.status} from ${url}`)
   const buf = Buffer.from(await res.arrayBuffer())
-  if (buf.length === 0) throw new Error(`Empty response — feed may be offline`)
+  if (buf.length === 0) throw new Error(`Empty response - feed may be offline`)
   console.log(`  Downloaded ${(buf.length / 1_024).toFixed(0)} KB`)
   return new AdmZip(buf)
 }
@@ -280,7 +280,7 @@ async function ingestNetwork(
   } else {
     await ingestStopTimes(zip, network, db)
     if (SKIP_FREQUENCIES.has(network)) {
-      console.log(`  frequencies: not applicable — ${network} is fixed-schedule`)
+      console.log(`  frequencies: not applicable - ${network} is fixed-schedule`)
     } else {
       await ingestFrequencies(zip, network, db)
     }
@@ -312,14 +312,14 @@ async function main() {
     process.exit(1)
   }
 
-  // Node 20 lacks native WebSocket — supply ws for Supabase's realtime layer
+  // Node 20 lacks native WebSocket - supply ws for Supabase's realtime layer
   // (the ingestion script never opens realtime channels, but createClient still initialises it)
-  // Node 20 lacks native WebSocket — supply ws so createClient doesn't throw.
+  // Node 20 lacks native WebSocket - supply ws so createClient doesn't throw.
   // The ingestion script never opens realtime channels; this is purely to satisfy the init check.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createClient(supabaseUrl, serviceKey, { realtime: { transport: ws as any } })
 
-  console.log('Sampai Bila? — GTFS static ingestion')
+  console.log('Sampai Bila? - GTFS static ingestion')
   console.log(`Networks : ${targets.join(', ')}`)
   if (skipStopTimes) console.log('Flags    : --no-stop-times')
 
@@ -345,7 +345,7 @@ async function main() {
   }
 
   console.log('✓ All networks ingested.\n')
-  console.log('Next step — run this SQL once in Supabase to populate the')
+  console.log('Next step - run this SQL once in Supabase to populate the')
   console.log('geography index (required for "nearby stops" queries):\n')
   console.log('  UPDATE stops')
   console.log('  SET location = ST_SetSRID(ST_MakePoint(stop_lon, stop_lat), 4326)::geography;\n')
