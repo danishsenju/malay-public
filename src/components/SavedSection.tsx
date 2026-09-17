@@ -12,6 +12,7 @@ const NETWORK_LABEL: Record<string, string> = {
   'rapid-bus-kl':  'RapidKL',
   'rapid-rail-kl': 'Rapid Rail',
   'ktmb':          'KTM',
+  'mybas-johor':   'myBAS Johor',
 }
 
 // Tile fills rotate through the pastel plates so a row of saved stops reads

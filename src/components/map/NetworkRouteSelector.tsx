@@ -91,10 +91,6 @@ export function NetworkRouteSelector({
         <p className="mt-12 font-sans text-caption leading-snug text-sage-mute">
           {t('map.ktmInfo')}
         </p>
-      ) : network === 'mybas-johor' ? (
-        <p className="mt-12 font-sans text-caption leading-snug text-sage-mute">
-          {t('map.johorInfo')}
-        </p>
       ) : selectedRoute && !searching ? (
         /* Collapsed - a route is picked, so the map (with the route drawn on
            it) is the point. One compact row: chip, name, change, clear. */

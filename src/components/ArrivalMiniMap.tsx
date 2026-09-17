@@ -25,6 +25,7 @@ const json = (url: string) => fetch(url).then(r => r.json())
 interface VehicleFeed {
   vehicles: MapVehicle[]
   stale: boolean
+  feedGap?: { eventType: 'feed_outage' | 'service_gap'; since: string }
 }
 
 /** Frame the view once per token - when vehicles land, reframe to include them. */
@@ -47,9 +48,9 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
   const { t } = useLang()
   const now = useNow()
 
-  const isBus  = stop.network === 'rapid-bus-kl'
-  const isKtmb = stop.network === 'ktmb'
-  const isRail = stop.network === 'rapid-rail-kl'
+  const isBus   = stop.network === 'rapid-bus-kl' || stop.network === 'mybas-johor'
+  const isKtmb  = stop.network === 'ktmb'
+  const isRail  = stop.network === 'rapid-rail-kl'
   const routeId = arrival.route_id
 
   // Checkpoints - every stop on this arrival's route, in riding order.
@@ -70,7 +71,10 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
   // Live vehicles - same SWR keys as useRealtimeVehicles / the map page, so
   // this dedupes with the polls the homepage is already running.
   const { data: feed } = useSWR<VehicleFeed>(
-    isBus ? '/api/vehicles/bus?category=rapid-bus-kl' : isKtmb ? '/api/vehicles/ktmb' : null,
+    stop.network === 'rapid-bus-kl' ? '/api/vehicles/bus?category=rapid-bus-kl'
+      : stop.network === 'mybas-johor' ? '/api/vehicles/johor'
+      : isKtmb ? '/api/vehicles/ktmb'
+      : null,
     json,
     { refreshInterval: 15_000, revalidateOnFocus: true },
   )
@@ -120,10 +124,13 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
   }, [vehicles, now])
 
   const stale = feed?.stale ?? false
+  const feedGap = feed?.feedGap ?? null
   const liveCount = vehicles.length
   const statusText = isRail
     ? t('mini.railHonesty')
-    : liveCount === 0
+    : feedGap && liveCount === 0
+      ? t('map.feedGap')
+      : liveCount === 0
       ? isKtmb ? t('map.noTrains') : t('map.noBuses')
       : `${liveCount} ${isKtmb ? t('map.train') : t('map.bus')} ${t('map.liveSuffix')}` +
         (stale
@@ -207,7 +214,7 @@ export function ArrivalMiniMap({ stop, arrival }: { stop: NearbyStop; arrival: A
             className="mr-6 inline-block h-2 w-2 rounded-full-3 align-middle"
             style={{
               background: liveCount === 0
-                ? 'var(--color-sage-mute)'
+                ? feedGap ? 'var(--color-mustard-pop)' : 'var(--color-sage-mute)'
                 : stale ? 'var(--color-mustard-pop)' : 'var(--color-forest-ink)',
             }}
           />

@@ -26,6 +26,7 @@ const NETWORK_KEY = {
   'rapid-bus-kl':  'network.bus',
   'rapid-rail-kl': 'network.rail',
   'ktmb':          'network.ktmb',
+  'mybas-johor':   'network.johor',
 } as const
 
 export function ArrivalCard({

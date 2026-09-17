@@ -78,7 +78,7 @@ AS $$
       ST_SetSRID(ST_MakePoint(p_lon, p_lat), 4326)::geography
     )::float8 AS distance_m
   FROM stops s
-  WHERE s.network IN ('rapid-rail-kl', 'rapid-bus-kl', 'ktmb')
+  WHERE s.network IN ('rapid-rail-kl', 'rapid-bus-kl', 'ktmb', 'mybas-johor')
     AND s.location IS NOT NULL
     AND ST_DWithin(
       s.location,
@@ -109,6 +109,10 @@ $$;
 --   These are intercity trains (ETS) which run 7 days a week.
 --   → no filter applied
 --
+-- mybas-johor    every trip uses a single "ALLDAY" calendar service (verified
+--   against trips.txt - Causeway Link ships no weekday/weekend split).
+--   → no filter applied, same as ktmb
+--
 -- Schedule type
 -- ─────────────
 -- Frequency-based (rapid-rail-kl 100%, rapid-bus-kl 99.9%):
@@ -117,7 +121,7 @@ $$;
 --   where trip_ref_secs = MIN(frequencies.start_time) for that trip,
 --   and instance_start is generated from each frequency window via generate_series.
 --
--- Fixed-schedule (ktmb, and 3 rare bus trips):
+-- Fixed-schedule (ktmb, mybas-johor, and 3 rare bus trips):
 --   arrival_time from stop_times is the absolute time of day.
 
 CREATE OR REPLACE FUNCTION upcoming_arrivals(
@@ -211,7 +215,8 @@ BEGIN
       AND st.network  = p_network
       AND f.trip_id   IS NULL   -- absent from frequencies = fixed schedule
       AND (
-            p_network = 'ktmb'  -- numeric trip_ids; always show
+            p_network = 'ktmb'         -- numeric trip_ids; always show
+            OR p_network = 'mybas-johor'  -- single ALLDAY service; always show
             OR (p_network = 'rapid-rail-kl'
                 AND st.trip_id LIKE '%' || v_svc_rail || '%')
             OR (p_network = 'rapid-bus-kl'

@@ -67,6 +67,7 @@ const ms = {
   'search.filter.bus': 'Bas',
   'search.filter.rail': 'Rel',
   'search.filter.ktm': 'KTM',
+  'search.filter.johor': 'Johor',
 
   // ── Plan (Rancang) ─────────────────────────────────────────────────────────
   'plan.title.1': 'Rancang',
@@ -116,6 +117,7 @@ const ms = {
   'map.loadingLive': 'Memuatkan kedudukan langsung…',
   'map.noTrains': 'Tiada tren KTM aktif sekarang',
   'map.noBuses': 'Tiada bas aktif untuk laluan ini sekarang',
+  'map.feedGap': 'Suapan data.gov.my terputus - bukan bermakna tiada bas',
   'map.train': 'tren',
   'map.bus': 'bas',
   'map.liveSuffix': 'langsung',
@@ -127,8 +129,6 @@ const ms = {
   'map.locateHint': 'Kesan lokasi anda untuk lihat bas berdekatan, atau pilih laluan',
   'map.refresh': '· kemas kini tiap 15s',
   'map.ktmInfo': 'Semua tren KTM aktif ditunjukkan pada kedudukan GPS sebenar, dikemas kini setiap 15 saat. KTM tiada penapisan per-laluan.',
-  'map.johorInfo': 'Semua bas myBAS Johor aktif ditunjukkan pada kedudukan GPS sebenar, dikemas kini setiap 15 saat. Tiada jadual laluan rasmi - nombor laluan sahaja, bukan destinasi penuh.',
-  'map.noJohorBuses': 'Tiada bas myBAS Johor aktif sekarang',
   'map.routes': 'laluan',
   'map.scrollMore': 'skrol untuk lagi',
   'map.loadingRoutes': 'Memuatkan laluan…',
@@ -164,6 +164,7 @@ const ms = {
   'network.bus': 'RapidKL',
   'network.rail': 'Rel',
   'network.ktmb': 'KTM',
+  'network.johor': 'myBAS Johor',
 
   // ── KTM page ───────────────────────────────────────────────────────────────
   'ktmb.updated': 'Dikemas kini',
@@ -225,6 +226,20 @@ const ms = {
   'status.event.feed_outage': 'suapan terputus',
   'status.event.service_gap': 'tiada kenderaan dilaporkan',
   'status.footnote': 'Semakan langsung setiap kali halaman ini dibuka · lejar kelewatan penuh di',
+
+  // ── Install prompt (add to home screen) ────────────────────────────────────
+  'install.title': 'Pasang TransitMY',
+  'install.subtitle': 'Buka terus dari skrin utama, macam app biasa',
+  'install.cta': 'Pasang',
+  'install.dismiss': 'Tutup',
+  'install.guide.title': 'Cara pasang',
+  'install.guide.ios.step1': 'Ketik ikon Kongsi di bar bawah Safari',
+  'install.guide.ios.step2': 'Skrol ke bawah, ketik "Add to Homescreen"',
+  'install.guide.ios.step3': 'Ketik "Tambah" di penjuru kanan atas untuk sahkan',
+  'install.guide.android.step1': 'Ketik menu titik tiga (⋮) di penjuru pelayar',
+  'install.guide.android.step2': 'Cari & ketik "Add to Homescreen" ',
+  'install.guide.android.step3': 'Ketik "Pasang" / "Tambah" untuk sahkan',
+  'install.guide.done': 'Faham',
 } as const
 
 export type StringKey = keyof typeof ms
@@ -289,6 +304,7 @@ const en: Record<StringKey, string> = {
   'search.filter.bus': 'Bus',
   'search.filter.rail': 'Rail',
   'search.filter.ktm': 'KTM',
+  'search.filter.johor': 'Johor',
 
   'plan.title.1': 'Plan a',
   'plan.title.2': 'journey.',
@@ -335,6 +351,7 @@ const en: Record<StringKey, string> = {
   'map.loadingLive': 'Loading live positions…',
   'map.noTrains': 'No KTM trains active right now',
   'map.noBuses': 'No buses active on this route right now',
+  'map.feedGap': "data.gov.my's feed is down - doesn't mean there's no service",
   'map.train': 'train',
   'map.bus': 'bus',
   'map.liveSuffix': 'live',
@@ -346,8 +363,6 @@ const en: Record<StringKey, string> = {
   'map.locateHint': 'Detect your location to see nearby buses, or pick a route',
   'map.refresh': '· updates every 15s',
   'map.ktmInfo': 'Every active KTM train is shown at its real GPS position, updated every 15 seconds. KTM has no per-route filter.',
-  'map.johorInfo': 'Every active myBAS Johor bus is shown at its real GPS position, updated every 15 seconds. No official route schedule - route numbers only, not full destinations.',
-  'map.noJohorBuses': 'No myBAS Johor buses active right now',
   'map.routes': 'routes',
   'map.scrollMore': 'scroll for more',
   'map.loadingRoutes': 'Loading routes…',
@@ -380,6 +395,7 @@ const en: Record<StringKey, string> = {
   'network.bus': 'RapidKL',
   'network.rail': 'Rail',
   'network.ktmb': 'KTM',
+  'network.johor': 'myBAS Johor',
 
   'ktmb.updated': 'Updated',
   'ktmb.eyebrow': 'KTM timetable',
@@ -438,6 +454,20 @@ const en: Record<StringKey, string> = {
   'status.event.feed_outage': 'feed outage',
   'status.event.service_gap': 'no vehicles reported',
   'status.footnote': 'Checked live every time this page opens · the full delay ledger is at',
+
+  // ── Install prompt (add to home screen) ────────────────────────────────────
+  'install.title': 'Install TransitMY',
+  'install.subtitle': 'Open it straight from your home screen, like a real app',
+  'install.cta': 'Install',
+  'install.dismiss': 'Dismiss',
+  'install.guide.title': 'How to install',
+  'install.guide.ios.step1': 'Tap the Share icon in Safari’s bottom bar',
+  'install.guide.ios.step2': 'Scroll down and tap "Add to Home Screen"',
+  'install.guide.ios.step3': 'Tap "Add" in the top-right corner to confirm',
+  'install.guide.android.step1': 'Tap the three-dot menu (⋮) in your browser',
+  'install.guide.android.step2': 'Find and tap "Add to Home screen" or "Install app"',
+  'install.guide.android.step3': 'Tap "Install" / "Add" to confirm',
+  'install.guide.done': 'Got it',
 }
 
 export const STRINGS = { ms, en } as const

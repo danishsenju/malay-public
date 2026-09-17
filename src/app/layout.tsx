@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import { PwaRegister } from "@/components/PwaRegister";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/AppNav";
 import "./globals.css";
 
@@ -62,6 +63,7 @@ export default function RootLayout({
       <body className="min-h-full bg-linen-canvas text-ink-black font-sans">
         {children}
         <BottomNav />
+        <InstallPrompt />
         <PwaRegister />
       </body>
     </html>

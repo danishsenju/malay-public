@@ -278,3 +278,34 @@ export async function takeSnapshot(force = false): Promise<void> {
 
   return snapshotInflight;
 }
+
+export interface FeedGap {
+  eventType: 'feed_outage' | 'service_gap';
+  since: string; // ISO timestamp
+}
+
+/**
+ * Is there a currently-open feed_outage/service_gap for this network? Lets
+ * riders be told WHY a route shows zero live vehicles - "upstream feed is
+ * down" reads very differently from "no buses right now", and conflating
+ * them (as a bare empty vehicle list does) makes riders think service has
+ * stopped when it's really just data.gov.my not answering. Best-effort: any
+ * failure here must never block the vehicle response itself.
+ */
+export async function getOpenFeedGap(network: string): Promise<FeedGap | null> {
+  try {
+    const db = getSupabaseAdmin();
+    const { data } = await db
+      .from('delay_events')
+      .select('event_type, started_at')
+      .eq('network', network)
+      .in('event_type', ['feed_outage', 'service_gap'])
+      .is('ended_at', null)
+      .order('started_at', { ascending: false })
+      .limit(1);
+    const row = data?.[0] as { event_type: 'feed_outage' | 'service_gap'; started_at: string } | undefined;
+    return row ? { eventType: row.event_type, since: row.started_at } : null;
+  } catch {
+    return null;
+  }
+}

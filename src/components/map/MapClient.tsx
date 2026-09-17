@@ -5,11 +5,12 @@ import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { NetworkRouteSelector, type MapNetwork } from './NetworkRouteSelector'
+import { HeaderNav } from '@/components/AppNav'
 import { useLang, LangToggle } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNow } from '@/hooks/useNow'
 import type { StaticLine } from './LiveMap'
-import { distanceMeters, projectToPolylines, snapToPolylines, vehicleMatchesRoute, JOHOR_CENTER } from '@/lib/map'
+import { distanceMeters, projectToPolylines, snapToPolylines, vehicleMatchesRoute } from '@/lib/map'
 import type { MapVehicle, RouteSummary, ShapeResponse, Station } from '@/lib/map'
 
 const LiveMap = dynamic(() => import('./LiveMap').then(m => m.LiveMap), {
@@ -27,6 +28,10 @@ interface VehicleFeed {
   vehicles: MapVehicle[]
   stale: boolean
   message?: string
+  // Set only when vehicles is empty AND the delay ledger has an open
+  // feed_outage/service_gap for this network - lets the UI say "the feed's
+  // broken" instead of implying service has actually stopped.
+  feedGap?: { eventType: 'feed_outage' | 'service_gap'; since: string }
 }
 
 // "Buses near you" search ring - when no route is picked but the user has
@@ -42,7 +47,10 @@ export function MapClient() {
   // Incremented on each "my location" tap - tells the map to fly there.
   const [flyToken, setFlyToken] = useState(0)
 
-  const isBus = network === 'rapid-bus-kl'
+  // Both networks ship real GTFS static routes/shapes/stops - Rapid KL Bus
+  // via Prasarana, myBAS Johor via Causeway Link (data.gov.my just never
+  // documented the latter). KTM is the only network with no route picker.
+  const hasRoutes = network === 'rapid-bus-kl' || network === 'mybas-johor'
 
   const userPos = useMemo<[number, number] | null>(
     () => (geo.status === 'located' ? [geo.lat, geo.lon] : null),
@@ -71,14 +79,14 @@ export function MapClient() {
 
   // ── Data sources (null key disables the request) ──────────────────────────
   const { data: routes, isLoading: routesLoading } = useSWR<RouteSummary[]>(
-    isBus ? '/api/routes?network=rapid-bus-kl' : null,
+    hasRoutes ? `/api/routes?network=${network}` : null,
     json,
     { revalidateOnFocus: false },
   )
 
   const { data: shape } = useSWR<ShapeResponse>(
-    isBus && selectedRoute
-      ? `/api/routes/${encodeURIComponent(selectedRoute.route_id)}/shape?network=rapid-bus-kl`
+    hasRoutes && selectedRoute
+      ? `/api/routes/${encodeURIComponent(selectedRoute.route_id)}/shape?network=${network}`
       : null,
     json,
     { revalidateOnFocus: false },
@@ -87,8 +95,8 @@ export function MapClient() {
   // Drop-off checkpoints - every stop along the selected bus route, drawn as
   // dots on the line so riders can see exactly where they can board/alight.
   const { data: routeStops } = useSWR<{ stops: Station[] }>(
-    isBus && selectedRoute
-      ? `/api/routes/${encodeURIComponent(selectedRoute.route_id)}/stops?network=rapid-bus-kl`
+    hasRoutes && selectedRoute
+      ? `/api/routes/${encodeURIComponent(selectedRoute.route_id)}/stops?network=${network}`
       : null,
     json,
     { revalidateOnFocus: false },
@@ -144,11 +152,10 @@ export function MapClient() {
         return { ...v, lat, lon }
       })
     }
-    // myBAS Johor has no static GTFS feed on data.gov.my - no routes/shapes to
-    // pick from or snap to, so every active bus in the state is shown as-is.
-    if (network === 'mybas-johor') return all
     // Route chosen → loose matching (realtime route ids don't always equal the
-    // static ones byte-for-byte; strict equality dropped real buses).
+    // static ones byte-for-byte; strict equality dropped real buses). Johor's
+    // realtime feed happens to match its static route_id exactly, but the
+    // same loose matcher is harmless there too.
     if (selectedRoute) return all.filter(v => vehicleMatchesRoute(v.routeId, selectedRoute))
     // No route → every live bus near the user's real position.
     if (!userPos) return []
@@ -171,7 +178,7 @@ export function MapClient() {
   const fitPoints = useMemo<[number, number][] | null>(() => {
     if (initialFocusMode === 'pending') return null
     if (initialFocusMode === 'user') return userPos ? [userPos] : null
-    if (isBus) {
+    if (hasRoutes) {
       if (selectedRoute) {
         const pts = shape?.variants.flat() ?? []
         return pts.length > 0 ? pts : null
@@ -179,23 +186,17 @@ export function MapClient() {
       // Nearby-bus mode - frame the user plus the buses around them.
       return userPos ? [userPos, ...vehicles.map(v => [v.lat, v.lon] as [number, number])] : null
     }
-    if (network === 'mybas-johor') {
-      // No stations to fall back on (no static feed) - frame Johor Bahru
-      // itself while zero buses are active, rather than leaving the view
-      // wherever the previous tab left it.
-      if (!feed) return null
-      return vehicles.length > 0 ? vehicles.map(v => [v.lat, v.lon]) : [JOHOR_CENTER]
-    }
     // KTM - wait for the realtime feed to resolve before deciding.
     if (!feed) return null
     if (vehicles.length > 0) return vehicles.map(v => [v.lat, v.lon])
     return visibleStations.length > 0
       ? visibleStations.map(s => [s.stop_lat, s.stop_lon])
       : null
-  }, [initialFocusMode, isBus, network, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
+  }, [initialFocusMode, hasRoutes, selectedRoute, userPos, shape, feed, vehicles, visibleStations])
 
-  const nearbyMode = isBus && !selectedRoute
+  const nearbyMode = hasRoutes && !selectedRoute
   const stale = feed?.stale ?? false
+  const feedGap = feed?.feedGap ?? null
 
   // Freshest GPS report age among the plotted vehicles - surfacing it in the
   // status chip tells riders exactly how far behind reality the dots run
@@ -208,21 +209,25 @@ export function MapClient() {
     return Math.max(0, Math.round((now - Math.max(...ts)) / 1000))
   }, [vehicles, now])
 
-  const statusText = nearbyMode
-    ? userPos === null
-      ? t('map.locateHint')
-      : vehicles.length === 0
-        ? t('map.noNearbyBuses')
-        : `${vehicles.length} ${t('map.nearbyBuses')}`
-    : feedLoading && !feed
-      ? t('map.loadingLive')
-      : vehicles.length === 0
-        ? network === 'ktmb'
-          ? t('map.noTrains')
-          : network === 'mybas-johor'
-            ? t('map.noJohorBuses')
+  // A known upstream gap outranks every other empty-list message - "no buses
+  // within 3km" or "no active buses" both read as "service has stopped",
+  // when what's actually true is data.gov.my's feed going quiet. Riders
+  // should never have to guess which one they're looking at.
+  const statusText = feedGap && vehicles.length === 0
+    ? t('map.feedGap')
+    : nearbyMode
+      ? userPos === null
+        ? t('map.locateHint')
+        : vehicles.length === 0
+          ? t('map.noNearbyBuses')
+          : `${vehicles.length} ${t('map.nearbyBuses')}`
+      : feedLoading && !feed
+        ? t('map.loadingLive')
+        : vehicles.length === 0
+          ? network === 'ktmb'
+            ? t('map.noTrains')
             : t('map.noBuses')
-        : `${vehicles.length} ${network === 'ktmb' ? t('map.train') : t('map.bus')} ${t('map.liveSuffix')}`
+          : `${vehicles.length} ${network === 'ktmb' ? t('map.train') : t('map.bus')} ${t('map.liveSuffix')}`
 
   // The live dot only makes sense once a feed is actually being plotted.
   const showLiveDot = !nearbyMode || userPos !== null
@@ -248,8 +253,8 @@ export function MapClient() {
       <div className="absolute inset-0">
         <LiveMap
           vehicles={vehicles}
-          shape={isBus && selectedRoute ? shape ?? null : null}
-          routeStops={isBus && selectedRoute ? routeStops?.stops ?? [] : []}
+          shape={hasRoutes && selectedRoute ? shape ?? null : null}
+          routeStops={hasRoutes && selectedRoute ? routeStops?.stops ?? [] : []}
           stopLabel={t('map.stop')}
           stations={network === 'ktmb' ? visibleStations : []}
           staticLines={network === 'ktmb' ? ktmLines?.lines ?? [] : []}
@@ -263,26 +268,31 @@ export function MapClient() {
 
       {/* Floating controls */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-1000 flex flex-col items-center gap-10 p-14">
-        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between">
-          {/* Same circular back button as every other page */}
-          <Link
-            href="/"
-            aria-label={t('common.backHome')}
-            className="plate pressable-sm flex h-40 w-40 items-center justify-center rounded-full-3 text-ink-black"
-          >
-            <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <div className="flex items-center gap-8">
-            <span className="rounded-lg border-2 border-ink-black bg-lime-spark px-10 py-6 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-ink-black">
+        {/* Same single-pill masthead as every other page (PageHeader), just
+            floating over the map instead of sitting in document flow -
+            keeps back-button + page-title grouped left, nav in the middle,
+            controls on the right, all sharing one plate so the whole thing
+            reads as one bar rather than scattered elements over map tiles. */}
+        <div className="pointer-events-auto plate shadow-plate-sm flex w-full max-w-md items-center justify-between rounded-full-2 py-2.25 pl-2.5 pr-18 lg:max-w-6xl">
+          <span className="flex items-center gap-8">
+            <Link
+              href="/"
+              aria-label={t('common.backHome')}
+              className="pressable-sm flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 text-ink-black"
+            >
+              <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
+            <span className="rounded-lg border-2 border-ink-black bg-lime-spark px-10 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-ink-black">
               {t('map.title')}
             </span>
-            <LangToggle />
-          </div>
+          </span>
+          <HeaderNav />
+          <LangToggle />
         </div>
 
-        <div className="pointer-events-auto w-full max-w-md">
+        <div className="pointer-events-auto w-full max-w-md lg:max-w-2xl">
           <NetworkRouteSelector
             network={network}
             onNetworkChange={handleNetworkChange}
@@ -300,7 +310,7 @@ export function MapClient() {
         <div className="plate shadow-plate-sm flex items-center gap-8 rounded-full-2 px-14 py-8">
           {showLiveDot && (
             <span className="relative flex h-2 w-2">
-              {!stale && (
+              {!stale && !(feedGap && vehicles.length === 0) && (
                 <span
                   className="absolute inset-0 rounded-full-3 bg-forest-ink"
                   style={{ animation: 'livePulseRing 2s ease-out infinite' }}
@@ -308,7 +318,7 @@ export function MapClient() {
               )}
               <span
                 className="relative h-2 w-2 rounded-full-3"
-                style={{ background: stale ? 'var(--color-mustard-pop)' : 'var(--color-forest-ink)' }}
+                style={{ background: stale || (feedGap && vehicles.length === 0) ? 'var(--color-mustard-pop)' : 'var(--color-forest-ink)' }}
               />
             </span>
           )}

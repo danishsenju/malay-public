@@ -36,6 +36,7 @@ const FEEDS = {
   'rapid-rail-kl': 'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl',
   'rapid-bus-kl':  'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-bus-kl',
   'ktmb':          'https://api.data.gov.my/gtfs-static/ktmb',
+  'mybas-johor':   'https://api.data.gov.my/gtfs-static/mybas-johor',
 } as const
 
 type Network = keyof typeof FEEDS
@@ -46,8 +47,11 @@ type Network = keyof typeof FEEDS
 // the departure board (upcoming_arrivals needs route info from the static GTFS).
 
 // KTMB is a purely fixed-schedule network (no frequencies.txt).
+// mybas-johor ships stop_times but no frequencies.txt either — every trip
+// runs on a single "ALLDAY" calendar service (verified in trips.txt), so it
+// needs no calendar filter in upcoming_arrivals, same as KTMB.
 // rapid-rail-kl (100%) and rapid-bus-kl (99.9%) are frequency-based.
-const SKIP_FREQUENCIES = new Set<Network>(['ktmb'])
+const SKIP_FREQUENCIES = new Set<Network>(['ktmb', 'mybas-johor'])
 
 const BATCH = 500   // rows per Supabase upsert call
 const TIMEOUT = 30_000  // ms for ZIP download

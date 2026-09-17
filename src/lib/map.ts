@@ -36,9 +36,6 @@ export interface Station {
 /** Kuala Lumpur - sensible default centre before a route/feed is chosen. */
 export const KL_CENTER: [number, number] = [3.139, 101.6869]
 
-/** Johor Bahru - fallback centre for the myBAS Johor tab when zero buses are active. */
-export const JOHOR_CENTER: [number, number] = [1.4927, 103.7414]
-
 /**
  * Distinguishable dot colours for individual vehicles. Every dot carries a 2px
  * ink stroke, so these are picked to stay legible against both the linen canvas

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getKtmbSchedule, type KtmbLine } from '@/lib/ktmbSchedule'
 import { getServerLang, serverT } from '@/lib/serverLang'
-import { BrandMark } from '@/components/BrandMark'
+import { PageHeader } from '@/components/PageHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -102,21 +102,8 @@ export default async function KtmbPage() {
 
   return (
     <div className="min-h-screen bg-linen-canvas">
+      <PageHeader />
       <div className="mx-auto max-w-md px-20 pb-128 lg:max-w-2xl lg:pb-64">
-
-        {/* ── Masthead ── */}
-        <header className="flex items-center justify-between pt-20">
-          <Link
-            href="/"
-            className="plate pressable-sm flex h-40 w-40 items-center justify-center rounded-full-3 text-ink-black"
-            aria-label={t('common.backHome')}
-          >
-            <svg aria-hidden className="h-18 w-18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <BrandMark />
-        </header>
 
         {/* ── Hero ── */}
         <div className="pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>

@@ -32,7 +32,12 @@ no purple-blue AI-slop gradients, no rounded-2xl-shadow-lg-everywhere defaults.
 - KTMB live trains: GET https://api.data.gov.my/gtfs-realtime/vehicle-position/ktmb
 - Rapid KL/Penang buses: GET https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl
 - Rapid rail (LRT/MRT/Monorail) static schedule: GET https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl
-- myBAS Johor buses: GET https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor
+- myBAS Johor buses (live): GET https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor
+- myBAS Johor static schedule (Causeway Link, 20 routes): GET https://api.data.gov.my/gtfs-static/mybas-johor
+  - Undocumented on the data.gov.my catalogue page - found by testing the URL directly (2026-09-17).
+  - Fixed-schedule, no frequencies.txt; every trip uses a single "ALLDAY" calendar
+    service (verified against trips.txt), so upcoming_arrivals needs no calendar
+    filter for it, same as ktmb.
 
 IMPORTANT: all _-realtime endpoints return raw GTFS-Realtime protobuf
 (application/octet-stream), NOT JSON. Must decode with `gtfs-realtime-bindings`.

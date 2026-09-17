@@ -273,7 +273,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'from and to are the same stop' }, { status: 400 })
   }
 
-  const busInvolved = fromNet === 'rapid-bus-kl' || toNet === 'rapid-bus-kl'
+  // Bus-like networks (dense stop topology, no interchange graph built for
+  // them) can't be planned cross-network. mybas-johor is also geographically
+  // separate from the KL rail/KTM graph - never a real interchange candidate.
+  const busInvolved =
+    fromNet === 'rapid-bus-kl' || toNet === 'rapid-bus-kl' ||
+    fromNet === 'mybas-johor' || toNet === 'mybas-johor'
   if (busInvolved && fromNet !== toNet) {
     const body: JourneyResponse = { options: [], supported: false, generatedAt: Date.now() }
     return NextResponse.json(body)

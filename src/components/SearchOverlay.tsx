@@ -30,22 +30,25 @@ interface FilterDef {
 }
 
 const FILTER_DEFS: FilterDef[] = [
-  { id: 'all',           label: 'search.filter.all',  activeBg: 'var(--color-ink-black)',     activeText: '#ffffff' },
-  { id: 'rapid-bus-kl',  label: 'search.filter.bus',  activeBg: 'var(--color-cobalt-band)',   activeText: '#ffffff' },
-  { id: 'rapid-rail-kl', label: 'search.filter.rail', activeBg: 'var(--color-lavender-mist)', activeText: 'var(--color-ink-black)' },
-  { id: 'ktmb',          label: 'search.filter.ktm',  activeBg: 'var(--color-mustard-pop)',   activeText: 'var(--color-ink-black)' },
+  { id: 'all',           label: 'search.filter.all',   activeBg: 'var(--color-ink-black)',     activeText: '#ffffff' },
+  { id: 'rapid-bus-kl',  label: 'search.filter.bus',   activeBg: 'var(--color-cobalt-band)',   activeText: '#ffffff' },
+  { id: 'rapid-rail-kl', label: 'search.filter.rail',  activeBg: 'var(--color-lavender-mist)', activeText: 'var(--color-ink-black)' },
+  { id: 'ktmb',          label: 'search.filter.ktm',   activeBg: 'var(--color-mustard-pop)',   activeText: 'var(--color-ink-black)' },
+  { id: 'mybas-johor',   label: 'search.filter.johor', activeBg: 'var(--color-maroon-plate)',  activeText: '#ffffff' },
 ]
 
 const NETWORK_ACCENT: Record<Network, string> = {
   'rapid-bus-kl':  'var(--color-cobalt-band)',
   'rapid-rail-kl': 'var(--color-lavender-mist)',
   'ktmb':          'var(--color-mustard-pop)',
+  'mybas-johor':   'var(--color-maroon-plate)',
 }
 
 const NETWORK_LABEL: Record<Network, string> = {
   'rapid-bus-kl':  'RapidKL Bus',
   'rapid-rail-kl': 'Rapid Rail',
   'ktmb':          'KTM',
+  'mybas-johor':   'myBAS Johor',
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

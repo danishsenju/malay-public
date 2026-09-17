@@ -19,6 +19,7 @@ const NETWORK_LABEL: Record<string, string> = {
   'rapid-bus-kl':  'RapidKL Bus',
   'rapid-rail-kl': 'Rapid Rail',
   'ktmb':          'KTM',
+  'mybas-johor':   'myBAS Johor',
 }
 
 // Leaflet touches window on import - client-only, loaded when first tracked.
@@ -178,9 +179,11 @@ function SheetBody({ stop, isSaved, onSave, onRemove, initialArrival = null }: S
 
   const isLive = stop.network === 'rapid-bus-kl' ? live.hasLiveBus
                : stop.network === 'ktmb'          ? live.hasLiveKtmb
+               : stop.network === 'mybas-johor'   ? live.hasLiveJohor
                : false
   const stale  = stop.network === 'rapid-bus-kl' ? live.busStale
                : stop.network === 'ktmb'          ? live.ktmbStale
+               : stop.network === 'mybas-johor'   ? live.johorStale
                : false
 
   const distLabel = stop.distance_m == null
