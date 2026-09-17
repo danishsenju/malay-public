@@ -36,6 +36,60 @@ export const LEDGER_NETWORKS = [
     url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor',
     trackStalls: false,
   },
+  {
+    network: 'rapid-bus-penang',
+    label: 'Rapid Penang',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-penang',
+    trackStalls: false,
+  },
+  {
+    network: 'rapid-bus-mrtfeeder',
+    label: 'Bas Feeder MRT',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-mrtfeeder',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-alor-setar',
+    label: 'myBAS Alor Setar',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-alor-setar',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-kuala-terengganu',
+    label: 'myBAS Kuala Terengganu',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-kuala-terengganu',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-ipoh',
+    label: 'myBAS Ipoh',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-ipoh',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-seremban-a',
+    label: 'myBAS Seremban A',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-seremban-a',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-seremban-b',
+    label: 'myBAS Seremban B',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-seremban-b',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-melaka',
+    label: 'myBAS Melaka',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-melaka',
+    trackStalls: false,
+  },
+  {
+    network: 'mybas-kuching',
+    label: 'myBAS Kuching',
+    url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-kuching',
+    trackStalls: false,
+  },
 ] as const;
 
 export type LedgerNetwork = (typeof LEDGER_NETWORKS)[number]['network'];

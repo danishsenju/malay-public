@@ -11,7 +11,9 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 
 // ktmb ships no shapes.txt (see /api/ktmb/lines for its OSM geometry);
 // rail/bus/Johor shapes come straight from the ingested GTFS.
-const ALLOWED = new Set(['rapid-bus-kl', 'rapid-rail-kl', 'mybas-johor'])
+const ALLOWED = new Set([
+  'rapid-bus-kl', 'rapid-rail-kl', 'mybas-johor', 'rapid-bus-penang', 'rapid-bus-mrtfeeder',
+])
 const PAGE = 1000
 
 type ShapePoint = { shape_id: string; lat: number; lon: number }

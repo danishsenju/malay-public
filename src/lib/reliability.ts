@@ -37,6 +37,15 @@ export const NETWORK_LABELS: Record<string, string> = {
   'ktmb': 'KTM Komuter / ETS',
   'rapid-bus-kl': 'Bas Rapid KL',
   'mybas-johor': 'myBAS Johor',
+  'rapid-bus-penang': 'Rapid Penang',
+  'rapid-bus-mrtfeeder': 'Bas Feeder MRT',
+  'mybas-alor-setar': 'myBAS Alor Setar',
+  'mybas-kuala-terengganu': 'myBAS Kuala Terengganu',
+  'mybas-ipoh': 'myBAS Ipoh',
+  'mybas-seremban-a': 'myBAS Seremban A',
+  'mybas-seremban-b': 'myBAS Seremban B',
+  'mybas-melaka': 'myBAS Melaka',
+  'mybas-kuching': 'myBAS Kuching',
 };
 
 /** Rapid Rail lines with no published realtime feed - shown as unmonitored. */

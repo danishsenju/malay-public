@@ -1,4 +1,17 @@
-export type Network = 'rapid-bus-kl' | 'rapid-rail-kl' | 'ktmb' | 'mybas-johor'
+export type Network =
+  | 'rapid-bus-kl'
+  | 'rapid-rail-kl'
+  | 'ktmb'
+  | 'mybas-johor'
+  | 'rapid-bus-penang'
+  | 'rapid-bus-mrtfeeder'
+  | 'mybas-alor-setar'
+  | 'mybas-kuala-terengganu'
+  | 'mybas-ipoh'
+  | 'mybas-seremban-a'
+  | 'mybas-seremban-b'
+  | 'mybas-melaka'
+  | 'mybas-kuching'
 
 /** Row returned by the nearby_stops() Supabase RPC, or from stop search. */
 export interface NearbyStop {

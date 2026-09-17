@@ -23,10 +23,19 @@ export interface ArrivalCardProps {
 }
 
 const NETWORK_KEY = {
-  'rapid-bus-kl':  'network.bus',
-  'rapid-rail-kl': 'network.rail',
-  'ktmb':          'network.ktmb',
-  'mybas-johor':   'network.johor',
+  'rapid-bus-kl':           'network.bus',
+  'rapid-rail-kl':          'network.rail',
+  'ktmb':                   'network.ktmb',
+  'mybas-johor':            'network.johor',
+  'rapid-bus-penang':       'network.penang',
+  'rapid-bus-mrtfeeder':    'network.mrtfeeder',
+  'mybas-alor-setar':       'network.alorSetar',
+  'mybas-kuala-terengganu': 'network.kualaTerengganu',
+  'mybas-ipoh':             'network.ipoh',
+  'mybas-seremban-a':       'network.serembanA',
+  'mybas-seremban-b':       'network.serembanB',
+  'mybas-melaka':           'network.melaka',
+  'mybas-kuching':          'network.kuching',
 } as const
 
 export function ArrivalCard({

@@ -5,10 +5,11 @@ import { getOpenFeedGap } from '@/lib/ledger';
 const PRASARANA_BASE =
   'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana';
 
-const ALLOWED_CATEGORIES = new Set(['rapid-bus-kl', 'rapid-bus-penang']);
-// Only KL is sampled into the delay ledger today - a Penang lookup would
-// just waste a query since getOpenFeedGap can never find a row for it.
-const LEDGER_TRACKED = new Set(['rapid-bus-kl']);
+const ALLOWED_CATEGORIES = new Set(['rapid-bus-kl', 'rapid-bus-penang', 'rapid-bus-mrtfeeder']);
+// Only categories sampled into the delay ledger (see LEDGER_NETWORKS in
+// lib/ledger.ts) - a lookup for anything else would just waste a query
+// since getOpenFeedGap can never find a row for it.
+const LEDGER_TRACKED = new Set(['rapid-bus-kl', 'rapid-bus-penang', 'rapid-bus-mrtfeeder']);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

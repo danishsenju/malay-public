@@ -274,11 +274,14 @@ export async function GET(request: Request) {
   }
 
   // Bus-like networks (dense stop topology, no interchange graph built for
-  // them) can't be planned cross-network. mybas-johor is also geographically
+  // them) can't be planned cross-network. Most are also geographically
   // separate from the KL rail/KTM graph - never a real interchange candidate.
-  const busInvolved =
-    fromNet === 'rapid-bus-kl' || toNet === 'rapid-bus-kl' ||
-    fromNet === 'mybas-johor' || toNet === 'mybas-johor'
+  const BUS_NETWORKS = new Set<Network>([
+    'rapid-bus-kl', 'rapid-bus-penang', 'rapid-bus-mrtfeeder', 'mybas-johor',
+    'mybas-alor-setar', 'mybas-kuala-terengganu', 'mybas-ipoh',
+    'mybas-seremban-a', 'mybas-seremban-b', 'mybas-melaka', 'mybas-kuching',
+  ])
+  const busInvolved = BUS_NETWORKS.has(fromNet) || BUS_NETWORKS.has(toNet)
   if (busInvolved && fromNet !== toNet) {
     const body: JourneyResponse = { options: [], supported: false, generatedAt: Date.now() }
     return NextResponse.json(body)
@@ -312,7 +315,7 @@ export async function GET(request: Request) {
     }
 
     // 3. Same-network shared-stop transfer (KTMB branch lines).
-    if (options.length === 0 && fromNet === toNet && fromNet !== 'rapid-bus-kl') {
+    if (options.length === 0 && fromNet === toNet && !BUS_NETWORKS.has(fromNet)) {
       options = await planSameNetworkTransfer(db, fromId, toId, fromNet)
     }
 

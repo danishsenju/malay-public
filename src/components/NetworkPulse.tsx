@@ -19,10 +19,27 @@ interface PulseResponse {
 }
 
 const SHORT_LABEL: Record<string, string> = {
-  'ktmb':         'KTM',
-  'rapid-bus-kl': 'Bas KL',
-  'mybas-johor':  'Johor',
+  'ktmb':                   'KTM',
+  'rapid-bus-kl':           'Bas KL',
+  'mybas-johor':            'Johor',
+  'rapid-bus-penang':       'Penang',
+  'rapid-bus-mrtfeeder':    'Feeder MRT',
+  'mybas-alor-setar':       'Alor Setar',
+  'mybas-kuala-terengganu': 'K. Terengganu',
+  'mybas-ipoh':             'Ipoh',
+  'mybas-seremban-a':       'Seremban A',
+  'mybas-seremban-b':       'Seremban B',
+  'mybas-melaka':           'Melaka',
+  'mybas-kuching':          'Kuching',
 }
+
+// The home hero shows the Klang Valley + Johor trio unconditionally (the
+// audience this app was built around); the other 9 regional networks only
+// earn a chip here when they actually have vehicles moving right now - a
+// wall of "Ipoh 0 · Kuching 0 · ..." chips would bury the nearby-stops list
+// beneath a low-relevance breakdown for anyone not in that specific city.
+// They still count toward the headline total either way.
+const ALWAYS_SHOWN = new Set(['ktmb', 'rapid-bus-kl', 'mybas-johor'])
 
 async function fetchPulse(url: string): Promise<PulseResponse> {
   const res = await fetch(url)
@@ -90,7 +107,9 @@ export function NetworkPulse() {
 
       {/* Per-network breakdown */}
       <div className="mt-14 flex flex-wrap gap-8">
-        {(data?.networks ?? []).map(n => (
+        {(data?.networks ?? [])
+          .filter(n => ALWAYS_SHOWN.has(n.network) || n.count > 0)
+          .map(n => (
           <span
             key={n.network}
             className="flex items-center gap-1.5 rounded-full-2 border-2 border-ink-black bg-white-plate px-10 py-2 font-mono text-[11px] font-bold text-ink-black"

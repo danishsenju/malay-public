@@ -9,10 +9,19 @@ import { liveMinutesUntil } from '@/lib/liveTime'
 import type { NearbyStop } from '@/lib/types'
 
 const NETWORK_LABEL: Record<string, string> = {
-  'rapid-bus-kl':  'RapidKL',
-  'rapid-rail-kl': 'Rapid Rail',
-  'ktmb':          'KTM',
-  'mybas-johor':   'myBAS Johor',
+  'rapid-bus-kl':           'RapidKL',
+  'rapid-rail-kl':          'Rapid Rail',
+  'ktmb':                   'KTM',
+  'mybas-johor':            'myBAS Johor',
+  'rapid-bus-penang':       'Rapid Penang',
+  'rapid-bus-mrtfeeder':    'MRT Feeder Bus',
+  'mybas-alor-setar':       'myBAS Alor Setar',
+  'mybas-kuala-terengganu': 'myBAS K. Terengganu',
+  'mybas-ipoh':             'myBAS Ipoh',
+  'mybas-seremban-a':       'myBAS Seremban A',
+  'mybas-seremban-b':       'myBAS Seremban B',
+  'mybas-melaka':           'myBAS Melaka',
+  'mybas-kuching':          'myBAS Kuching',
 }
 
 // Tile fills rotate through the pastel plates so a row of saved stops reads

@@ -47,10 +47,13 @@ export function MapClient() {
   // Incremented on each "my location" tap - tells the map to fly there.
   const [flyToken, setFlyToken] = useState(0)
 
-  // Both networks ship real GTFS static routes/shapes/stops - Rapid KL Bus
-  // via Prasarana, myBAS Johor via Causeway Link (data.gov.my just never
-  // documented the latter). KTM is the only network with no route picker.
-  const hasRoutes = network === 'rapid-bus-kl' || network === 'mybas-johor'
+  // Every bus-like network ships real GTFS static routes/shapes/stops - Rapid
+  // KL/Penang/MRT Feeder via Prasarana, myBAS Johor via Causeway Link
+  // (data.gov.my just never documented the myBAS endpoints). KTM is the only
+  // network on this map with no route picker.
+  const hasRoutes =
+    network === 'rapid-bus-kl' || network === 'mybas-johor' ||
+    network === 'rapid-bus-penang' || network === 'rapid-bus-mrtfeeder'
 
   const userPos = useMemo<[number, number] | null>(
     () => (geo.status === 'located' ? [geo.lat, geo.lon] : null),
@@ -132,7 +135,7 @@ export function MapClient() {
     ? '/api/vehicles/ktmb'
     : network === 'mybas-johor'
       ? '/api/vehicles/johor'
-      : '/api/vehicles/bus?category=rapid-bus-kl'
+      : `/api/vehicles/bus?category=${network}`
 
   const { data: feed, isLoading: feedLoading } = useSWR<VehicleFeed>(vehiclesKey, json, {
     refreshInterval: 15_000,

@@ -30,25 +30,52 @@ interface FilterDef {
 }
 
 const FILTER_DEFS: FilterDef[] = [
-  { id: 'all',           label: 'search.filter.all',   activeBg: 'var(--color-ink-black)',     activeText: '#ffffff' },
-  { id: 'rapid-bus-kl',  label: 'search.filter.bus',   activeBg: 'var(--color-cobalt-band)',   activeText: '#ffffff' },
-  { id: 'rapid-rail-kl', label: 'search.filter.rail',  activeBg: 'var(--color-lavender-mist)', activeText: 'var(--color-ink-black)' },
-  { id: 'ktmb',          label: 'search.filter.ktm',   activeBg: 'var(--color-mustard-pop)',   activeText: 'var(--color-ink-black)' },
-  { id: 'mybas-johor',   label: 'search.filter.johor', activeBg: 'var(--color-maroon-plate)',  activeText: '#ffffff' },
+  { id: 'all',                    label: 'search.filter.all',      activeBg: 'var(--color-ink-black)',     activeText: '#ffffff' },
+  { id: 'rapid-bus-kl',           label: 'search.filter.bus',      activeBg: 'var(--color-cobalt-band)',   activeText: '#ffffff' },
+  { id: 'rapid-rail-kl',          label: 'search.filter.rail',     activeBg: 'var(--color-lavender-mist)', activeText: 'var(--color-ink-black)' },
+  { id: 'ktmb',                   label: 'search.filter.ktm',      activeBg: 'var(--color-mustard-pop)',   activeText: 'var(--color-ink-black)' },
+  { id: 'mybas-johor',            label: 'search.filter.johor',    activeBg: 'var(--color-maroon-plate)',  activeText: '#ffffff' },
+  { id: 'rapid-bus-penang',       label: 'search.filter.penang',   activeBg: 'var(--color-cobalt-deep)',   activeText: '#ffffff' },
+  { id: 'rapid-bus-mrtfeeder',    label: 'search.filter.mrtfeeder',activeBg: 'var(--color-forest-ink)',    activeText: '#ffffff' },
+  { id: 'mybas-alor-setar',       label: 'search.filter.alorSetar',activeBg: 'var(--color-charcoal-pill)', activeText: '#ffffff' },
+  { id: 'mybas-kuala-terengganu', label: 'search.filter.kt',       activeBg: 'var(--color-concrete-tile)', activeText: 'var(--color-ink-black)' },
+  { id: 'mybas-ipoh',             label: 'search.filter.ipoh',     activeBg: 'var(--color-cobalt-deep)',   activeText: '#ffffff' },
+  { id: 'mybas-seremban-a',       label: 'search.filter.serembanA',activeBg: 'var(--color-forest-ink)',    activeText: '#ffffff' },
+  { id: 'mybas-seremban-b',       label: 'search.filter.serembanB',activeBg: 'var(--color-charcoal-pill)', activeText: '#ffffff' },
+  { id: 'mybas-melaka',           label: 'search.filter.melaka',   activeBg: 'var(--color-concrete-tile)', activeText: 'var(--color-ink-black)' },
+  { id: 'mybas-kuching',          label: 'search.filter.kuching',  activeBg: 'var(--color-cobalt-deep)',   activeText: '#ffffff' },
 ]
 
 const NETWORK_ACCENT: Record<Network, string> = {
-  'rapid-bus-kl':  'var(--color-cobalt-band)',
-  'rapid-rail-kl': 'var(--color-lavender-mist)',
-  'ktmb':          'var(--color-mustard-pop)',
-  'mybas-johor':   'var(--color-maroon-plate)',
+  'rapid-bus-kl':           'var(--color-cobalt-band)',
+  'rapid-rail-kl':          'var(--color-lavender-mist)',
+  'ktmb':                   'var(--color-mustard-pop)',
+  'mybas-johor':            'var(--color-maroon-plate)',
+  'rapid-bus-penang':       'var(--color-cobalt-deep)',
+  'rapid-bus-mrtfeeder':    'var(--color-forest-ink)',
+  'mybas-alor-setar':       'var(--color-charcoal-pill)',
+  'mybas-kuala-terengganu': 'var(--color-concrete-tile)',
+  'mybas-ipoh':             'var(--color-cobalt-deep)',
+  'mybas-seremban-a':       'var(--color-forest-ink)',
+  'mybas-seremban-b':       'var(--color-charcoal-pill)',
+  'mybas-melaka':           'var(--color-concrete-tile)',
+  'mybas-kuching':          'var(--color-cobalt-deep)',
 }
 
 const NETWORK_LABEL: Record<Network, string> = {
-  'rapid-bus-kl':  'RapidKL Bus',
-  'rapid-rail-kl': 'Rapid Rail',
-  'ktmb':          'KTM',
-  'mybas-johor':   'myBAS Johor',
+  'rapid-bus-kl':           'RapidKL Bus',
+  'rapid-rail-kl':          'Rapid Rail',
+  'ktmb':                   'KTM',
+  'mybas-johor':            'myBAS Johor',
+  'rapid-bus-penang':       'Rapid Penang',
+  'rapid-bus-mrtfeeder':    'MRT Feeder Bus',
+  'mybas-alor-setar':       'myBAS Alor Setar',
+  'mybas-kuala-terengganu': 'myBAS K. Terengganu',
+  'mybas-ipoh':             'myBAS Ipoh',
+  'mybas-seremban-a':       'myBAS Seremban A',
+  'mybas-seremban-b':       'myBAS Seremban B',
+  'mybas-melaka':           'myBAS Melaka',
+  'mybas-kuching':          'myBAS Kuching',
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

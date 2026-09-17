@@ -30,7 +30,7 @@ no purple-blue AI-slop gradients, no rounded-2xl-shadow-lg-everywhere defaults.
 ## APIs (data.gov.my - no auth needed)
 
 - KTMB live trains: GET https://api.data.gov.my/gtfs-realtime/vehicle-position/ktmb
-- Rapid KL/Penang buses: GET https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl
+- Rapid KL/Penang/MRT Feeder buses: GET https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category={rapid-bus-kl|rapid-bus-penang|rapid-bus-mrtfeeder}
 - Rapid rail (LRT/MRT/Monorail) static schedule: GET https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl
 - myBAS Johor buses (live): GET https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor
 - myBAS Johor static schedule (Causeway Link, 20 routes): GET https://api.data.gov.my/gtfs-static/mybas-johor
@@ -38,6 +38,21 @@ no purple-blue AI-slop gradients, no rounded-2xl-shadow-lg-everywhere defaults.
   - Fixed-schedule, no frequencies.txt; every trip uses a single "ALLDAY" calendar
     service (verified against trips.txt), so upcoming_arrivals needs no calendar
     filter for it, same as ktmb.
+- 7 more myBAS-branded regional feeds exist under the same undocumented
+  pattern (found 2026-09-18 by probing `mybas-{city}` against the endpoint):
+  alor-setar, kuala-terengganu, ipoh, seremban-a, seremban-b, melaka, kuching.
+  Live: `.../vehicle-position/mybas-{city}`, static: `.../gtfs-static/mybas-{city}`.
+  Unlike Johor, their `service_id`s are arbitrary/rotating, not string-parseable,
+  so they need a real `calendar` table + day-of-week join (see `calendar` table,
+  `ingestCalendar()` in `scripts/ingest-gtfs-static.ts`, and the generic
+  calendar-fallback branch in the `upcoming_arrivals` RPC).
+  Ipoh, Seremban A and Seremban B publish a `calendar.txt` whose validity
+  window is only ONE DAY (regenerated daily at the source) - re-ingest these
+  regularly or their schedule silently goes stale.
+  `mybas-kangar` and `mybas-kota-bharu` also exist but are empty stubs (valid
+  ZIP, header-only CSVs, zero data rows) - not integrated.
+  `rapid-bus-kuantan` is listed in some docs but the API's own 404 response
+  says it isn't a valid category - doesn't actually exist.
 
 IMPORTANT: all _-realtime endpoints return raw GTFS-Realtime protobuf
 (application/octet-stream), NOT JSON. Must decode with `gtfs-realtime-bindings`.

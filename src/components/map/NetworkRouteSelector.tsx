@@ -5,7 +5,7 @@ import type { RouteSummary } from '@/lib/map'
 import { normalizeHex } from '@/lib/map'
 import { useLang } from '@/lib/i18n'
 
-export type MapNetwork = 'ktmb' | 'rapid-bus-kl' | 'mybas-johor'
+export type MapNetwork = 'ktmb' | 'rapid-bus-kl' | 'mybas-johor' | 'rapid-bus-penang' | 'rapid-bus-mrtfeeder'
 
 interface Props {
   network: MapNetwork
@@ -20,6 +20,8 @@ const TABS: { id: MapNetwork; label: string }[] = [
   { id: 'ktmb', label: 'KTM' },
   { id: 'rapid-bus-kl', label: 'Rapid KL Bus' },
   { id: 'mybas-johor', label: 'myBAS Johor' },
+  { id: 'rapid-bus-penang', label: 'Rapid Penang' },
+  { id: 'rapid-bus-mrtfeeder', label: 'MRT Feeder' },
 ]
 
 function routeText(r: RouteSummary): string {
@@ -60,9 +62,10 @@ export function NetworkRouteSelector({
 
   return (
     <div className="plate shadow-plate w-full max-w-md rounded-2xl p-14">
-      {/* Segmented network toggle */}
+      {/* Segmented network toggle - scrolls horizontally now that there are
+          more networks than comfortably fit at equal flex-1 width on mobile. */}
       <div
-        className="flex gap-8"
+        className="scrollbar-none flex gap-8 overflow-x-auto"
         role="tablist"
         aria-label={t('map.pickNetwork')}
       >
@@ -76,8 +79,8 @@ export function NetworkRouteSelector({
               aria-selected={active}
               onClick={() => { onNetworkChange(tab.id); setSearching(true) }}
               className={[
-                'pressable-gpu flex-1 rounded-lg border-2 border-ink-black px-14 py-8',
-                'font-sans text-body-sm font-bold',
+                'pressable-gpu shrink-0 rounded-lg border-2 border-ink-black px-14 py-8',
+                'font-sans text-body-sm font-bold whitespace-nowrap',
                 active ? 'bg-lime-spark text-ink-black' : 'bg-white-plate text-ink-black',
               ].join(' ')}
             >

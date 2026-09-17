@@ -33,10 +33,27 @@ import ws from 'ws'
 // ── Feed registry ──────────────────────────────────────────────────────────────
 
 const FEEDS = {
-  'rapid-rail-kl': 'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl',
-  'rapid-bus-kl':  'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-bus-kl',
-  'ktmb':          'https://api.data.gov.my/gtfs-static/ktmb',
-  'mybas-johor':   'https://api.data.gov.my/gtfs-static/mybas-johor',
+  'rapid-rail-kl':          'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl',
+  'rapid-bus-kl':           'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-bus-kl',
+  'ktmb':                   'https://api.data.gov.my/gtfs-static/ktmb',
+  'mybas-johor':            'https://api.data.gov.my/gtfs-static/mybas-johor',
+  // Same Prasarana endpoint, different categories - `rapid-bus-kuantan` is
+  // documented by data.gov.my but returns 404 (checked 2026-09-18: the API's
+  // own error message lists valid categories and Kuantan isn't one), so it's
+  // deliberately not included here.
+  'rapid-bus-penang':       'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-bus-penang',
+  'rapid-bus-mrtfeeder':    'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-bus-mrtfeeder',
+  // BAS.MY city feeds. mybas-kangar and mybas-kota-bharu also exist but ship
+  // only CSV headers with zero actual rows (checked 2026-09-18) - not
+  // included until the operators (Mara Liner, Konsortium E-Mutiara) publish
+  // real data.
+  'mybas-alor-setar':       'https://api.data.gov.my/gtfs-static/mybas-alor-setar',
+  'mybas-kuala-terengganu': 'https://api.data.gov.my/gtfs-static/mybas-kuala-terengganu',
+  'mybas-ipoh':             'https://api.data.gov.my/gtfs-static/mybas-ipoh',
+  'mybas-seremban-a':       'https://api.data.gov.my/gtfs-static/mybas-seremban-a',
+  'mybas-seremban-b':       'https://api.data.gov.my/gtfs-static/mybas-seremban-b',
+  'mybas-melaka':           'https://api.data.gov.my/gtfs-static/mybas-melaka',
+  'mybas-kuching':          'https://api.data.gov.my/gtfs-static/mybas-kuching',
 } as const
 
 type Network = keyof typeof FEEDS
@@ -51,7 +68,16 @@ type Network = keyof typeof FEEDS
 // runs on a single "ALLDAY" calendar service (verified in trips.txt), so it
 // needs no calendar filter in upcoming_arrivals, same as KTMB.
 // rapid-rail-kl (100%) and rapid-bus-kl (99.9%) are frequency-based.
-const SKIP_FREQUENCIES = new Set<Network>(['ktmb', 'mybas-johor'])
+// None of the 9 networks below ship frequencies.txt either - they're all
+// fixed-schedule via stop_times, but (unlike Johor) with REAL calendar.txt
+// day-of-week variety, handled by upcoming_arrivals' generic calendar
+// fallback (see supabase/phase6-more-networks.sql) rather than a shortcut.
+const SKIP_FREQUENCIES = new Set<Network>([
+  'ktmb', 'mybas-johor',
+  'rapid-bus-penang', 'rapid-bus-mrtfeeder',
+  'mybas-alor-setar', 'mybas-kuala-terengganu', 'mybas-ipoh',
+  'mybas-seremban-a', 'mybas-seremban-b', 'mybas-melaka', 'mybas-kuching',
+])
 
 const BATCH = 500   // rows per Supabase upsert call
 const TIMEOUT = 30_000  // ms for ZIP download
@@ -165,6 +191,7 @@ async function ingestTripRouteMap(zip: AdmZip, network: Network, db: SupabaseCli
     trip_headsign: string
     direction_id: string
     shape_id: string
+    service_id: string
   }>(buf)
 
   const rows = raw
@@ -176,9 +203,120 @@ async function ingestTripRouteMap(zip: AdmZip, network: Network, db: SupabaseCli
       trip_headsign: r.trip_headsign || null,
       direction_id:  r.direction_id !== '' ? parseInt(r.direction_id, 10) : null,
       shape_id:      r.shape_id     || null,
+      // Only meaningful for networks with a real GTFS calendar (see the
+      // `calendar` table + upcoming_arrivals' generic fallback branch) -
+      // ktmb/rapid-rail-kl/rapid-bus-kl/mybas-johor filter by trip_id
+      // pattern instead and never read this column.
+      service_id:    r.service_id   || null,
     }))
 
   await upsertBatched(db, 'trip_route_map', rows, 'trip_id,network', 'trip_route_map')
+}
+
+// Rapid Penang and MRT Feeder's own routes.txt just repeats the route number
+// as route_long_name (or, for MRT Feeder, omits route_short_name and uses a
+// bare code like "T107" as route_long_name) - no rider-facing "from - to"
+// text at all, unlike every other network here. trips.txt's trip_headsign
+// DOES carry that text (e.g. "JETI - BATU MAUNG"), just in shouty caps, so
+// backfill route_long_name from a representative headsign wherever the
+// route's own long name isn't actually descriptive.
+function looksLikeBareCode(s: string): boolean {
+  return !/[\s\-~]/.test(s.trim())
+}
+
+function needsBetterLongName(short: string | null, long: string | null): boolean {
+  if (!long || long.trim() === '') return true
+  if (short && long.trim().toUpperCase() === short.trim().toUpperCase()) return true
+  return looksLikeBareCode(long)
+}
+
+const KEEP_UPPER = new Set(['MRT', 'LRT', 'BRT', 'KTM', 'KTMB', 'KL', 'JB', 'KLIA', 'TBS'])
+
+function formatHeadsign(raw: string): string {
+  return raw
+    .split(' ')
+    .map(word => {
+      if (word === '') return word
+      const upper = word.toUpperCase()
+      if (KEEP_UPPER.has(upper)) return upper
+      if (/^[0-9]+$/.test(word)) return word
+      if (word.includes('-')) {
+        return word.split('-').map(w => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w)).join('-')
+      }
+      return word[0].toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
+}
+
+async function enrichRouteLongNames(network: Network, db: SupabaseClient) {
+  const { data: routes, error: rErr } = await db
+    .from('routes')
+    .select('route_id, route_short_name, route_long_name')
+    .eq('network', network)
+  if (rErr || !routes) return
+
+  const rows = routes as { route_id: string; route_short_name: string | null; route_long_name: string | null }[]
+  const needsFix = rows.filter(r => needsBetterLongName(r.route_short_name, r.route_long_name))
+  if (needsFix.length === 0) return
+
+  // One targeted query per route (not a bulk .in() fetch) - PostgREST caps a
+  // single response at 1,000 rows by default, and a bulk fetch across dozens
+  // of routes' full trip lists blows straight past that, silently starving
+  // whichever route_ids didn't make the first page.
+  let fixed = 0
+  await Promise.all(
+    needsFix.map(async r => {
+      const { data } = await db
+        .from('trip_route_map')
+        .select('trip_headsign')
+        .eq('network', network)
+        .eq('route_id', r.route_id)
+        .not('trip_headsign', 'is', null)
+        .limit(1)
+        .maybeSingle()
+      const headsign = (data as { trip_headsign: string } | null)?.trip_headsign
+      if (!headsign) return
+      await db.from('routes')
+        .update({ route_long_name: formatHeadsign(headsign) })
+        .eq('route_id', r.route_id)
+        .eq('network', network)
+      fixed++
+    }),
+  )
+  console.log(`  route names: backfilled ${fixed} / ${needsFix.length} from trip_headsign`)
+}
+
+async function ingestCalendar(zip: AdmZip, network: Network, db: SupabaseClient) {
+  const buf = readEntry(zip, 'calendar.txt')
+  if (!buf) { console.log('  calendar.txt not present, skipping'); return }
+
+  const raw = parseCsv<{
+    service_id: string
+    monday: string; tuesday: string; wednesday: string; thursday: string
+    friday: string; saturday: string; sunday: string
+    start_date: string; end_date: string
+  }>(buf)
+
+  const toDate = (yyyymmdd: string) =>
+    `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-${yyyymmdd.slice(6, 8)}`
+
+  const rows = raw
+    .filter(r => r.service_id && r.start_date && r.end_date)
+    .map(r => ({
+      service_id: r.service_id,
+      network,
+      monday:     parseInt(r.monday, 10),
+      tuesday:    parseInt(r.tuesday, 10),
+      wednesday:  parseInt(r.wednesday, 10),
+      thursday:   parseInt(r.thursday, 10),
+      friday:     parseInt(r.friday, 10),
+      saturday:   parseInt(r.saturday, 10),
+      sunday:     parseInt(r.sunday, 10),
+      start_date: toDate(r.start_date),
+      end_date:   toDate(r.end_date),
+    }))
+
+  await upsertBatched(db, 'calendar', rows, 'service_id,network', 'calendar')
 }
 
 async function ingestShapes(zip: AdmZip, network: Network, db: SupabaseClient) {
@@ -275,7 +413,9 @@ async function ingestNetwork(
   // Ingest in FK-safe order: routes before trip_route_map
   await ingestStops(zip, network, db)
   await ingestRoutes(zip, network, db)
+  await ingestCalendar(zip, network, db)
   await ingestTripRouteMap(zip, network, db)
+  await enrichRouteLongNames(network, db)
   await ingestShapes(zip, network, db)
 
   if (skipStopTimes) {
