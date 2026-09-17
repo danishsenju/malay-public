@@ -1,5 +1,5 @@
 -- =============================================================================
--- Sampai Bila? - Phase 4 Migration
+-- TransitMY - Phase 4 Migration
 -- Apply in: Supabase → SQL Editor → New query → Run
 --
 -- Changes:

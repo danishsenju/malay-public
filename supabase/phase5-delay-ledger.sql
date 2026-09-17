@@ -1,5 +1,5 @@
 -- =============================================================================
--- Sampai Bila? - Phase 5 Migration: The Delay Ledger + Trust Core RPCs
+-- TransitMY - Phase 5 Migration: The Delay Ledger + Trust Core RPCs
 -- Apply in: Supabase → SQL Editor → New query → Run
 --
 -- One pipeline, many features. A snapshot job (Vercel cron and/or opportunistic

@@ -13,7 +13,13 @@ import type { NearbyStop } from '@/lib/types'
  * and is CDN-cacheable, so the per-place RPC fan-out almost never runs.
  */
 
-const WALK_RADIUS_M = 1000
+// 1000m dropped real malls with a legitimate rail station just outside it
+// (e.g. LRT Ara Damansara sits 1138m from Evolve Concept Mall's real
+// coordinates - the mall's location is correct, the old radius was just
+// stingy). Since rail/KTM is always preferred over bus when both are in
+// range, widening this can only upgrade a bus-stop answer to a correct
+// rail one - it never makes an existing match worse.
+const WALK_RADIUS_M = 1200
 const REFRESH_MS = 12 * 60 * 60 * 1000
 const BATCH = 12
 

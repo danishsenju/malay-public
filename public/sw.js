@@ -1,5 +1,5 @@
 /**
- * Sampai Bila? service worker - the "MRT tunnel" survival layer.
+ * TransitMY service worker - the "MRT tunnel" survival layer.
  *
  * Strategy, in the app's own honesty language:
  *   - App shell + static assets: cache-first (hashed /_next/static is immutable)

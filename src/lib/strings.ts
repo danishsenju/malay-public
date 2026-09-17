@@ -84,8 +84,6 @@ const ms = {
   'plan.none': 'Tiada perkhidmatan ditemui dalam 2 jam akan datang - mungkin sudah lewat malam, atau laluan ini perlukan pertukaran yang belum kami sokong.',
   'plan.busCross': 'Perancangan silang rangkaian untuk bas belum kami sokong - kami tak nak beri anggaran yang kami tak yakin. Untuk bas, pilih dua hentian bas; untuk rel + KTM, semua kombinasi boleh.',
   'plan.transferAt': 'Tukar di',
-  'plan.sameStation': 'stesen sama',
-  'plan.walkTransfer': 'jalan kaki',
   'plan.walkStart': 'Jalan ke',
   'plan.walkEnd': 'Jalan ke destinasi',
   'plan.footnote': 'Waktu berjadual · jadual data.gov.my · masa tukar termasuk jalan kaki',
@@ -99,6 +97,7 @@ const ms = {
   'plan.detail.alight': 'Turun di',
   'plan.detail.depart': 'Bertolak',
   'plan.detail.arrive': 'Tiba',
+  'plan.detail.railHonesty': 'Jadual sahaja - tiada suapan langsung untuk LRT/MRT/Monorel',
 
   // ── Places (malls / hospitals / attractions) ───────────────────────────────
   'places.title': 'Pergi ke tempat menarik',
@@ -320,8 +319,6 @@ const en: Record<StringKey, string> = {
   'plan.none': 'No service found in the next 2 hours - it may be late at night, or this route needs a transfer we don\'t support yet.',
   'plan.busCross': "Cross-network planning for buses isn't supported yet - we won't give you an estimate we're not confident in. For buses, pick two bus stops; rail + KTM combinations all work.",
   'plan.transferAt': 'Transfer at',
-  'plan.sameStation': 'same station',
-  'plan.walkTransfer': 'walk',
   'plan.walkStart': 'Walk to',
   'plan.walkEnd': 'Walk to destination',
   'plan.footnote': 'Scheduled times · data.gov.my timetable · transfer time includes walking',
@@ -335,6 +332,7 @@ const en: Record<StringKey, string> = {
   'plan.detail.alight': 'Alight at',
   'plan.detail.depart': 'Depart',
   'plan.detail.arrive': 'Arrive',
+  'plan.detail.railHonesty': 'Schedule only - no live feed for LRT/MRT/Monorail',
 
   'places.title': 'Go somewhere great',
   'places.desc': 'All reachable by public transport - tap one to set it as your destination.',

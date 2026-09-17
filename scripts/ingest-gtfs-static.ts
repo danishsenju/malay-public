@@ -1,5 +1,5 @@
 /**
- * Sampai Bila? - GTFS static ingestion
+ * TransitMY - GTFS static ingestion
  *
  * Downloads GTFS static ZIP files from data.gov.my, parses them, and upserts
  * data into Supabase. Safe to re-run - all operations are upserts.
@@ -323,7 +323,7 @@ async function main() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createClient(supabaseUrl, serviceKey, { realtime: { transport: ws as any } })
 
-  console.log('Sampai Bila? - GTFS static ingestion')
+  console.log('TransitMY - GTFS static ingestion')
   console.log(`Networks : ${targets.join(', ')}`)
   if (skipStopTimes) console.log('Flags    : --no-stop-times')
 

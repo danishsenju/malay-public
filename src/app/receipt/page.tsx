@@ -57,8 +57,8 @@ export default async function ReceiptPage(
   const bigLabel = !hasMins ? '- -' : minsNum <= 0 ? 'TIBA' : `${Math.min(minsNum, 999)} MIN`
 
   const shareText = hasMins
-    ? `Sampai bila? ${stop}: ${minsNum <= 0 ? 'tren dah tiba' : `seterusnya dalam ${minsNum} min`} 🎫`
-    : `Sampai bila? ${stop} 🎫`
+    ? `TransitMY ${stop}: ${minsNum <= 0 ? 'tren dah tiba' : `seterusnya dalam ${minsNum} min`} 🎫`
+    : `TransitMY ${stop} 🎫`
 
   return (
     <div className="min-h-screen bg-linen-canvas">
@@ -88,7 +88,7 @@ export default async function ReceiptPage(
           <div className="plate shadow-plate -rotate-1 overflow-hidden rounded-3xl-2">
             {/* Header band */}
             <div className="flex items-center justify-between border-b-2 border-ink-black bg-lime-spark px-18 py-10">
-              <span className="font-mono text-[13px] font-bold text-ink-black">SAMPAI BILA?</span>
+              <span className="font-mono text-[13px] font-bold text-ink-black">TransitMY</span>
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-ink-black">
                 Resit perjalanan
               </span>

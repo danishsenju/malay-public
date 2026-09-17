@@ -93,11 +93,9 @@ function LegChip({ leg }: { leg: JourneyLeg }) {
   )
 }
 
-function WalkRow({ transfer, label, sameStationLabel, walkLabel }: {
+function WalkRow({ transfer, label }: {
   transfer: JourneyTransfer
   label: string
-  sameStationLabel: string
-  walkLabel: string
 }) {
   return (
     <div className="flex items-center gap-8 py-2 pl-2">
@@ -106,9 +104,6 @@ function WalkRow({ transfer, label, sameStationLabel, walkLabel }: {
       </svg>
       <p className="min-w-0 flex-1 truncate font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-sage-mute">
         {label} {transfer.toName}
-        <span className="ml-6 normal-case tracking-normal text-sage-mute/80">
-          · {transfer.sameStation ? sameStationLabel : `${transfer.walkMin} min ${walkLabel}`}
-        </span>
       </p>
     </div>
   )
@@ -166,12 +161,7 @@ function OptionCard({
         {/* Legs joined by walk rows */}
         <div className="mt-10 space-y-4">
           {option.startWalk && (
-            <WalkRow
-              transfer={option.startWalk}
-              label={t('plan.walkStart')}
-              sameStationLabel={t('plan.sameStation')}
-              walkLabel={t('plan.walkTransfer')}
-            />
+            <WalkRow transfer={option.startWalk} label={t('plan.walkStart')} />
           )}
           {option.legs.map((leg, i) => (
             <div key={i}>
@@ -187,22 +177,12 @@ function OptionCard({
                 </span>
               </div>
               {i < option.legs.length - 1 && option.transfers[i] && (
-                <WalkRow
-                  transfer={option.transfers[i]}
-                  label={t('plan.transferAt')}
-                  sameStationLabel={t('plan.sameStation')}
-                  walkLabel={t('plan.walkTransfer')}
-                />
+                <WalkRow transfer={option.transfers[i]} label={t('plan.transferAt')} />
               )}
             </div>
           ))}
           {option.endWalk && (
-            <WalkRow
-              transfer={option.endWalk}
-              label={t('plan.walkStart')}
-              sameStationLabel={t('plan.sameStation')}
-              walkLabel={t('plan.walkTransfer')}
-            />
+            <WalkRow transfer={option.endWalk} label={t('plan.walkEnd')} />
           )}
         </div>
       </button>

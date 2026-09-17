@@ -1,5 +1,5 @@
 /**
- * Sampai Bila? - real KTMB track geometry builder
+ * TransitMY - real KTMB track geometry builder
  *
  * The KTMB GTFS feed ships no shapes.txt, so the live map used to draw each
  * line as station-to-station straight chords - visibly wrong next to the real

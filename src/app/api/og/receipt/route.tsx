@@ -61,7 +61,7 @@ export async function GET(request: Request) {
             }}
           >
             <div style={{ display: 'flex', fontSize: 30, fontWeight: 800, color: '#000000' }}>
-              SAMPAI BILA?
+              TransitMY
             </div>
             <div style={{ display: 'flex', fontSize: 22, fontWeight: 700, color: '#000000' }}>
               RESIT PERJALANAN

@@ -14,7 +14,6 @@ import type { JourneyLeg, JourneyOption, JourneyTransfer } from '@/lib/types'
  */
 
 function WalkDetailRow({ transfer, label }: { transfer: JourneyTransfer; label: string }) {
-  const { t } = useLang()
   return (
     <div className="flex items-center gap-10 py-8 pl-14">
       <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-sage-mute" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25}>
@@ -22,9 +21,6 @@ function WalkDetailRow({ transfer, label }: { transfer: JourneyTransfer; label: 
       </svg>
       <p className="min-w-0 flex-1 font-mono text-[11px] font-bold uppercase tracking-widest text-sage-mute">
         {label} {transfer.toName}
-        <span className="ml-6 normal-case tracking-normal text-sage-mute/80">
-          · {transfer.sameStation ? t('plan.sameStation') : `${transfer.walkMin} min ${t('plan.walkTransfer')}`}
-        </span>
       </p>
     </div>
   )
@@ -73,6 +69,14 @@ function LegDetail({ leg }: { leg: JourneyLeg }) {
       <p className="mt-6 pl-2 font-mono text-[11px] font-medium text-sage-mute tabular-nums">
         {leg.numStops} {t('common.stops')} · {formatDuration(leg.durationMin, lang)}
       </p>
+
+      {/* Prasarana doesn't publish live positions for any rail line - unlike
+          KTM/bus legs, this time can never be corrected against a live feed. */}
+      {leg.network === 'rapid-rail-kl' && (
+        <p className="mt-4 pl-2 font-mono text-[10px] font-medium normal-case tracking-normal text-sage-mute/80">
+          {t('plan.detail.railHonesty')}
+        </p>
+      )}
 
       {/* Alight */}
       <div className="mt-6 flex items-baseline justify-between gap-10">

@@ -188,9 +188,14 @@ export function findLinePaths(
   while (queue.length > 0 && paths.length < maxPaths) {
     const path = queue.shift()!
     const last = path[path.length - 1]
+    // Record a completed path, but DON'T stop exploring past it - a line
+    // that's merely walkable to the destination (e.g. the origin's own line
+    // happens to pass within 500m) shouldn't crowd out a genuinely ridden
+    // alternative like one more stop on a connecting Monorail/LRT line.
+    // Riders should get to choose between "walk the last stretch" and
+    // "transfer and ride it", not have the walk silently win by default.
     if (goalLines.has(last)) {
       paths.push(path)
-      continue
     }
     if (path.length >= maxLines) continue
     for (const next of graph.adjacency.get(last) ?? []) {

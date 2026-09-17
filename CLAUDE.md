@@ -2,7 +2,7 @@
 
 ## Project
 
-Sampai Bila? - a Malaysian live transit tracker PWA (LRT/MRT/Monorail + KTMB + Rapid buses),
+TransitMY - a Malaysian live transit tracker PWA (LRT/MRT/Monorail + KTMB + Rapid buses),
 built for the Kracked Devs Pasar API bounty.
 
 ## Stack
@@ -47,7 +47,7 @@ Never write `.json()` on these - it will silently fail or throw.
 ## Positioning (why we beat MyRapid PULSE)
 
 Every feature must pass this filter: "PULSE tells you what Prasarana wants
-you to know; Sampai Bila? tells you the truth, fast, with receipts."
+you to know; TransitMY tells you the truth, fast, with receipts."
 
 - One app for EVERY network (Rapid + KTMB + myBAS) - PULSE is Rapid-only
 - Zero friction: PWA, no login, the link IS the app
@@ -84,7 +84,7 @@ Never compute delays ad-hoc in page code - always read the ledger.
 
 ## Voice
 
-Bilingual BM/EN, keep the "Sampai bila?" cheekiness - the app talks like
+Bilingual BM/EN, keep the "TransitMY" cheekiness - the app talks like
 a Malaysian. Share cards and notifications are written to be screenshotted.
 
 ## Architecture decisions already made

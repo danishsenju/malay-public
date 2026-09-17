@@ -54,8 +54,13 @@ function getEligibilitySnapshot(): EligibilityState {
   cachedEligibility = { platform, eligible: platform !== 'other' && !isStandalone() && !dismissed }
   return cachedEligibility
 }
+// A fresh object literal here would violate useSyncExternalStore's contract
+// (getServerSnapshot must return a referentially stable value across calls) -
+// React detects the "changed" reference every render and warns "should be
+// cached to avoid an infinite loop", which destabilizes renders app-wide.
+const SERVER_ELIGIBILITY: EligibilityState = { platform: 'other', eligible: false }
 function getServerEligibility(): EligibilityState {
-  return { platform: 'other', eligible: false }
+  return SERVER_ELIGIBILITY
 }
 const emptySubscribe = () => () => {}
 
