@@ -488,11 +488,24 @@ async function main() {
     process.exit(1)
   }
 
-  console.log('✓ All networks ingested.\n')
-  console.log('Next step - run this SQL once in Supabase to populate the')
-  console.log('geography index (required for "nearby stops" queries):\n')
-  console.log('  UPDATE stops')
-  console.log('  SET location = ST_SetSRID(ST_MakePoint(stop_lon, stop_lat), 4326)::geography;\n')
+  console.log('✓ All networks ingested.')
+
+  // Populate the geography column for any stop that doesn't have one yet
+  // (new networks, or stops re-ingested with updated coordinates) - this
+  // used to be a manual SQL step that was easy to forget, silently leaving
+  // whole networks invisible to "nearby stops" (location IS NULL is excluded
+  // there). backfill_stop_geo() must exist first - see
+  // supabase/phase6-more-networks.sql.
+  const backfill = await db.rpc('backfill_stop_geo')
+  if (backfill.error) {
+    console.error(`\n⚠ Could not run backfill_stop_geo(): ${backfill.error.message}`)
+    console.error('  Run this once in Supabase SQL Editor, then re-run ingest:\n')
+    console.error('  UPDATE stops')
+    console.error('  SET location = ST_SetSRID(ST_MakePoint(stop_lon, stop_lat), 4326)::geography')
+    console.error('  WHERE location IS NULL;\n')
+  } else {
+    console.log('✓ Geography column backfilled for any stop missing it.\n')
+  }
 }
 
 main().catch(err => {

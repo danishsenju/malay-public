@@ -63,13 +63,13 @@ export function ArrivalCard({
   // Wrapper owns the entrance animation; the button owns the press. Keeping
   // them separate avoids animation fill-mode overriding :active transforms.
   return (
-    <div style={{ animation: `cardEnter 250ms var(--ease-out) ${index * 50}ms both` }}>
+    <div className="h-full" style={{ animation: `cardEnter 250ms var(--ease-out) ${index * 50}ms both` }}>
       <button
         type="button"
         onClick={onClick}
         aria-label={buttonLabel}
         className="
-          plate pressable w-full rounded-2xl p-16 text-left
+          plate pressable w-full h-full rounded-2xl p-16 text-left
           flex flex-col gap-14 text-ink-black
           [@media(hover:hover)_and_(pointer:fine)]:hover:bg-leaf-wash/60
           focus:outline-none focus-visible:ring-2 focus-visible:ring-cobalt-band focus-visible:ring-offset-2 focus-visible:ring-offset-linen-canvas
@@ -115,13 +115,17 @@ export function ArrivalCard({
           ) : null}
         </div>
 
-        {/* ── Row 2: headsign ── */}
-        <p className="font-sans text-body-sm leading-snug text-midnight-ink/80">
+        {/* ── Row 2: headsign - capped at 2 lines so one long destination name
+            doesn't stretch this card taller than its siblings in the row ── */}
+        <p className="line-clamp-2 font-sans text-body-sm leading-snug text-midnight-ink/80">
           <DirectionalText text={headsign} />
         </p>
 
-        {/* ── Row 3: the split-flap countdown, below a perforated ticket edge ── */}
-        <div className="flex justify-center border-t-2 border-dashed border-ink-black/15 pt-10">
+        {/* ── Row 3: the split-flap countdown, below a perforated ticket edge -
+            mt-auto pins it to the bottom so cards with a shorter (1-line)
+            headsign still line up with taller siblings instead of leaving the
+            countdown floating higher than the rest of the row ── */}
+        <div className="mt-auto flex justify-center border-t-2 border-dashed border-ink-black/15 pt-10">
           <FlapCountdown minutes={minutesUntil} className="text-[42px] leading-none tracking-[-0.02em] text-ink-black" />
         </div>
       </button>

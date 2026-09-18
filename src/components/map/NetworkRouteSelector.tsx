@@ -5,7 +5,10 @@ import type { RouteSummary } from '@/lib/map'
 import { normalizeHex } from '@/lib/map'
 import { useLang } from '@/lib/i18n'
 
-export type MapNetwork = 'ktmb' | 'rapid-bus-kl' | 'mybas-johor' | 'rapid-bus-penang' | 'rapid-bus-mrtfeeder'
+export type MapNetwork =
+  | 'ktmb' | 'rapid-bus-kl' | 'mybas-johor' | 'rapid-bus-penang' | 'rapid-bus-mrtfeeder'
+  | 'mybas-alor-setar' | 'mybas-kuala-terengganu' | 'mybas-ipoh'
+  | 'mybas-seremban-a' | 'mybas-seremban-b' | 'mybas-melaka' | 'mybas-kuching'
 
 interface Props {
   network: MapNetwork
@@ -22,6 +25,13 @@ const TABS: { id: MapNetwork; label: string }[] = [
   { id: 'mybas-johor', label: 'myBAS Johor' },
   { id: 'rapid-bus-penang', label: 'Rapid Penang' },
   { id: 'rapid-bus-mrtfeeder', label: 'MRT Feeder' },
+  { id: 'mybas-alor-setar', label: 'myBAS Alor Setar' },
+  { id: 'mybas-kuala-terengganu', label: 'myBAS K. Terengganu' },
+  { id: 'mybas-ipoh', label: 'myBAS Ipoh' },
+  { id: 'mybas-seremban-a', label: 'myBAS Seremban A' },
+  { id: 'mybas-seremban-b', label: 'myBAS Seremban B' },
+  { id: 'mybas-melaka', label: 'myBAS Melaka' },
+  { id: 'mybas-kuching', label: 'myBAS Kuching' },
 ]
 
 function routeText(r: RouteSummary): string {

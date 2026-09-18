@@ -65,8 +65,16 @@ ALTER TABLE trip_route_map ADD COLUMN IF NOT EXISTS service_id TEXT;
 
 
 -- =============================================================================
--- 3. nearby_stops - widen the network whitelist
+-- 3. nearby_stops - widen the network whitelist + fix anon access
 -- =============================================================================
+-- Every other RPC the browser calls directly (upcoming_arrivals,
+-- last_departures, direct_journeys, transfer_points) is SECURITY DEFINER -
+-- nearby_stops was the one exception, running with the caller's (anon)
+-- privileges. That was silently relying on `stops` having no enforced RLS;
+-- once RLS actually applied to it, nearby_stops started returning zero rows
+-- for every network (old and new alike) since anon has no policy granting it
+-- SELECT. Made SECURITY DEFINER here so it bypasses RLS like its siblings,
+-- regardless of whatever policy state `stops` ends up in.
 
 CREATE OR REPLACE FUNCTION nearby_stops(
   p_lat      float8,
@@ -84,6 +92,8 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
+SET search_path = public, extensions
 AS $$
   SELECT
     s.stop_id,
@@ -316,3 +326,27 @@ BEGIN
 
 END;
 $$;
+
+
+-- =============================================================================
+-- 5. backfill_stop_geo - reusable geography backfill
+-- =============================================================================
+-- The stops.location geography column used to require a manual one-off
+-- `UPDATE stops SET location = ...` after every ingest run - easy to forget,
+-- and forgetting it silently makes a whole network invisible to nearby_stops
+-- (which filters on `location IS NOT NULL`). Wrapping it as a callable
+-- function lets the ingest script (scripts/ingest-gtfs-static.ts) call it
+-- automatically at the end of every run via `db.rpc('backfill_stop_geo')`.
+-- Only touches rows missing a location, so it's cheap to call every time.
+
+CREATE OR REPLACE FUNCTION backfill_stop_geo()
+RETURNS void
+LANGUAGE sql
+AS $$
+  UPDATE stops
+  SET location = ST_SetSRID(ST_MakePoint(stop_lon, stop_lat), 4326)::geography
+  WHERE location IS NULL;
+$$;
+
+-- Run once now to fix the 9 new networks ingested before this function existed.
+SELECT backfill_stop_geo();

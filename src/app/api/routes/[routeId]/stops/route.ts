@@ -11,6 +11,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 
 const ALLOWED = new Set([
   'rapid-bus-kl', 'rapid-rail-kl', 'ktmb', 'mybas-johor', 'rapid-bus-penang', 'rapid-bus-mrtfeeder',
+  'mybas-alor-setar', 'mybas-kuala-terengganu', 'mybas-ipoh',
+  'mybas-seremban-a', 'mybas-seremban-b', 'mybas-melaka', 'mybas-kuching',
 ])
 
 interface TripRow { trip_id: string; direction_id: number | null }

@@ -13,6 +13,8 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // rail/bus/Johor shapes come straight from the ingested GTFS.
 const ALLOWED = new Set([
   'rapid-bus-kl', 'rapid-rail-kl', 'mybas-johor', 'rapid-bus-penang', 'rapid-bus-mrtfeeder',
+  'mybas-alor-setar', 'mybas-kuala-terengganu', 'mybas-ipoh',
+  'mybas-seremban-a', 'mybas-seremban-b', 'mybas-melaka', 'mybas-kuching',
 ])
 const PAGE = 1000
 

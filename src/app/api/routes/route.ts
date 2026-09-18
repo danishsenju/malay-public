@@ -5,7 +5,11 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 // Only networks that support per-route filtering are exposed here - KTM is a
 // single unified live view (its realtime feed carries no routeId), so it is not
 // a valid value.
-const ALLOWED = new Set(['rapid-bus-kl', 'mybas-johor', 'rapid-bus-penang', 'rapid-bus-mrtfeeder'])
+const ALLOWED = new Set([
+  'rapid-bus-kl', 'mybas-johor', 'rapid-bus-penang', 'rapid-bus-mrtfeeder',
+  'mybas-alor-setar', 'mybas-kuala-terengganu', 'mybas-ipoh',
+  'mybas-seremban-a', 'mybas-seremban-b', 'mybas-melaka', 'mybas-kuching',
+])
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
