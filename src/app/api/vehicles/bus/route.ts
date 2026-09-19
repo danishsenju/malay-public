@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchFeed } from '@/lib/gtfsRealtime';
 import { getOpenFeedGap } from '@/lib/ledger';
+import { resolveVehicleRouteIds } from '@/lib/vehicleRouteResolve';
 
 const PRASARANA_BASE =
   'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana';
@@ -27,7 +28,8 @@ export async function GET(request: Request) {
   }
 
   const url = `${PRASARANA_BASE}?category=${encodeURIComponent(category)}`;
-  const { vehicles, stale, fetchedAt, message } = await fetchFeed(url);
+  const feed = await fetchFeed(url);
+  const vehicles = await resolveVehicleRouteIds(category, feed.vehicles);
   // Zero vehicles is ambiguous by itself - "genuinely no service right now"
   // and "data.gov.my's feed is down" look identical otherwise. Only checked
   // when the list is actually empty, so a healthy feed never pays for it.
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
     ? await getOpenFeedGap(category)
     : null;
   return NextResponse.json(
-    { vehicles, stale, ...(message ? { message } : {}), ...(feedGap ? { feedGap } : {}) },
-    { status: fetchedAt === 0 ? 503 : 200 },
+    { vehicles, stale: feed.stale, ...(feed.message ? { message: feed.message } : {}), ...(feedGap ? { feedGap } : {}) },
+    { status: feed.fetchedAt === 0 ? 503 : 200 },
   );
 }

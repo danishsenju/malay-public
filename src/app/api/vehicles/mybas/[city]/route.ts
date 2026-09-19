@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchFeed } from '@/lib/gtfsRealtime';
 import { getOpenFeedGap } from '@/lib/ledger';
+import { resolveVehicleRouteIds } from '@/lib/vehicleRouteResolve';
 
 // myBAS-branded regional feeds - same data.gov.my family as mybas-johor
 // (/api/vehicles/johor), just not documented anywhere official. Kangar and
@@ -35,12 +36,13 @@ export async function GET(
   }
 
   const network = `mybas-${city}`;
-  const { vehicles, stale, fetchedAt, message } = await fetchFeed(url);
+  const feed = await fetchFeed(url);
+  const vehicles = await resolveVehicleRouteIds(network, feed.vehicles);
   // Zero buses is ambiguous by itself - "genuinely no service right now"
   // and "data.gov.my's feed is down" look identical otherwise.
   const feedGap = vehicles.length === 0 ? await getOpenFeedGap(network) : null;
   return NextResponse.json(
-    { vehicles, stale, ...(message ? { message } : {}), ...(feedGap ? { feedGap } : {}) },
-    { status: fetchedAt === 0 ? 503 : 200 },
+    { vehicles, stale: feed.stale, ...(feed.message ? { message: feed.message } : {}), ...(feedGap ? { feedGap } : {}) },
+    { status: feed.fetchedAt === 0 ? 503 : 200 },
   );
 }
