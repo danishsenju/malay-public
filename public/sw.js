@@ -10,9 +10,22 @@
 const CACHE = 'sampai-bila-v1';
 const SHELL = ['/', '/plan', '/weather', '/report', '/status'];
 
+/**
+ * The offline cache is an enhancement; this worker ALSO carries flood push
+ * notifications, so a broken cache must never stop it from installing.
+ * Cache Storage really does fail in the wild - private/incognito windows, a
+ * full disk, a corrupt browser profile ("UnknownError: Unexpected internal
+ * error") - and a worker that never installs means no push at all.
+ */
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()),
+    caches.open(CACHE)
+      // One URL at a time, each allowed to fail: cache.addAll() is atomic, so a
+      // single slow or missing page (e.g. /weather on an older deploy) would
+      // abort the whole install.
+      .then(cache => Promise.all(SHELL.map(url => cache.add(url).catch(() => {}))))
+      .catch(() => {}) // Cache Storage itself unavailable: install anyway
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -20,9 +33,14 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .catch(() => {})
       .then(() => self.clients.claim()),
   );
 });
+
+// Reads must degrade the same way - a rejecting caches.match() inside
+// respondWith() would turn a cache fault into a failed page load.
+const cached = request => caches.match(request).catch(() => undefined);
 
 self.addEventListener('fetch', event => {
   const { request } = event;
@@ -34,11 +52,11 @@ self.addEventListener('fetch', event => {
   // Immutable build assets: cache-first.
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
-      caches.match(request).then(hit =>
+      cached(request).then(hit =>
         hit ??
         fetch(request).then(res => {
           const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put(request, copy));
+          caches.open(CACHE).then(cache => cache.put(request, copy)).catch(() => {});
           return res;
         }),
       ),
@@ -52,15 +70,15 @@ self.addEventListener('fetch', event => {
       .then(res => {
         if (res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put(request, copy));
+          caches.open(CACHE).then(cache => cache.put(request, copy)).catch(() => {});
         }
         return res;
       })
       .catch(async () => {
-        const hit = await caches.match(request);
+        const hit = await cached(request);
         if (hit) return hit;
         if (request.mode === 'navigate') {
-          const shell = await caches.match('/');
+          const shell = await cached('/');
           if (shell) return shell;
         }
         return Response.error();

@@ -62,18 +62,25 @@ export interface PushPayload {
   tag: string
 }
 
-/** Sends one push; returns false when it failed (and deletes dead subscriptions). */
-export async function sendPush(row: SubscriptionRow, payload: PushPayload): Promise<boolean> {
+/** `status` is the push service's HTTP status (null = we never got an answer). */
+export type PushResult = { ok: true } | { ok: false; status: number | null; reason: string }
+
+/** Sends one push; on failure says WHY (and deletes dead subscriptions). */
+export async function sendPush(row: SubscriptionRow, payload: PushPayload): Promise<PushResult> {
   try {
     await sendWebPush(row, JSON.stringify(payload), vapidKeys(), { ttlSeconds: 6 * 3600, urgency: 'high' })
-    return true
+    return { ok: true }
   } catch (err) {
+    const status = err instanceof PushError ? err.statusCode : null
+    const reason = err instanceof Error ? err.message : String(err)
     // 404/410 = the browser dropped this subscription (uninstalled, cleared
     // site data, revoked permission). Forget it so we stop trying.
-    if (err instanceof PushError && (err.statusCode === 404 || err.statusCode === 410)) {
+    if (status === 404 || status === 410) {
       await getSupabaseAdmin().from('push_subscriptions').delete().eq('endpoint', row.endpoint)
     }
-    return false
+    // Shows up in Cloudflare's Workers logs - the first place to look.
+    console.error(`[push] send failed (${status ?? 'no response'}): ${reason}`)
+    return { ok: false, status, reason }
   }
 }
 
@@ -197,7 +204,7 @@ export async function runFloodAlerts(force = false): Promise<FloodAlertRun> {
         rows.slice(i, i + 50).map(row => {
           const mine = escalated.filter(s => row.states.includes(s.state))
           if (mine.length === 0) return false
-          return sendPush(row, buildFloodPayload(mine, row.lang === 'en' ? 'en' : 'ms'))
+          return sendPush(row, buildFloodPayload(mine, row.lang === 'en' ? 'en' : 'ms')).then(r => r.ok)
         }),
       )
       sent += results.filter(Boolean).length

@@ -150,15 +150,29 @@ export function FloodAlertCard({ suggestedState }: { suggestedState: StateCode |
         </div>
       )}
 
-      {(alerts.busy || alerts.notice) && (
-        <p
-          role="status"
-          className="mt-14 font-mono text-[11px] font-bold leading-snug"
-          style={{ color: alerts.notice?.tone === 'error' && !alerts.busy ? 'var(--color-maroon-plate)' : 'var(--color-forest-ink)' }}
-        >
-          {alerts.busy ? t('alerts.working') : t(alerts.notice!.key)}
+      {/* Feedback. A failure says WHY in plain words, then prints the technical
+          code underneath - so "it doesn't work" can be diagnosed off a screenshot. */}
+      {alerts.busy ? (
+        <p role="status" className="mt-14 font-mono text-[11px] font-bold leading-snug text-forest-ink">
+          {t('alerts.working')}
         </p>
-      )}
+      ) : alerts.notice ? (
+        <div
+          key={`${alerts.notice.key}|${alerts.notice.detail ?? ''}`}
+          role={alerts.notice.tone === 'error' ? 'alert' : 'status'}
+          className={`mt-14 rounded-2xl border-2 border-ink-black p-14 ${
+            alerts.notice.tone === 'error' ? 'bg-maroon-plate text-white-plate' : 'bg-leaf-wash text-ink-black'
+          }`}
+          style={{ animation: 'searchIn 200ms var(--ease-out) both' }}
+        >
+          <p className="font-sans text-caption font-semibold leading-relaxed">{t(alerts.notice.key)}</p>
+          {alerts.notice.detail && (
+            <p className="mt-8 break-words font-mono text-[10px] leading-snug tracking-[0.04em] opacity-80">
+              {t('alerts.detail')}: {alerts.notice.detail}
+            </p>
+          )}
+        </div>
+      ) : null}
 
       <InstallGuideSheet open={showGuide} onClose={() => setShowGuide(false)} platform="ios" />
     </div>

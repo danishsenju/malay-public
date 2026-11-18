@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { STATE_BY_CODE } from '@/lib/flood';
 import { STRINGS } from '@/lib/strings';
-import { parseStates, pushConfigured, sendPush, type SubscriptionRow } from '@/lib/floodAlerts';
+import { parseStates, pushConfigured, sendPush, type PushResult, type SubscriptionRow } from '@/lib/floodAlerts';
 
 /**
  * Flood-alert subscriptions.
@@ -42,7 +42,15 @@ function isPushEndpoint(v: unknown): v is string {
 }
 
 export async function POST(request: Request) {
-  if (!pushConfigured()) return NextResponse.json({ error: 'push-not-configured' }, { status: 503 });
+  // Every failure below carries a machine-readable `error` AND a `detail` - the
+  // page prints both, so "why doesn't it work?" is answerable from a phone.
+  if (!pushConfigured()) {
+    const missing = [
+      !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && 'NEXT_PUBLIC_VAPID_PUBLIC_KEY',
+      !process.env.VAPID_PRIVATE_KEY && 'VAPID_PRIVATE_KEY',
+    ].filter(Boolean).join(', ');
+    return NextResponse.json({ error: 'push-not-configured', detail: `server missing: ${missing}` }, { status: 503 });
+  }
 
   const body = (await request.json().catch(() => ({}))) as Body;
   const endpoint = body.subscription?.endpoint;
@@ -50,16 +58,20 @@ export async function POST(request: Request) {
   const auth = body.subscription?.keys?.auth;
   const states = parseStates(body.states);
   if (!isPushEndpoint(endpoint) || !p256dh || !auth || states.length === 0) {
-    return NextResponse.json({ error: 'invalid-subscription' }, { status: 400 });
+    const host = typeof endpoint === 'string' ? (() => { try { return new URL(endpoint).hostname } catch { return 'bad-url' } })() : 'none';
+    return NextResponse.json({ error: 'invalid-subscription', detail: `endpoint host: ${host}` }, { status: 400 });
   }
 
   const row: SubscriptionRow = { endpoint, p256dh, auth, states, lang: body.lang === 'en' ? 'en' : 'ms' };
   const { error } = await getSupabaseAdmin()
     .from('push_subscriptions')
     .upsert({ ...row, updated_at: new Date().toISOString() });
-  if (error) return NextResponse.json({ error: 'db-error' }, { status: 500 });
+  if (error) {
+    console.error(`[push] subscribe db error: ${error.message}`);
+    return NextResponse.json({ error: 'db-error', detail: error.message.slice(0, 160) }, { status: 500 });
+  }
 
-  let confirmed: boolean | undefined;
+  let confirmed: PushResult | undefined;
   if (body.confirm) {
     const s = STRINGS[row.lang];
     confirmed = await sendPush(row, {
@@ -69,6 +81,8 @@ export async function POST(request: Request) {
       tag: 'flood-confirm',
     });
   }
+  // The subscription IS saved even if the test push failed - `confirmed` tells
+  // the page which half worked.
   return NextResponse.json({ ok: true, states, confirmed });
 }
 

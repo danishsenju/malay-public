@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { SectionLabel } from '@/components/SectionLabel'
 import { useLang, type Lang } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
+import { useNow } from '@/hooks/useNow'
 import { distanceMeters } from '@/lib/map'
 import { DAYS, MONTHS, type StringKey } from '@/lib/strings'
 import {
@@ -31,6 +32,15 @@ const json = (url: string) => fetch(url).then(r => r.json())
 function hhmm(iso: string | null | undefined): string {
   if (!iso) return '--:--'
   return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })
+}
+
+/** "just now" / "6 min ago" / "2 h ago" - minutes are enough: JPS posts every 15. */
+function agoText(min: number, lang: Lang, t: (k: StringKey) => string): string {
+  if (min < 1) return t('wx.justNow')
+  if (min < 60) return `${min} min ${t('wx.ago')}`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `${h} ${lang === 'ms' ? 'j' : 'h'} ${t('wx.ago')}`
+  return `${Math.floor(h / 24)} ${lang === 'ms' ? 'hari' : 'd'} ${t('wx.ago')}`
 }
 
 function dayParts(iso: string, lang: Lang): { day: string; date: string } {
@@ -178,11 +188,9 @@ function WatchRow({ s, index, t, onSelect }: { s: FloodStation; index: number; t
         </span>
         <span className="shrink-0 text-right font-mono tabular-nums">
           <span className="block text-body-sm font-bold text-ink-black">{s.waterLevelM?.toFixed(2)} m</span>
-          {trend && (
-            <span className="mt-2 block text-[10px] font-bold uppercase tracking-[0.06em] text-sage-mute">
-              {trend.arrow} {t(trend.key)}
-            </span>
-          )}
+          <span className="mt-2 block text-[10px] font-bold uppercase tracking-[0.06em] text-sage-mute">
+            {trend && <>{trend.arrow} {t(trend.key)} · </>}{hhmm(s.levelAt)}
+          </span>
         </span>
       </button>
     </li>
@@ -333,6 +341,13 @@ export function WeatherClient() {
   const stations = useMemo(() => flood?.stations ?? [], [flood])
   const loading = !flood && !floodError
 
+  // Age of the newest JPS reading. useNow is the app's shared 10s clock, so the
+  // "6 min ago" keeps counting between our 5-minute polls.
+  const now = useNow()
+  const ageMin = flood?.sourceUpdatedAt ? Math.max(0, Math.round((now - Date.parse(flood.sourceUpdatedAt)) / 60_000)) : null
+  const late = ageMin != null && ageMin > 45
+  const ageText = ageMin == null ? null : agoText(ageMin, lang, t)
+
   // Where the rider is standing → their state (nearest JPS station). Used to
   // default the forecast and the alert picker; never to filter silently.
   const geoState = useMemo<StateCode | null>(() => {
@@ -431,18 +446,29 @@ export function WeatherClient() {
 
   const hero = (
     <div className="order-1 pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>
-      <p className="flex items-center gap-8 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-sage-mute">
+      {/* When did this data last change? The time JPS stamped on its newest
+          reading, plus how long ago that is (ticks live). JPS refreshes every
+          15 min - past 45 we say it's late rather than let old data pass. */}
+      <div
+        aria-live="polite"
+        className="flex flex-wrap items-center gap-x-8 gap-y-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-sage-mute"
+      >
         {flood ? (
           <>
             <span
               aria-hidden
-              className="h-2 w-2 rounded-full-3 border border-ink-black"
-              style={{ backgroundColor: flood.stale ? 'var(--color-mustard-pop)' : 'var(--color-forest-ink)' }}
+              className="h-2 w-2 shrink-0 rounded-full-3 border border-ink-black"
+              style={{ backgroundColor: flood.stale || late ? 'var(--color-mustard-pop)' : 'var(--color-forest-ink)' }}
             />
-            {t('wx.updated')} {hhmm(flood.sourceUpdatedAt)} MYT
+            <span>
+              {t('wx.updated')}{' '}
+              <span className="font-bold tabular-nums text-ink-black">{hhmm(flood.sourceUpdatedAt)} MYT</span>
+            </span>
+            {ageText && <span className="tabular-nums">· {ageText}</span>}
+            {late && <span className="font-bold text-maroon-plate">· {t('wx.late')}</span>}
           </>
         ) : t('wx.loading')}
-      </p>
+      </div>
       <h1 className="mt-10 font-sans text-[40px] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink-black lg:text-[44px]">
         {t('wx.title.1')}
         <br />
