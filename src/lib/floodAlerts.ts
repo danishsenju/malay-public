@@ -99,7 +99,7 @@ export function buildFloodPayload(stations: FloodStation[], lang: Lang): PushPay
   const s = STRINGS[lang]
   const sorted = [...stations].sort((a, b) => LEVEL_RANK[b.level!] - LEVEL_RANK[a.level!])
   const states = [...new Set(sorted.map(x => x.state))]
-  const url = `/weather?state=${states[0]}`
+  const url = `/weather?tab=banjir&state=${states[0]}`
   const tag = `flood-${states.sort().join('-')}`
 
   if (sorted.length === 1) {

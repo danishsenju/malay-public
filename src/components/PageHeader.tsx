@@ -21,7 +21,11 @@ import { useLang, LangToggle } from '@/lib/i18n'
 export function PageHeader() {
   const { t } = useLang()
   return (
-    <header className="sticky top-0 z-20 bg-linen-canvas/85 px-16 pb-10 pt-3 backdrop-blur-md lg:px-[32px]">
+    <header
+      className="sticky top-0 z-20 bg-linen-canvas/85 px-16 pb-10 backdrop-blur-md lg:px-[32px]"
+      // viewport-fit=cover lets the page run under the notch; pad the bar back out.
+      style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
+    >
       <div className="mx-auto max-w-md lg:max-w-6xl">
         <div className="plate shadow-plate-sm flex items-center justify-between rounded-full-2 py-2.25 pl-2.5 pr-18">
           <span className="flex items-center gap-8">

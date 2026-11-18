@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useState, useSyncExternalStore } from 'react'
+import Link from 'next/link'
 import { NearbySection } from './NearbySection'
-import { NetworkPulse } from './NetworkPulse'
+import { HomeStatusGrid } from './HomeStatusGrid'
 import { HeaderNav, ReportButton } from './AppNav'
 import { BrandMark } from './BrandMark'
 import { SearchBar } from './SearchBar'
@@ -15,6 +16,27 @@ import { useSavedStops } from '@/hooks/useSavedStops'
 import { useLang, LangToggle, type Lang } from '@/lib/i18n'
 import { STRINGS, DAYS, MONTHS, QUOTES, type StringKey } from '@/lib/strings'
 import type { Arrival, NearbyStop } from '@/lib/types'
+
+/**
+ * Home, ordered by what a rider opened the app to find out:
+ *   1. a one-glance greeting (who/when - brand voice, kept small)
+ *   2. search
+ *   3. the status bento (is it moving / flooding / storming / broken)
+ *   4. their own stops (learned routine, saved)
+ *   5. arrivals near them
+ *
+ * Before this, the arrivals sat ~1,500px down a phone, below a 44px hero, a
+ * scrolling ticker and a large vehicle-count card. On mobile the personal
+ * answers now start inside the first screen.
+ *
+ * Desktop: two columns - the "situation" column (greeting, search, status)
+ * stays put while the stops/arrivals column scrolls.
+ *
+ * Motion (Emil's frequency rule): Home is opened dozens of times a day, so
+ * nothing here re-animates on every visit - no hero rise, no highlighter
+ * swipe, no marquee. The once-per-session splash carries the brand moment;
+ * arrival cards still ease in because they replace a loading skeleton.
+ */
 
 // ── Time-aware greeting + date eyebrow ──────────────────────────────────────
 
@@ -60,38 +82,10 @@ function clockSnapshotFor(lang: Lang): Clock {
   return snap
 }
 
-// ── Ticker ──────────────────────────────────────────────────────────────────
-// Decorative → aria-hidden. On desktop it stays within the left column
-// (lg:mx-0 + lg:rounded-lg); on mobile it bleeds edge-to-edge (mx-[-20px]).
-
-const TICKER_ITEMS: Record<Lang, string[]> = {
-  ms: ['LRT', 'MRT', 'MONOREL', 'KTM KOMUTER', 'BAS RAPIDKL', 'MASA NYATA'],
-  en: ['LRT', 'MRT', 'MONORAIL', 'KTM KOMUTER', 'RAPIDKL BUS', 'REAL-TIME'],
-}
-
-function Ticker({ lang }: { lang: Lang }) {
-  const run = TICKER_ITEMS[lang].map(t => `${t} ◆ `).join('')
-  return (
-    <div
-      aria-hidden
-      className="mx-[-20px] overflow-hidden border-y-2 border-ink-black bg-lime-spark py-1.75 lg:mx-0 lg:rounded-lg lg:border-2"
-    >
-      <div className="marquee-track">
-        <span className="whitespace-nowrap font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-ink-black">
-          {run}
-        </span>
-        <span className="whitespace-nowrap font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-ink-black">
-          {run}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 // ── Layout ──────────────────────────────────────────────────────────────────
 
 export function HomeLayout() {
-  const { lang } = useLang()
+  const { t, lang } = useLang()
   const [selectedStop, setSelectedStop] = useState<NearbyStop | null>(null)
   // Set when the tap was on a specific arrival card - the sheet then opens
   // straight into that arrival's mini live map.
@@ -110,10 +104,20 @@ export function HomeLayout() {
   const getClockSnapshot = useCallback(() => clockSnapshotFor(lang), [lang])
   const clock = useSyncExternalStore(emptySubscribe, getClockSnapshot, getServerClock)
 
+  const footnote = (
+    <p className="font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
+      {t('home.footnote')} <Link href="/status" className="underline underline-offset-2">/status</Link>
+    </p>
+  )
+
   return (
     <>
-      {/* ── Masthead - expands to max-w-6xl on desktop ───────────────────── */}
-      <header className="sticky top-0 z-20 bg-linen-canvas/85 px-16 pb-10 pt-3 backdrop-blur-md lg:px-[32px]">
+      {/* ── Masthead ─────────────────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-20 bg-linen-canvas/85 px-16 pb-10 backdrop-blur-md lg:px-[32px]"
+        // viewport-fit=cover lets the page run under the notch; pad the bar back out.
+        style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
+      >
         <div className="mx-auto max-w-md lg:max-w-6xl">
           <div className="plate shadow-plate-sm flex items-center justify-between rounded-full-2 py-2.25 pl-2.5 pr-18">
             <BrandMark />
@@ -122,11 +126,8 @@ export function HomeLayout() {
             <HeaderNav />
 
             <span className="flex items-center gap-8">
-              {/* Language switch */}
               <LangToggle />
-
-              {/* Daily Report - the masthead CTA (was the LIVE chip; liveness
-                  is already said by the Network Pulse card below) */}
+              {/* Daily Report - the masthead CTA */}
               <ReportButton />
             </span>
           </div>
@@ -134,32 +135,27 @@ export function HomeLayout() {
       </header>
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
-      <div className="mx-auto max-w-md px-20 pb-128 lg:max-w-6xl lg:px-[32px] lg:pb-[80px]">
+      <main className="mx-auto max-w-md px-20 pb-128 lg:max-w-6xl lg:px-[32px] lg:pb-[80px]">
+        <div className="lg:grid lg:grid-cols-[400px_1fr] lg:items-start lg:gap-x-48">
 
-        {/* Desktop: 2-column grid. Mobile: single column. */}
-        <div className="lg:grid lg:grid-cols-[420px_1fr] lg:items-start lg:gap-x-48">
-
-          {/* ── LEFT COLUMN - hero + ticker + search + saved ─────────────── */}
-          {/* Sticky on desktop so search + saved stay visible while the user
-              scrolls through nearby arrivals on the right. */}
-          <div className="lg:sticky lg:top-17 lg:pb-40">
-
-            {/* Editorial hero */}
-            <div className="pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>
+          {/* ── Situation column: greeting · search · status ─────────────── */}
+          {/* Sticky on desktop - short enough to always fit under the masthead. */}
+          <div className="lg:sticky lg:top-[84px] lg:pb-40">
+            <div className="pt-18">
               <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-sage-mute">
                 {clock?.dateLabel ?? ' '}
               </p>
-              <h1 className="mt-10 font-sans text-[44px] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink-black">
+              {/* One compact line on most phones; the highlighter is static -
+                  it's identity, not news, so it doesn't replay every visit. */}
+              <h1 className="mt-8 font-sans text-[32px] font-extrabold leading-[1.05] tracking-[-0.03em] text-ink-black lg:text-[40px]">
                 {clock ? (
                   <>
-                    {clock.greetHead}
-                    <br />
-                    <span className="relative inline-block">
-                      {/* Highlighter swipe - scaleX reveal from the left */}
+                    {clock.greetHead}{' '}
+                    <span className="relative inline-block whitespace-nowrap">
                       <span
                         aria-hidden
-                        className="-inset-x-1.5 absolute bottom-0.75 h-[0.42em] origin-left rounded-lg bg-lime-spark"
-                        style={{ animation: 'highlightIn 380ms var(--ease-out) 300ms both' }}
+                        className="-inset-x-1 absolute bottom-0.5 h-[0.4em] rounded-lg bg-lime-spark"
+                        style={{ transform: 'rotate(-1deg)' }}
                       />
                       <span className="relative">{clock.greetTail}.</span>
                     </span>
@@ -168,53 +164,42 @@ export function HomeLayout() {
                   ' '
                 )}
               </h1>
-
-              {/* Feel-good line - a small positive nudge under the greeting.
-                  Seen every home visit, so it rides the hero's riseIn and adds
-                  no motion of its own (Emil: frequency rule). */}
               {clock?.quote && (
-                <p className="mt-14 max-w-[36ch] font-sans text-body-sm font-medium leading-relaxed text-sage-mute">
+                <p className="mt-8 max-w-[40ch] font-sans text-body-sm leading-relaxed text-sage-mute">
                   {clock.quote}
                 </p>
               )}
             </div>
 
-            {/* Ticker band */}
-            <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 60ms both' }}>
-              <Ticker lang={lang} />
-            </div>
-
-            {/* Search */}
-            <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 120ms both' }}>
+            <div className="mt-18">
               <SearchBar onClick={() => setIsSearchOpen(true)} />
             </div>
 
-            {/* Network Pulse - the live heartbeat of the whole country */}
-            <div className="mt-24" style={{ animation: 'riseIn 340ms var(--ease-out) 160ms both' }}>
-              <NetworkPulse />
+            <div className="mt-18">
+              <HomeStatusGrid />
             </div>
 
-            {/* Smart Commute - the zero-tap answer, learned on-device */}
-            {prediction && (
-              <div className="mt-48">
-                <SmartCommuteCard stop={prediction.stop} onSelect={openStop} />
-              </div>
-            )}
-
-            {/* Saved stops */}
-            <div className="mt-48">
-              {hydrated && <SavedSection stops={saved} onSelect={openStop} />}
-            </div>
+            <div className="mt-26 hidden lg:block">{footnote}</div>
           </div>
 
-          {/* ── RIGHT COLUMN - nearby stops ──────────────────────────────── */}
-          {/* mt-48 on mobile (stacked below saved); pt-26 on desktop (aligns
-              with the hero top inside the left column). */}
-          <div className="mt-48 lg:mt-0 lg:pt-26">
+          {/* ── Rider column: routine · saved · nearby ───────────────────── */}
+          <div className="mt-40 space-y-40 lg:mt-0 lg:pt-18">
+            {/* Smart Commute - the zero-tap answer, learned on-device */}
+            {prediction && <SmartCommuteCard stop={prediction.stop} onSelect={openStop} />}
+
+            {/* Saved stops are a personal answer - above nearby once they exist.
+                While empty it's only an invitation, so it waits below the
+                arrivals instead of pushing them down the first screen. */}
+            {hydrated && saved.length > 0 && <SavedSection stops={saved} onSelect={openStop} />}
+
             <NearbySection onSelectStop={openStop} />
+
+            {hydrated && saved.length === 0 && <SavedSection stops={saved} onSelect={openStop} />}
+
+            <div className="lg:hidden">{footnote}</div>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* ── Full-screen search overlay ───────────────────────────────────── */}
       <SearchOverlay

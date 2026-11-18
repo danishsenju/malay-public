@@ -76,7 +76,9 @@ export function SavedSection({ stops, onSelect }: SavedSectionProps) {
           {t('home.saved.empty')}
         </p>
       ) : (
-        <div className="mx-[-20px] flex gap-3 overflow-x-auto px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:px-0">
+        // Mobile: native snap-scroll row (overscroll contained so a hard swipe
+        // never chains into the page). Desktop: a grid - nothing hidden off-edge.
+        <div className="mx-[-20px] flex gap-3 overflow-x-auto overscroll-x-contain px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0">
           {stops.map((stop, i) => {
             const line = stop.network === 'rapid-rail-kl' ? getRailLine(stop.stop_id) : null
             return (
@@ -85,7 +87,7 @@ export function SavedSection({ stops, onSelect }: SavedSectionProps) {
                 type="button"
                 onClick={() => onSelect(stop)}
                 className="
-                  pressable-sm min-w-42.5 max-w-42.5 shrink-0 snap-start text-left
+                  pressable-sm min-w-42.5 max-w-42.5 shrink-0 snap-start text-left lg:min-w-0 lg:max-w-none
                   rounded-2xl border-2 border-ink-black p-14
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-cobalt-band focus-visible:ring-offset-2 focus-visible:ring-offset-linen-canvas
                 "

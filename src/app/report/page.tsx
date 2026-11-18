@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { fetchLedgerWindow, gradeRows, mytDate, UNMONITORED_LINES, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
+import { fetchDisruptionsOn, type Disruption } from '@/lib/disruptions'
 import { getServerLang, serverT } from '@/lib/serverLang'
 import { DAYS, MONTHS } from '@/lib/strings'
 import type { Lang } from '@/lib/i18n'
@@ -20,6 +21,10 @@ function dateLabel(iso: string, lang: Lang): string {
   const [y, m, d] = iso.split('-').map(Number)
   const date = new Date(Date.UTC(y, m - 1, d)) // calendar date only - weekday is timezone-safe
   return `${DAYS[lang][date.getUTCDay()]} · ${d} ${MONTHS[lang][m - 1]}`
+}
+
+function mytTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })
 }
 
 function shareText(grades: NetworkGrade[], dayLabel: string): string {
@@ -77,10 +82,11 @@ function GradeRow({ g, rank, index, t }: { g: NetworkGrade; rank: number; index:
 
 export default async function ReportPage() {
   const today = mytDate()
-  const [todayRows, weekRows, lang] = await Promise.all([
+  const [todayRows, weekRows, lang, disruptions] = await Promise.all([
     fetchLedgerWindow(1),
     fetchLedgerWindow(7),
     getServerLang(),
+    fetchDisruptionsOn(today).catch(() => [] as Disruption[]),
   ])
   const t = serverT(lang)
   // Today's raw numbers, graded over 7 days so a single bad hour doesn't
@@ -129,9 +135,60 @@ export default async function ReportPage() {
           )}
         </ol>
 
+        {/* ── Today's disruptions - each one a shareable record (/alasan/[id]).
+            The grades above say how a network did; these are the receipts. ── */}
+        <section id="gangguan" className="mt-26 scroll-mt-[96px]">
+          <div className="flex items-center justify-between gap-14">
+            <span className="plate shadow-plate-sm inline-flex items-center rounded-full-2 px-14 py-1.25 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-ink-black">
+              {t('report.disruptions')}
+            </span>
+            <span className="font-mono text-[11px] font-medium text-sage-mute tabular-nums">{disruptions.length}</span>
+          </div>
+          {disruptions.length === 0 ? (
+            <p className="plate mt-14 rounded-2xl p-16 text-center font-sans text-body-sm text-sage-mute">
+              {t('report.disruptions.none')}
+            </p>
+          ) : (
+            <>
+              <p className="mt-10 font-sans text-caption text-sage-mute">{t('report.disruptions.hint')}</p>
+              <ul className="mt-10 space-y-10">
+                {disruptions.map(d => (
+                  <li key={d.id}>
+                    <Link
+                      href={`/alasan/${d.id}`}
+                      className="plate pressable-gpu flex items-center gap-14 rounded-2xl p-14"
+                    >
+                      <span className="flex h-[44px] w-[56px] shrink-0 flex-col items-center justify-center rounded-lg border-2 border-ink-black bg-maroon-plate font-mono text-white-plate">
+                        <span className="text-[17px] font-bold leading-none tabular-nums">{d.minutes}</span>
+                        <span className="text-[9px] font-bold">MIN</span>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-sans text-[15px] font-extrabold tracking-[-0.01em] text-ink-black">
+                          {d.networkLabel}{d.routeId ? ` · ${d.routeId}` : ''}
+                        </span>
+                        <span className="mt-2 block truncate font-mono text-[11px] text-sage-mute tabular-nums">
+                          {t(`disruption.${d.type}`)}
+                          {/* Several vehicles can stall at once - the label tells the rows apart. */}
+                          {d.type === 'stall' && d.vehicleLabel ? ` ${d.vehicleLabel}` : ''}
+                          {' · '}{mytTime(d.startedAt)}–{d.endedAt ? mytTime(d.endedAt) : t('alasan.ongoing')}
+                        </span>
+                      </span>
+                      {/* Phones: the arrow alone - the row is the button, and the
+                          words were squeezing the network name to "KTM Komuter / …". */}
+                      <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-ink-black">
+                        <span className="hidden sm:inline">{t('alasan.share')} </span>→
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+
         {/* ── The unmonitored callout - say the quiet part loudly ── */}
         <div
-          className="mt-16 rounded-2xl border-2 border-ink-black bg-maroon-plate p-18"
+          className="mt-26 rounded-2xl border-2 border-ink-black bg-maroon-plate p-18"
           style={{ animation: `cardEnter 250ms var(--ease-out) ${rows.length * 60 + 60}ms both` }}
         >
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-white-plate/70">

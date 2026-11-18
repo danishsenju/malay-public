@@ -45,11 +45,18 @@ export async function POST(request: Request) {
   // Every failure below carries a machine-readable `error` AND a `detail` - the
   // page prints both, so "why doesn't it work?" is answerable from a phone.
   if (!pushConfigured()) {
-    const missing = [
-      !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && 'NEXT_PUBLIC_VAPID_PUBLIC_KEY',
-      !process.env.VAPID_PRIVATE_KEY && 'VAPID_PRIVATE_KEY',
-    ].filter(Boolean).join(', ');
-    return NextResponse.json({ error: 'push-not-configured', detail: `server missing: ${missing}` }, { status: 503 });
+    // Say WHY, not just "missing": absent (never reached the worker - not
+    // deployed, or wrong name), empty (saved with no value), or set. Plus any
+    // look-alike names (a trailing space or typo in the dashboard is invisible
+    // there but shows up here). Names and states only - never values.
+    const state = (v: string | undefined) => (v === undefined ? 'absent' : v === '' ? 'empty' : 'set');
+    const expected = ['NEXT_PUBLIC_VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'];
+    const lookalikes = Object.keys(process.env).filter(k => /vapid/i.test(k) && !expected.includes(k));
+    const detail =
+      `NEXT_PUBLIC_VAPID_PUBLIC_KEY=${state(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY)}, ` +
+      `VAPID_PRIVATE_KEY=${state(process.env.VAPID_PRIVATE_KEY)}` +
+      (lookalikes.length ? `, similar names: ${JSON.stringify(lookalikes)}` : '');
+    return NextResponse.json({ error: 'push-not-configured', detail }, { status: 503 });
   }
 
   const body = (await request.json().catch(() => ({}))) as Body;
@@ -77,7 +84,7 @@ export async function POST(request: Request) {
     confirmed = await sendPush(row, {
       title: s['push.confirmTitle'],
       body: `${s['push.confirmBody']} ${states.map(c => STATE_BY_CODE.get(c)?.short ?? c).join(', ')}.`,
-      url: '/weather',
+      url: '/weather?tab=banjir',
       tag: 'flood-confirm',
     });
   }

@@ -13,8 +13,8 @@ export interface ArrivalCardProps {
   headsign: string         // "Pasar Seni → KLCC"
   minutesUntil: number     // drives FlapCountdown
   network: Network
-  isLive: boolean          // true = show pulsing live chip
-  stale?: boolean          // true = mustard "stale" dot instead of live pulse
+  isLive: boolean          // true = the network's vehicles are GPS-tracked (minutes are STILL from the timetable)
+  stale?: boolean          // true = the GPS feed is stale: drop the live claim, show a mustard dot
   routeColor?: string      // hex without # from GTFS (e.g. "009EE0"); null → cobalt
   routeTextColor?: string  // hex without # from GTFS; null → white
   dark?: boolean           // kept for call-site compatibility - plates are always light now
@@ -90,29 +90,42 @@ export function ArrivalCard({
             </span>
           </div>
 
-          {/* Live indicator - only when the network has a realtime feed */}
+          {/* Basis chip - says what the NUMBER below is. The minutes always come
+              from the published timetable; a live feed only adds GPS positions
+              of the vehicles. The old "Live" chip read as "this countdown is
+              real-time", which it never was. Every card now states its basis:
+                GPS tracked  → pulsing dot + "Jadual · GPS"
+                GPS stale    → mustard dot + "Jadual"  (no live claim)
+                no live feed → plain "Jadual" (rail, most bus networks) */}
           {isLive && !stale ? (
             <span
               className="flex shrink-0 items-center gap-1.5 rounded-full-2 border-2 border-ink-black bg-leaf-wash px-8 py-0.5"
               aria-label={t('card.liveAria')}
             >
-              <span className="relative flex h-1.5 w-1.5">
+              <span className="relative flex h-1.5 w-1.5" aria-hidden>
                 <span
                   className="absolute inset-0 rounded-full-3 bg-forest-ink"
                   style={{ animation: 'livePulseRing 2s ease-out infinite' }}
                 />
                 <span className="relative h-1.5 w-1.5 rounded-full-3 bg-forest-ink" />
               </span>
-              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-forest-ink">
-                Live
+              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.1em] text-forest-ink">
+                {t('card.basis.live')}
               </span>
             </span>
-          ) : isLive && stale ? (
+          ) : (
             <span
-              className="h-2 w-2 shrink-0 rounded-full-3 border border-ink-black bg-mustard-pop"
-              aria-label={t('card.staleAria')}
-            />
-          ) : null}
+              className="flex shrink-0 items-center gap-1.5 rounded-full-2 border-2 border-ink-black/25 bg-linen-canvas px-8 py-0.5"
+              aria-label={isLive ? t('card.staleAria') : t('card.scheduleAria')}
+            >
+              {isLive && (
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full-3 border border-ink-black bg-mustard-pop" />
+              )}
+              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.1em] text-sage-mute">
+                {t('card.basis.schedule')}
+              </span>
+            </span>
+          )}
         </div>
 
         {/* ── Row 2: headsign - capped at 2 lines so one long destination name

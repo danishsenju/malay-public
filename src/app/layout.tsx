@@ -44,11 +44,21 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Matches the masthead's linen, so the status bar blends into the page.
+  // The app is light-only, so one value (no per-scheme pair) is correct.
   themeColor: "#f3f3f1",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Zoom is NOT disabled (maximumScale/userScalable were an accessibility
+  // failure). iOS input auto-zoom is fixed at the cause instead: 16px inputs
+  // on touch (globals.css).
+  // cover: paint under the notch / home indicator; headers + bottom nav pad
+  // themselves back out with env(safe-area-inset-*).
+  viewportFit: "cover",
+  // Android: the keyboard shrinks the layout viewport, so dvh layouts and
+  // bottom-pinned inputs move with it.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

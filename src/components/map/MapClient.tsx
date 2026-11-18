@@ -270,7 +270,10 @@ export function MapClient() {
       </div>
 
       {/* Floating controls */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-1000 flex flex-col items-center gap-10 p-14">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-1000 flex flex-col items-center gap-10 p-14"
+        style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
+      >
         {/* Same single-pill masthead as every other page (PageHeader), just
             floating over the map instead of sitting in document flow -
             keeps back-button + page-title grouped left, nav in the middle,

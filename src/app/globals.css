@@ -119,9 +119,49 @@ body {
   font-family: var(--font-linksans-sub), ui-sans-serif, system-ui, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  /* Viewport meta (layout.tsx) blocks pinch-zoom; this kills double-tap-zoom,
-     which some mobile browsers honor independently of the viewport meta. */
+}
+
+/* ── Native-feel baseline (.agents/skills/mobile-native) ─────────────────── */
+
+html {
+  /* The grey/blue tap flash is the loudest "this is a website" tell. Every
+     control already has its own :active press, so nothing is lost. */
+  -webkit-tap-highlight-color: transparent;
+  /* No font inflation when a phone rotates to landscape. */
+  -webkit-text-size-adjust: 100%;
+  /* App, not document: no pull-to-refresh / page rubber-band fighting the
+     bottom sheets and the map. Inner scrollers use overscroll-*-contain. */
+  overscroll-behavior: none;
+}
+
+/* Taps fire immediately - no double-tap-zoom wait on controls. Applied to
+   controls only, so pinch-zoom and double-tap still work on content. */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="switch"] {
   touch-action: manipulation;
+}
+
+/* A long-press on a control shouldn't select its label. Content text (stop
+   names, times, warnings) stays selectable - people copy those. */
+button,
+[role="button"],
+[role="tab"],
+[role="switch"] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* iOS zooms into any input under 16px and never zooms back out. Fix the
+   cause (instead of disabling zoom). Unlayered, so it beats text-* utilities. */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 /* Selection carries the one loud accent */
@@ -272,22 +312,6 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Marquee ticker - linear is correct here: constant ambient motion.
-   Track holds two identical copies; -50% loops seamlessly. */
-@keyframes marqueeX {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marqueeX 22s linear infinite;
 }
 
 /* ── Launch splash (components/SplashScreen.tsx) ─────────────────────────── */
@@ -484,13 +508,5 @@ html[data-splash="skip"] .splash-root {
   .splash-tagline {
     transition-duration: 200ms !important;
     transform: none;
-  }
-
-  /* The line ticker is ambient signage, not motion reacting to a user action -
-     it stays scrolling under reduced motion (exempted from the wildcard
-     above), same as a stock ticker or departure board would. */
-  .marquee-track {
-    animation-duration: 22s !important;
-    animation-iteration-count: infinite !important;
   }
 }

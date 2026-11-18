@@ -77,7 +77,20 @@ function margin(s: FloodStation): number {
 // URL ?state=XXX - set by push notifications so a tap lands on the right state.
 const emptySubscribe = () => () => {}
 const getUrlState = () => new URLSearchParams(window.location.search).get('state')
+const getUrlTab = () => new URLSearchParams(window.location.search).get('tab')
 const getServerUrlState = () => null
+
+/** The page holds two different questions; each gets its own tab. */
+type WxTab = 'cuaca' | 'banjir'
+
+/** Callback ref: horizontally centre a chip within its own scroll row. */
+function centreInRow(el: HTMLButtonElement | null) {
+  const row = el?.parentElement
+  if (!el || !row || row.scrollWidth <= row.clientWidth) return
+  // Rects, not offsetLeft: the row isn't the chip's offsetParent.
+  const delta = el.getBoundingClientRect().left - row.getBoundingClientRect().left
+  row.scrollLeft += delta - (row.clientWidth - el.offsetWidth) / 2
+}
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -331,6 +344,22 @@ export function WeatherClient() {
   const activeState: StateCode | null =
     picked === 'ALL' ? null : picked ?? (isStateCode(urlParam) ? urlParam : null)
 
+  // ── Tab: tap > ?tab= (Home tiles link straight to one) > a flood push
+  //    (?state=) means Banjir > default Cuaca, matching the nav label ──
+  const urlTab = useSyncExternalStore(emptySubscribe, getUrlTab, getServerUrlState)
+  const [tabPick, setTabPick] = useState<WxTab | null>(null)
+  const tab: WxTab =
+    tabPick ?? (urlTab === 'cuaca' || urlTab === 'banjir' ? urlTab : isStateCode(urlParam) ? 'banjir' : 'cuaca')
+
+  function chooseTab(next: WxTab) {
+    setTabPick(next)
+    setSelectedId(null)
+    // Keep the URL refreshable/shareable without stacking history entries.
+    const u = new URL(window.location.href)
+    u.searchParams.set('tab', next)
+    window.history.replaceState(window.history.state, '', u)
+  }
+
   const [layer, setLayer] = useState<MapLayer>('flood')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
@@ -444,16 +473,60 @@ export function WeatherClient() {
 
   // ── Sections (ordered for mobile via `order`, grouped into columns on lg) ──
 
+  // National Warning + Danger count - shown on the Banjir tab even while you're
+  // reading the forecast, so a flood is never one tab away from unnoticed.
+  const pressing = stations.filter(s => s.level === 'warning' || s.level === 'danger').length
+
+  const tabSwitch = (
+    <div role="tablist" aria-label={t('wx.tabAria')} className="plate shadow-plate-sm mt-18 inline-flex rounded-full-2 p-[3px]">
+      {(['cuaca', 'banjir'] as const).map(k => {
+        const active = tab === k
+        return (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => chooseTab(k)}
+            // Switching tabs is a frequent, navigational tap: colour only, no
+            // movement - plus the press scale every control here has.
+            className="flex items-center gap-1.5 rounded-full-2 px-18 py-1.5 font-sans text-body-sm font-bold active:scale-[0.96]"
+            style={{
+              backgroundColor: active ? 'var(--color-lime-spark)' : 'transparent',
+              color: active ? 'var(--color-ink-black)' : 'var(--color-sage-mute)',
+              transition: 'background-color 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out)',
+            }}
+          >
+            {t(k === 'cuaca' ? 'wx.tab.weather' : 'wx.tab.flood')}
+            {k === 'banjir' && pressing > 0 && (
+              <span
+                className="min-w-[18px] rounded-full-2 border border-ink-black px-1 text-center font-mono text-[10px] leading-[14px] tabular-nums"
+                style={{ backgroundColor: LEVEL_STYLE.danger.bg, color: LEVEL_STYLE.danger.text }}
+              >
+                {pressing}
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   const hero = (
-    <div className="order-1 pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>
-      {/* When did this data last change? The time JPS stamped on its newest
-          reading, plus how long ago that is (ticks live). JPS refreshes every
-          15 min - past 45 we say it's late rather than let old data pass. */}
+    <div className="pt-26" style={{ animation: 'riseIn 340ms var(--ease-out) both' }}>
+      {/* When did this data last change? On Banjir: the time JPS stamped on its
+          newest reading, plus how long ago that is (ticks live) - JPS refreshes
+          every 15 min, past 45 we say it's late. On Cuaca: MET is the source. */}
       <div
         aria-live="polite"
         className="flex flex-wrap items-center gap-x-8 gap-y-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-sage-mute"
       >
-        {flood ? (
+        {tab === 'cuaca' ? (
+          <>
+            <span aria-hidden className="h-2 w-2 shrink-0 rounded-full-3 border border-ink-black bg-cobalt-band" />
+            {t('wx.metSource')}
+          </>
+        ) : flood ? (
           <>
             <span
               aria-hidden
@@ -489,11 +562,12 @@ export function WeatherClient() {
       <p className="mt-14 max-w-[44ch] font-sans text-body-sm leading-relaxed text-sage-mute">
         {t('wx.intro')}
       </p>
-      {flood?.stale && (
+      {tab === 'banjir' && flood?.stale && (
         <p className="mt-14 rounded-2xl border-2 border-ink-black bg-mustard-pop px-14 py-8 font-mono text-[11px] font-bold text-ink-black">
           {t('wx.stale')}
         </p>
       )}
+      <div>{tabSwitch}</div>
     </div>
   )
 
@@ -522,21 +596,29 @@ export function WeatherClient() {
     </div>
   )
 
-  const filterChips = (
+  // One chip row, two uses: on Banjir it filters rivers (with "All" and a
+  // flood badge per state); on Cuaca it picks whose forecast to read, so
+  // there's no "All" and no flood badges - a forecast is always one state.
+  const stateChips = (mode: 'flood' | 'forecast') => (
     <div
-      className="scrollbar-none -mx-20 flex gap-8 overflow-x-auto px-20 pb-[5px] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
+      className="scrollbar-none -mx-20 flex gap-8 overflow-x-auto overscroll-x-contain px-20 pb-[5px] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
       role="tablist"
       aria-label={t('wx.filterAria')}
     >
-      {([{ code: 'ALL' as const, short: t('wx.filter.all') }, ...STATES]).map(s => {
-        const active = (s.code === 'ALL' && !activeState) || s.code === activeState
-        const worst = s.code !== 'ALL' ? worstByState.get(s.code) : undefined
+      {(mode === 'flood' ? [{ code: 'ALL' as const, short: t('wx.filter.all') }, ...STATES] : STATES).map(s => {
+        const active = mode === 'forecast'
+          ? s.code === forecastState
+          : (s.code === 'ALL' && !activeState) || s.code === activeState
+        const worst = mode === 'flood' && s.code !== 'ALL' ? worstByState.get(s.code) : undefined
         return (
           <button
             key={s.code}
             type="button"
             role="tab"
             aria-selected={active}
+            // Keep the selected chip inside the scroll row (e.g. a geolocated
+            // "Selangor" is 8 chips in). Scrolls the row only - never the page.
+            ref={active ? centreInRow : undefined}
             onClick={() => chooseState(s.code)}
             className={[
               'pressable-gpu flex shrink-0 items-center gap-1.5 rounded-lg border-2 border-ink-black px-10 py-1.5',
@@ -589,7 +671,7 @@ export function WeatherClient() {
 
   const mapSection = (
     <div className="order-3 flex flex-col gap-14">
-      {filterChips}
+      {stateChips('flood')}
       <div
         ref={mapCardRef}
         className={
@@ -696,13 +778,14 @@ export function WeatherClient() {
   )
 
   const forecastSection = (
-    <div className="order-6">
+    <div className="flex flex-col gap-14">
+      {stateChips('forecast')}
       <ForecastCard days={weather?.forecast[forecastState]} state={forecastState} lang={lang} t={t} />
     </div>
   )
 
   const warningsSection = (
-    <div className="order-7">
+    <div>
       <SectionLabel trailing="MET">{t('wx.warnings.title')}</SectionLabel>
       {weather && warnings.length === 0 ? (
         <p className="plate mt-14 rounded-2xl p-18 text-center font-sans text-body-sm text-sage-mute">
@@ -720,24 +803,30 @@ export function WeatherClient() {
     <div className="min-h-screen bg-linen-canvas">
       <PageHeader />
       <div className="mx-auto max-w-md px-20 pb-128 lg:max-w-6xl lg:px-[32px] lg:pb-[80px]">
-        {/* Mobile: one column, sections ordered by urgency (rivers first).
-            Desktop: the column wrappers become real blocks - left (sticky):
-            the "what's my situation" stack; right: the map and evidence. */}
-        <div className="flex flex-col gap-26 lg:grid lg:grid-cols-[400px_1fr] lg:items-start lg:gap-x-48 lg:gap-y-0">
-          {/* Not sticky (unlike home): this column outgrows the viewport, and a
-              sticky block taller than the screen hides its own bottom. */}
-          <div className="contents lg:block lg:space-y-26">
-            {hero}
-            {summary}
-            {alertsSection}
-            {forecastSection}
+        {hero}
+
+        {/* Mobile: one column. Desktop: two - left is the situation, right is
+            the evidence. Not sticky (unlike home): these columns outgrow the
+            viewport, and a sticky block taller than the screen hides its bottom. */}
+        {tab === 'banjir' ? (
+          // Banjir on mobile is ordered by urgency via `order`: summary, map,
+          // rivers to watch, then the alert opt-in.
+          <div className="mt-26 flex flex-col gap-26 lg:grid lg:grid-cols-[400px_1fr] lg:items-start lg:gap-x-48 lg:gap-y-0">
+            <div className="contents lg:block lg:space-y-26">
+              {summary}
+              {alertsSection}
+            </div>
+            <div className="contents lg:block lg:space-y-26">
+              {mapSection}
+              {watchSection}
+            </div>
           </div>
-          <div className="contents lg:block lg:space-y-26 lg:pt-26">
-            {mapSection}
-            {watchSection}
+        ) : (
+          <div className="mt-26 flex flex-col gap-26 lg:grid lg:grid-cols-[400px_1fr] lg:items-start lg:gap-x-48 lg:gap-y-0">
+            {forecastSection}
             {warningsSection}
           </div>
-        </div>
+        )}
 
         <p className="mt-40 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.08em] text-sage-mute/80">
           {t('wx.footnote')} <Link href="/status" className="underline">/status</Link>

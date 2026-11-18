@@ -103,7 +103,7 @@ function StopGroup({ stop, hasLiveBus, hasLiveKtmb, busStale, ktmbStale, onSelec
         </p>
       ) : (
         /* Mobile: horizontal snap-scroll. Desktop (lg): 2-col grid (xl: 3-col). */
-        <div className="mx-[-20px] flex gap-3 overflow-x-auto px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-x-visible lg:px-0 xl:grid-cols-3">
+        <div className="mx-[-20px] flex gap-3 overflow-x-auto overscroll-x-contain px-20 pb-8 pt-4 snap-x snap-mandatory scrollbar-none lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-x-visible lg:px-0 xl:grid-cols-3">
           {liveArrivals.slice(0, 3).map((a, i) => (
             <div
               // trip_id:arr_secs alone can collide (feed sometimes emits
