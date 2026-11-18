@@ -24,14 +24,14 @@ const TRAIN_ICON =
 
 function Stat({ label, value, plus }: { label: string; value: string; plus?: boolean }) {
   return (
-    <div className="min-w-0">
-      <span className="block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-sage-mute">
+    <div className="min-w-0 flex-1">
+      <span className="block font-mono text-[10px] font-bold uppercase leading-[12px] tracking-[0.14em] text-sage-mute">
         {label}
       </span>
-      <span className="mt-1 block font-mono text-[19px] font-bold leading-none tracking-[-0.01em] text-ink-black tabular-nums">
+      <span className="mt-[6px] block font-mono text-[28px] font-bold leading-[28px] tracking-[-0.04em] text-ink-black tabular-nums">
         {value}
         {plus && (
-          <sup className="ml-0.5 align-super font-mono text-[10px] font-bold text-sage-mute">+1</sup>
+          <sup className="ml-[2px] align-super font-mono text-[11px] font-bold tracking-normal text-sage-mute">+1</sup>
         )}
       </span>
     </div>
@@ -39,6 +39,7 @@ function Stat({ label, value, plus }: { label: string; value: string; plus?: boo
 }
 
 function LineCard({ line, index, t }: { line: KtmbLine; index: number; t: ReturnType<typeof serverT> }) {
+  const color = `#${line.color}`
   return (
     <li
       // Staggered entrance - cardEnter (translateY + scale + opacity), fill-mode
@@ -46,38 +47,50 @@ function LineCard({ line, index, t }: { line: KtmbLine; index: number; t: Return
       // list never front-loads a slow cascade.
       style={{ animation: `cardEnter 260ms var(--ease-out) ${Math.min(index, 8) * 45}ms both` }}
     >
-      <div className="plate shadow-plate-sm rounded-2xl p-16">
+      {/* Concentric radii: card 20 = inner panels 8 + 12 padding. */}
+      <div className="plate shadow-plate-sm rounded-[20px] p-[12px]">
         {/* Header: colour badge · line name · kind */}
-        <div className="flex items-center gap-14">
+        <div className="flex items-center gap-[12px]">
           <span
             aria-hidden
-            className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg border-2 border-ink-black"
-            style={{ backgroundColor: `#${line.color}`, color: `#${line.textColor}` }}
+            className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[8px] border-2 border-ink-black"
+            style={{ backgroundColor: color, color: `#${line.textColor}` }}
           >
-            <svg className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <svg className="h-[20px] w-[20px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d={TRAIN_ICON} />
             </svg>
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="truncate font-sans text-body font-extrabold leading-tight tracking-[-0.01em] text-ink-black">
+            <h2 className="truncate font-sans text-[16px] font-extrabold leading-[20px] tracking-[-0.015em] text-ink-black">
               {line.name}
             </h2>
-            <p className="mt-0.5 truncate font-sans text-[13px] leading-snug text-sage-mute">
-              {line.origin} <span className="text-ink-black">⇄</span> {line.destination}
+            <p className="font-mono text-[10px] font-bold uppercase leading-[16px] tracking-[0.14em] text-sage-mute">
+              {line.kind === 'komuter' ? 'Komuter' : 'Intercity'}
             </p>
           </div>
-          <span className="shrink-0 self-start rounded-full-2 border-2 border-ink-black bg-linen-canvas px-8 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-ink-black">
-            {line.kind === 'komuter' ? 'Komuter' : 'Intercity'}
-          </span>
         </div>
 
-        {/* Stats: first / last train · stations · services */}
-        <div className="mt-14 flex items-end justify-between gap-8 border-t-2 border-dashed border-silver-border pt-14">
-          <Stat label={t('ktmb.stat.first')} value={line.firstTrain} />
-          <Stat label={t('ktmb.stat.last')} value={line.lastTrain} plus={line.lastAfterMidnight} />
-          <Stat label={t('ktmb.stat.stations')} value={String(line.stationCount)} />
-          <Stat label={t('ktmb.stat.trips')} value={String(line.services)} />
+        {/* Route: origin ●┄┄┄● destination, in the line's own colour */}
+        <div className="mt-[14px] flex items-center gap-[10px] px-[2px] font-sans text-[13px] font-semibold leading-[18px] text-ink-black">
+          <span className="min-w-0 max-w-[40%] truncate">{line.origin}</span>
+          <span aria-hidden className="flex min-w-[24px] flex-1 items-center">
+            <span className="h-[10px] w-[10px] shrink-0 rounded-full border-2 border-ink-black" style={{ backgroundColor: color }} />
+            <span className="h-0 flex-1 border-t-2 border-dashed border-ink-black/30" />
+            <span className="h-[10px] w-[10px] shrink-0 rounded-full border-2 border-ink-black" style={{ backgroundColor: color }} />
+          </span>
+          <span className="min-w-0 max-w-[40%] truncate text-right">{line.destination}</span>
         </div>
+
+        {/* First / last train - the two numbers people open this page for */}
+        <div className="mt-[12px] flex gap-[16px] rounded-[8px] border-2 border-ink-black bg-linen-canvas px-[14px] py-[12px]">
+          <Stat label={t('ktmb.stat.first')} value={line.firstTrain} />
+          <span aria-hidden className="w-0 self-stretch border-l-2 border-dashed border-ink-black/20" />
+          <Stat label={t('ktmb.stat.last')} value={line.lastTrain} plus={line.lastAfterMidnight} />
+        </div>
+
+        <p className="mt-[10px] px-[2px] font-mono text-[11px] font-medium lowercase leading-[16px] text-sage-mute tabular-nums">
+          {line.stationCount} {t('ktmb.stat.stations')} · {line.services} {t('ktmb.stat.trips')}
+        </p>
       </div>
     </li>
   )
@@ -101,7 +114,7 @@ export default async function KtmbPage() {
   const intercity = lines.length - komuter
 
   return (
-    <div className="min-h-screen bg-linen-canvas">
+    <div className="min-h-dvh bg-linen-canvas">
       <PageHeader />
       <div className="mx-auto max-w-md px-20 pb-128 lg:max-w-2xl lg:pb-64">
 
@@ -130,14 +143,15 @@ export default async function KtmbPage() {
           </p>
         </div>
 
-        {/* ── Source + freshness (radical transparency) ── */}
-        <div className="mt-20 flex flex-wrap items-center gap-8">
-          <span className="plate shadow-plate-sm inline-flex items-center rounded-full-2 px-14 py-1.25 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ink-black">
+        {/* ── Source + freshness (radical transparency) - one quiet line ── */}
+        <div className="mt-[18px] flex flex-wrap items-center gap-x-[10px] gap-y-[8px]">
+          <span className="inline-flex items-center gap-[8px] font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-ink-black">
+            <span aria-hidden className="h-[8px] w-[8px] rounded-full border-2 border-ink-black bg-lime-spark" />
             {t('common.source')}
           </span>
           {stale && (
             <span
-              className="inline-flex items-center rounded-full-2 border-2 border-ink-black px-12 py-1.25 font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-ink-black"
+              className="inline-flex items-center rounded-full-2 border-2 border-ink-black px-[10px] font-mono text-[10px] font-bold uppercase leading-[18px] tracking-[0.1em] text-ink-black"
               style={{ backgroundColor: 'var(--color-mustard-pop)' }}
             >
               {t('ktmb.stale')}
@@ -154,11 +168,11 @@ export default async function KtmbPage() {
           target="_blank"
           rel="noopener noreferrer"
           className="
-            pressable mt-20 flex items-center gap-14 rounded-2xl border-2 border-ink-black
-            bg-lime-spark p-16 text-ink-black
+            pressable mt-[18px] flex items-center gap-[12px] rounded-[20px] border-2 border-ink-black
+            bg-lime-spark p-[12px] text-ink-black
           "
         >
-          <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-full-3 border-2 border-ink-black bg-white-plate">
+          <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-[8px] border-2 border-ink-black bg-white-plate">
             <svg aria-hidden className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d={TRAIN_ICON} />
             </svg>
@@ -213,7 +227,7 @@ export default async function KtmbPage() {
                 · {komuter} Komuter · {intercity} Intercity
               </span>
             </div>
-            <ul className="mt-14 space-y-14">
+            <ul className="mt-[14px] space-y-[16px]">
               {lines.map((line, i) => (
                 <LineCard key={line.routeId} line={line} index={i} t={t} />
               ))}

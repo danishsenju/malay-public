@@ -263,6 +263,18 @@ button,
   }
 }
 
+/* Journey strip segments grow out from the departure end. */
+@keyframes stripGrow {
+  from {
+    opacity: 0;
+    transform: scaleX(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
 /* Highlighter swipe behind the greeting word - scaleX from the left, like a
    marker pen drawn under the word. Origin set on the element. */
 @keyframes highlightIn {
