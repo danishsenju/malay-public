@@ -290,6 +290,93 @@ body {
   animation: marqueeX 22s linear infinite;
 }
 
+/* ── Launch splash (components/SplashScreen.tsx) ─────────────────────────── */
+/* transform + opacity only. Enter is slow and physical (the sticker lands),
+   exit is a quick fade - the system responds faster than it introduces. */
+
+/* Returning session: layout.tsx's inline script flags <html> before first
+   paint, so the splash never flashes for people who've already seen it. */
+html[data-splash="skip"] .splash-root {
+  display: none;
+}
+
+.splash-root {
+  transition: opacity 200ms var(--ease-out);
+  /* Failsafe: if JS never hydrates (blocked, crashed), don't trap the app
+     behind a splash - fade out on our own after 6s. */
+  animation: splashFailsafe 1ms linear 6s forwards;
+}
+.splash-root[data-phase="exit"] {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-inner {
+  transition: transform 200ms var(--ease-out);
+}
+.splash-root[data-phase="exit"] .splash-inner {
+  transform: translateY(-8px);
+}
+
+/* 1. Land - a sticker coming down: bigger and its shadow farther while "in
+   the air", then flush with the resting plate (shadow 5px, like .pressable). */
+.splash-sticker {
+  animation: splashLand 320ms var(--ease-out) both;
+}
+.splash-shadow {
+  transform: translate(5px, 5px);
+  animation: splashShadowLand 320ms var(--ease-out) both;
+}
+@keyframes splashLand {
+  from {
+    opacity: 0;
+    transform: translate(-3px, -3px) scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+@keyframes splashShadowLand {
+  from {
+    opacity: 0;
+    transform: translate(11px, 11px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(5px, 5px);
+  }
+}
+
+/* 3. Settle - state-driven, so transitions (retargetable), not keyframes. */
+.splash-mark {
+  transform: scaleX(0) rotate(-1deg);
+  transform-origin: left center;
+  transition: transform 340ms var(--ease-out);
+}
+.splash-tagline {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 280ms var(--ease-out);
+}
+.splash-root[data-phase="settled"] .splash-mark,
+.splash-root[data-phase="exit"] .splash-mark {
+  transform: scaleX(1) rotate(-1deg);
+}
+.splash-root[data-phase="settled"] .splash-tagline,
+.splash-root[data-phase="exit"] .splash-tagline {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes splashFailsafe {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 /* ── Live map markers (Leaflet divIcons) ─────────────────────────────────── */
 
 /* Root wrapper on every vehicle marker - opacity is the ONLY thing we animate
@@ -386,6 +473,17 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Splash: gentler, not zero (Emil). Keep the opacity fade that tells you
+     the splash is leaving; everything that travels (sticker landing, exit
+     lift) stays instant under the wildcard above. */
+  .splash-root {
+    transition-duration: 200ms !important;
+  }
+  .splash-tagline {
+    transition-duration: 200ms !important;
+    transform: none;
   }
 
   /* The line ticker is ambient signage, not motion reacting to a user action -

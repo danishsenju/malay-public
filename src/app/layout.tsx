@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { PwaRegister } from "@/components/PwaRegister";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/AppNav";
+import { SplashScreen } from "@/components/SplashScreen";
 import "./globals.css";
 
 // Departure Mono v1.500 - Helena Zhang, SIL Open Font License 1.1
@@ -56,11 +57,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // suppressHydrationWarning: the inline script below sets data-splash on
+    // <html> before React hydrates - an attribute React never rendered.
     <html
       lang="ms"
       className={`${linksansSub.variable} ${departureMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Runs before first paint: a session that has already seen the
+            splash hides it via CSS, so it never flashes (SplashScreen.tsx). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem('transitmy:splash')==='1')document.documentElement.setAttribute('data-splash','skip')}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full bg-linen-canvas text-ink-black font-sans">
+        <SplashScreen />
         {children}
         <BottomNav />
         <InstallPrompt />
