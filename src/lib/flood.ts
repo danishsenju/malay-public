@@ -147,5 +147,25 @@ export const RAIN_STYLE: Record<RainClass, { fill: string; radiusM: number }> = 
   'very-heavy': { fill: '#061492', radiusM: 10_000 },
 }
 
+/**
+ * "Flooding near you" - how far (straight-line km from the rider to the JPS
+ * gauge) a river at each level still counts as near. Higher severity reaches
+ * further: a river at Bahaya can flood neighbourhoods and roads well beyond its
+ * gauge, a Waspada one only matters close by.
+ *
+ * Calibrated on the live feed (2026-11): neighbouring river gauges sit a median
+ * 4.9 km apart, but 17 km in the sparsest 10% of the country. 15 km is therefore
+ * the most that stays meaningful - about three gauge-spacings in a dense area,
+ * and still inside one catchment. At 30 km a city "sees" rivers from other
+ * catchments entirely (Melaka picked up 6, none of them its own).
+ * It is the distance to the GAUGE, not the flood's extent - the UI says so.
+ */
+export const NEARBY_FLOOD_KM: Record<'danger' | 'warning' | 'alert', number> = {
+  danger: 15,
+  warning: 10,
+  alert: 5,
+}
+export const NEARBY_FLOOD_MAX_KM = 15
+
 /** Malaysia, peninsula to Borneo - the default map frame. */
 export const MALAYSIA_BOUNDS: [[number, number], [number, number]] = [[0.85, 99.6], [7.4, 119.3]]

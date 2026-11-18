@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ShareButton } from '@/components/ShareButton'
 import { BrandMark } from '@/components/BrandMark'
+import { requestOrigin } from '@/lib/origin'
 
 /**
  * The Delay Receipt - a share-first page. The OG image (the actual ticket)
@@ -37,6 +38,8 @@ export async function generateMetadata(
     ? `${stop} - seterusnya dalam ${Math.max(0, mins)} min · TransitMY`
     : `${stop} · TransitMY`
   return {
+    // Absolute, public og:image - layout's fallback is localhost (see lib/origin.ts).
+    metadataBase: new URL(await requestOrigin()),
     title,
     description: 'Resit perjalanan langsung daripada papan berlepas TransitMY - masa nyata, dengan resit.',
     openGraph: { title, images: [{ url: ogUrl(p), width: 1200, height: 630 }] },

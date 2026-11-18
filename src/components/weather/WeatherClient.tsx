@@ -13,10 +13,14 @@ import { distanceMeters } from '@/lib/map'
 import { DAYS, MONTHS, type StringKey } from '@/lib/strings'
 import {
   LEVEL_RANK, LEVEL_STYLE, RAIN_STYLE, STATES, STATE_BY_CODE, isElevated, isStateCode,
-  type FloodFeed, type FloodLevel, type FloodStation, type ForecastDay, type MetWarning,
+  type FloodFeed, type FloodLevel, type FloodStation, type ForecastDay,
   type RainClass, type StateCode, type WeatherFeed,
 } from '@/lib/flood'
+import { floodShareImagePath, floodShareUrl, scopeShareText, scopeShareTitle, shareSlug, stationShareText, summarizeFlood } from '@/lib/floodShare'
 import { FloodAlertCard } from './FloodAlertCard'
+import { WarningCard } from './WarningCard'
+import { ShareSheet } from '@/components/ShareSheet'
+import { useOrigin } from '@/hooks/useOrigin'
 import { WeatherGlyph, forecastText, whenText } from './forecastText'
 import type { MapLayer } from './FloodMap'
 
@@ -49,11 +53,6 @@ function dayParts(iso: string, lang: Lang): { day: string; date: string } {
   return { day: DAYS[lang][date.getUTCDay()], date: `${d} ${MONTHS[lang][m - 1]}` }
 }
 
-function shortDateTime(iso: string, lang: Lang): string {
-  const myt = new Date(Date.parse(iso) + 8 * 3600_000)
-  return `${DAYS[lang][myt.getUTCDay()]} ${myt.getUTCDate()} ${MONTHS[lang][myt.getUTCMonth()]} ${hhmm(iso)}`
-}
-
 const LEVEL_KEY: Record<FloodLevel, StringKey> = {
   danger: 'wx.level.danger',
   warning: 'wx.level.warning',
@@ -78,6 +77,7 @@ function margin(s: FloodStation): number {
 const emptySubscribe = () => () => {}
 const getUrlState = () => new URLSearchParams(window.location.search).get('state')
 const getUrlTab = () => new URLSearchParams(window.location.search).get('tab')
+const getUrlStation = () => new URLSearchParams(window.location.search).get('station')
 const getServerUrlState = () => null
 
 /** The page holds two different questions; each gets its own tab. */
@@ -128,8 +128,10 @@ function LevelTile({ level, count, t }: { level: 'danger' | 'warning' | 'alert';
   )
 }
 
-function StationPanel({ s, t, onClose }: { s: FloodStation; t: (k: StringKey) => string; onClose: () => void }) {
+function StationPanel({ s, t, lang, onClose }: { s: FloodStation; t: (k: StringKey) => string; lang: Lang; onClose: () => void }) {
   const trend = s.trend ? TREND[s.trend] : null
+  const origin = useOrigin()
+  const shareUrl = floodShareUrl(origin, { station: s.id, lang })
   return (
     <div
       className="plate shadow-plate-sm absolute inset-x-10 bottom-10 z-1000 rounded-2xl p-14 lg:left-auto lg:right-14 lg:w-[340px]"
@@ -175,6 +177,19 @@ function StationPanel({ s, t, onClose }: { s: FloodStation; t: (k: StringKey) =>
       <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.08em] text-sage-mute">
         JPS · {hhmm(s.levelAt ?? s.rainAt)} MYT
       </p>
+      {/* Only a river reading is worth forwarding - a rain-only gauge isn't a flood. */}
+      {s.level && s.waterLevelM != null && (
+        <ShareSheet
+          title={s.name}
+          text={stationShareText(s, lang)}
+          url={shareUrl}
+          imagePath={floodShareImagePath({ station: s.id, lang })}
+          imageName={shareSlug(s.name)}
+          label={t('wx.share')}
+          compact
+          className="mt-10 w-full"
+        />
+      )}
     </div>
   )
 }
@@ -281,48 +296,6 @@ function ForecastCard({ days, state, lang, t }: { days: ForecastDay[] | undefine
   )
 }
 
-function WarningItem({ w, lang, t, index }: { w: MetWarning; lang: Lang; t: (k: StringKey) => string; index: number }) {
-  const [open, setOpen] = useState(false)
-  const title = (lang === 'en' ? w.titleEn : w.titleMs) || w.titleMs
-  const text = (lang === 'en' ? w.textEn : w.textMs) || w.textMs
-  return (
-    <li style={{ animation: `cardEnter 250ms var(--ease-out) ${index * 50}ms both` }}>
-      <div className="plate shadow-plate-sm rounded-2xl p-16">
-        <div className="flex items-start gap-10">
-          <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg border-2 border-ink-black bg-mustard-pop text-ink-black">
-            <svg aria-hidden className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3.5L2.5 20h19L12 3.5zM12 10v4.5M12 17.5v.01" />
-            </svg>
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-sans text-body-sm font-extrabold leading-snug text-ink-black">{title}</p>
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.06em] text-sage-mute tabular-nums">
-              {t('wx.warnings.issued')} {shortDateTime(w.issued, lang)}
-              {w.validTo && <> · {t('wx.warnings.until')} {shortDateTime(w.validTo, lang)}</>}
-            </p>
-          </div>
-        </div>
-        {text && (
-          <>
-            {/* Expand is instant - height animation would be a layout
-                animation, and this is reading, not a transition moment. */}
-            <p className={`mt-10 whitespace-pre-line font-sans text-caption leading-relaxed text-midnight-ink ${open ? '' : 'line-clamp-3'}`}>
-              {text}
-            </p>
-            <button
-              type="button"
-              onClick={() => setOpen(o => !o)}
-              className="mt-8 font-sans text-caption font-bold text-cobalt-band underline underline-offset-2"
-            >
-              {open ? t('wx.readLess') : t('wx.readMore')}
-            </button>
-          </>
-        )}
-      </div>
-    </li>
-  )
-}
-
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export function WeatherClient() {
@@ -361,7 +334,11 @@ export function WeatherClient() {
   }
 
   const [layer, setLayer] = useState<MapLayer>('flood')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  // A shared link (?station=ID) opens straight onto that river. undefined = the
+  // rider hasn't touched the map yet; null = they closed the panel.
+  const urlStation = useSyncExternalStore(emptySubscribe, getUrlStation, getServerUrlState)
+  const [pickedId, setSelectedId] = useState<string | null | undefined>(undefined)
+  const selectedId = pickedId === undefined ? urlStation : pickedId
   const [fullscreen, setFullscreen] = useState(false)
   const [sizeToken, setSizeToken] = useState(0)
   const [showAll, setShowAll] = useState(false)
@@ -466,6 +443,16 @@ export function WeatherClient() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [fullscreen])
+
+  const origin = useOrigin()
+  const scopeSummary = summarizeFlood(stations, activeState, flood?.sourceUpdatedAt ?? null)
+  const scopeShare = {
+    title: scopeShareTitle(scopeSummary, lang),
+    text: scopeShareText(scopeSummary, lang),
+    url: floodShareUrl(origin, { state: activeState, lang }),
+    imagePath: floodShareImagePath({ state: activeState, lang }),
+    imageName: shareSlug(`banjir-${scopeSummary.scopeName}`),
+  }
 
   const scopeName = activeState ? STATE_BY_CODE.get(activeState)!.name : null
   const visibleWatch = showAll ? watch : watch.slice(0, 8)
@@ -591,6 +578,19 @@ export function WeatherClient() {
         </p>
         {floodError && !flood && (
           <p className="mt-8 font-sans text-caption font-semibold text-maroon-plate">{t('wx.loadFailed')}</p>
+        )}
+        {/* Share this exact view (the state you're looking at, or all of
+            Malaysia). The link reopens it live; the preview shows the JPS time. */}
+        {flood && !loading && (
+          <ShareSheet
+            title={scopeShare.title}
+            text={scopeShare.text}
+            url={scopeShare.url}
+            imagePath={scopeShare.imagePath}
+            imageName={scopeShare.imageName}
+            label={t('wx.share')}
+            className="mt-16 w-full"
+          />
         )}
       </div>
     </div>
@@ -726,7 +726,7 @@ export function WeatherClient() {
           </button>
         </div>
 
-        {selected && <StationPanel key="panel" s={selected} t={t} onClose={() => setSelectedId(null)} />}
+        {selected && <StationPanel key="panel" s={selected} t={t} lang={lang} onClose={() => setSelectedId(null)} />}
 
         {fullscreen && !selected && (
           <div className="plate shadow-plate-sm absolute inset-x-10 bottom-10 z-1000 rounded-2xl px-14 py-10" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
@@ -793,7 +793,17 @@ export function WeatherClient() {
         </p>
       ) : (
         <ul className="mt-14 space-y-10">
-          {warnings.map((w, i) => <WarningItem key={`${w.titleEn}-${w.validFrom}-${w.validTo}`} w={w} lang={lang} t={t} index={i} />)}
+          {warnings.map((w, i) => (
+            <WarningCard
+              key={`${w.titleEn}-${w.validFrom}-${w.validTo}`}
+              w={w}
+              lang={lang}
+              t={t}
+              index={i}
+              // Their state: the chip they picked, else where they're standing.
+              myState={activeState ?? geoState}
+            />
+          ))}
         </ul>
       )}
     </div>

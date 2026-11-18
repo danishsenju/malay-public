@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import useSWR from 'swr'
 import { useLang } from '@/lib/i18n'
-import { LEVEL_STYLE } from '@/lib/flood'
+import { LEVEL_STYLE, NEARBY_FLOOD_MAX_KM } from '@/lib/flood'
+import { formatKm, nearbyRivers } from '@/lib/nearbyFlood'
+import type { GeolocationResult } from '@/hooks/useGeolocation'
 import { FlapDigit } from './FlapDigit'
 import type { StringKey } from '@/lib/strings'
 import type { HomeStatus } from '@/app/api/home/status/route'
@@ -195,6 +197,66 @@ function WeatherTile({ count, t }: { count: number | null | undefined; t: (k: St
   )
 }
 
+const SHOWN_NEARBY = 2
+const TREND_ARROW = { rising: '↑', falling: '↓', steady: '→' } as const
+
+/**
+ * "Flooding near you". Appears ONLY when the rider's real position is known and
+ * a river near them is at Waspada or worse - on a calm day Home says nothing
+ * extra. With no location (denied, or still resolving) it stays silent rather
+ * than guess from the KL Sentral fallback the stop list uses.
+ */
+function NearbyFloodBanner({
+  geo, rivers, updatedAt, t,
+}: { geo: GeolocationResult; rivers: HomeStatus['elevated']; updatedAt: string | null; t: (k: StringKey) => string }) {
+  if (geo.status !== 'located') return null
+  const near = nearbyRivers(geo.lat, geo.lon, rivers)
+  if (near.length === 0) return null
+
+  const worst = near[0].level
+  const shown = near.slice(0, SHOWN_NEARBY)
+  const more = near.length - shown.length
+
+  return (
+    <div className="plate col-span-2 rounded-2xl p-14 shadow-plate-sm" role="status">
+      <div className="flex items-center justify-between gap-8">
+        <LevelPill label={t('home.near.title')} bg={LEVEL_STYLE[worst].bg} text={LEVEL_STYLE[worst].text} />
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-sage-mute tabular-nums">
+          JPS {hhmm(updatedAt)}
+        </span>
+      </div>
+      <ul className="mt-8">
+        {shown.map((r, i) => (
+          <li key={r.id} className={i > 0 ? 'border-t-2 border-dashed border-ink-black/15' : ''}>
+            <Link
+              href={`/weather?tab=banjir&station=${encodeURIComponent(r.id)}`}
+              className="flex items-center gap-10 py-8 active:scale-[0.98]"
+              style={{ transition: 'transform 120ms var(--ease-out)' }}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-sans text-[14px] font-extrabold tracking-[-0.01em] text-ink-black">{r.name}</span>
+                <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-sage-mute tabular-nums">
+                  <Dot color={LEVEL_STYLE[r.level].bg} />
+                  {t(`wx.level.${r.level}` as StringKey)} · {formatKm(r.distanceKm)} {t('home.near.away')}
+                </span>
+              </span>
+              <span className="shrink-0 text-right font-mono text-[12px] font-bold text-ink-black tabular-nums">
+                {r.waterLevelM != null ? `${r.waterLevelM.toFixed(2)} m` : ''}
+                {r.trend && <span className="ml-1 text-sage-mute">{TREND_ARROW[r.trend]}</span>}
+              </span>
+              <Arrow className="text-ink-black/40" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-4 font-mono text-[10px] leading-snug text-sage-mute">
+        {more > 0 ? `+${more} ${t('home.near.more')} · ` : ''}
+        {t('home.near.note')} ≤ {NEARBY_FLOOD_MAX_KM} km
+      </p>
+    </div>
+  )
+}
+
 const SHOWN_DISRUPTIONS = 3
 
 /** Every current disruption, one row each (each row its own shareable record). */
@@ -233,7 +295,7 @@ function DisruptionsTile({ list, t }: { list: HomeStatus['disruptions']; t: (k: 
                   {hhmm(d.startedAt)}–{d.endedAt ? hhmm(d.endedAt) : t('home.status.ongoing')} · {t(`disruption.${d.type}` as StringKey)}
                 </span>
               </span>
-              <span className="shrink-0 rounded-lg border-2 border-ink-black bg-linen-canvas px-6 py-0.5 font-mono text-[11px] font-bold text-ink-black tabular-nums">
+              <span className="shrink-0 rounded-lg border-2 border-ink-black bg-linen-canvas px-1.5 py-0.5 font-mono text-[11px] font-bold text-ink-black tabular-nums">
                 {d.minutes} min
               </span>
               <Arrow className="text-ink-black/40" />
@@ -245,12 +307,14 @@ function DisruptionsTile({ list, t }: { list: HomeStatus['disruptions']; t: (k: 
   )
 }
 
-export function HomeStatusGrid() {
+export function HomeStatusGrid({ geo }: { geo: GeolocationResult }) {
   const { t } = useLang()
   const { data } = useSWR<HomeStatus>('/api/home/status', json, { refreshInterval: 2 * 60_000, revalidateOnFocus: true })
 
   return (
     <section aria-label={t('home.status.aria')} className="grid grid-cols-2 gap-10">
+      {/* The most personal and most urgent thing leads. */}
+      {data && <NearbyFloodBanner geo={geo} rivers={data.elevated} updatedAt={data.flood?.updatedAt ?? null} t={t} />}
       <LiveTile t={t} />
       <FloodTile flood={data ? data.flood : undefined} t={t} />
       <WeatherTile count={data ? data.metWarnings : undefined} t={t} />

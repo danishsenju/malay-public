@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { headers } from 'next/headers'
 import { cache } from 'react'
+import { requestOrigin } from '@/lib/origin'
 import { fetchDisruption } from '@/lib/disruptions'
 import { disruptionCopy } from '@/lib/disruptionCopy'
 import { getServerLang, serverT } from '@/lib/serverLang'
@@ -45,6 +45,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const c = disruptionCopy(d, lang)
   const image = `/api/og/alasan?id=${d.id}&lang=${lang}`
   return {
+    // Absolute, public og:image - see lib/origin.ts (layout's fallback is localhost).
+    metadataBase: new URL(await requestOrigin()),
     title: `${c.metaTitle} · TransitMY`,
     description: c.metaDescription,
     openGraph: {
@@ -75,10 +77,7 @@ export default async function DisruptionRecordPage(props: Props) {
   const c = disruptionCopy(d, lang)
 
   // Absolute URL for the share sheet / clipboard - relative links don't paste.
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? ''
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https')
-  const shareUrl = `${proto}://${host}/alasan/${d.id}?lang=${lang}`
+  const shareUrl = `${await requestOrigin()}/alasan/${d.id}?lang=${lang}`
 
   return (
     <div className="min-h-screen bg-linen-canvas">

@@ -97,7 +97,16 @@ function parseWarnings(rows: RawWarning[]): MetWarning[] {
       textEn: (r.text_en ?? '').trim(),
     })
   }
-  return out.sort((a, b) => b.issued.localeCompare(a.issued)).slice(0, 8)
+  // MET can publish ONE bulletin as several records with different validity
+  // windows (e.g. ending 18 Nov 14:00 and 23 Nov) but identical text - the text
+  // itself carries each section's own period. Show it once, with the latest end.
+  const byText = new Map<string, MetWarning>()
+  for (const w of out) {
+    const key = (w.textMs || w.textEn).replace(/\s+/g, ' ').trim() || `${w.titleMs}|${w.validTo}`
+    const cur = byText.get(key)
+    if (!cur || (w.validTo ?? '') > (cur.validTo ?? '')) byText.set(key, w)
+  }
+  return [...byText.values()].sort((a, b) => b.issued.localeCompare(a.issued)).slice(0, 8)
 }
 
 async function getJson<T>(url: string): Promise<T> {

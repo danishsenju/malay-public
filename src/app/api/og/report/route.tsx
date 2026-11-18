@@ -2,16 +2,19 @@ import { ImageResponse } from 'next/og'
 import { fetchLedgerWindow, gradeRows, mytDate, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
 
-export const alt = 'Laporan Harian TransitMY - liga kelewatan pengangkutan awam Malaysia'
-export const size = { width: 1200, height: 630 }
-export const contentType = 'image/png'
+const size = { width: 1200, height: 630 }
 
 /**
  * The share card that does the arguing. League-table rows with big grade
  * stickers, in the poster-plate language: linen canvas, ink borders, one
  * loud lime accent. This image IS the tweet.
+ *
+ * A plain /api/og route (not the opengraph-image file convention): Next resolves
+ * that convention against the root layout's metadataBase, which falls back to
+ * localhost on a deploy without NEXT_PUBLIC_SITE_URL - so chat previews of
+ * /report never appeared. report/page.tsx references this URL explicitly.
  */
-export default async function OgImage() {
+export async function GET() {
   let grades: NetworkGrade[] = []
   try {
     grades = gradeRows(await fetchLedgerWindow(7), 7)
@@ -177,6 +180,6 @@ export default async function OgImage() {
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, headers: { 'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=1800' } },
   )
 }

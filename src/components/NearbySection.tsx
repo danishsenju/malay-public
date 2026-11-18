@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { DirectionalText } from './DirectionalText'
 import { useLang } from '@/lib/i18n'
-import { useGeolocation } from '@/hooks/useGeolocation'
+import type { GeolocationResult } from '@/hooks/useGeolocation'
 import { useNearbyStops } from '@/hooks/useNearbyStops'
 import { useUpcomingArrivals } from '@/hooks/useUpcomingArrivals'
 import { useRealtimeVehicles } from '@/hooks/useRealtimeVehicles'
@@ -144,12 +144,13 @@ const FILTER_NETWORK: Record<Exclude<NearbyFilter, 'all'>, NearbyStop['network']
 // ─── Main section ─────────────────────────────────────────────────────────────
 
 interface NearbySectionProps {
+  /** Owned by Home so the flood banner and this list share ONE location request. */
+  geo: GeolocationResult
   onSelectStop: (stop: NearbyStop, arrival?: Arrival) => void
 }
 
-export function NearbySection({ onSelectStop }: NearbySectionProps) {
+export function NearbySection({ geo, onSelectStop }: NearbySectionProps) {
   const { t } = useLang()
-  const geo                                     = useGeolocation()
   const { stops, isLoading, error, radiusUsed } = useNearbyStops(geo.lat, geo.lon)
   const liveStatus                              = useRealtimeVehicles()
   const [filter, setFilter]                     = useState<NearbyFilter>('all')

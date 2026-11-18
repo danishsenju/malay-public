@@ -12,6 +12,7 @@ import { SavedSection } from './SavedSection'
 import { SmartCommuteCard } from './SmartCommuteCard'
 import { StopSheet } from './StopSheet'
 import { useCommutePattern } from '@/hooks/useCommutePattern'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import { useSavedStops } from '@/hooks/useSavedStops'
 import { useLang, LangToggle, type Lang } from '@/lib/i18n'
 import { STRINGS, DAYS, MONTHS, QUOTES, type StringKey } from '@/lib/strings'
@@ -93,6 +94,9 @@ export function HomeLayout() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { saved, save, remove, isSaved, hydrated } = useSavedStops()
   const { prediction, recordVisit } = useCommutePattern()
+  // One location request for the whole screen: the flood banner and the nearby
+  // stops both read it.
+  const geo = useGeolocation()
 
   // Every stop the user opens feeds the on-device routine learner.
   function openStop(stop: NearbyStop, arrival?: Arrival) {
@@ -176,7 +180,7 @@ export function HomeLayout() {
             </div>
 
             <div className="mt-18">
-              <HomeStatusGrid />
+              <HomeStatusGrid geo={geo} />
             </div>
 
             <div className="mt-26 hidden lg:block">{footnote}</div>
@@ -192,7 +196,7 @@ export function HomeLayout() {
                 arrivals instead of pushing them down the first screen. */}
             {hydrated && saved.length > 0 && <SavedSection stops={saved} onSelect={openStop} />}
 
-            <NearbySection onSelectStop={openStop} />
+            <NearbySection geo={geo} onSelectStop={openStop} />
 
             {hydrated && saved.length === 0 && <SavedSection stops={saved} onSelect={openStop} />}
 

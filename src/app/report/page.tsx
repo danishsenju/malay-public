@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { fetchLedgerWindow, gradeRows, mytDate, UNMONITORED_LINES, type NetworkGrade } from '@/lib/reliability'
 import { gradeColors } from '@/lib/grades'
 import { fetchDisruptionsOn, type Disruption } from '@/lib/disruptions'
+import { requestOrigin } from '@/lib/origin'
 import { getServerLang, serverT } from '@/lib/serverLang'
 import { DAYS, MONTHS } from '@/lib/strings'
 import type { Lang } from '@/lib/i18n'
@@ -11,10 +12,20 @@ import { PageHeader } from '@/components/PageHeader'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Laporan Harian - TransitMY',
-  description:
-    'Liga kelewatan pengangkutan awam Malaysia - gred kebolehpercayaan harian untuk KTM dan bas Rapid, dikira daripada data langsung data.gov.my. Dengan resit.',
+export async function generateMetadata(): Promise<Metadata> {
+  const title = 'Laporan Harian - TransitMY'
+  const description =
+    'Liga kelewatan pengangkutan awam Malaysia - gred kebolehpercayaan harian untuk KTM dan bas Rapid, dikira daripada data langsung data.gov.my. Dengan resit.'
+  const image = '/api/og/report'
+  return {
+    // Absolute, public og:image (see lib/origin.ts): the layout's fallback is
+    // localhost, which chat apps can't reach.
+    metadataBase: new URL(await requestOrigin()),
+    title,
+    description,
+    openGraph: { title, description, siteName: 'TransitMY', images: [{ url: image, width: 1200, height: 630, alt: 'Laporan Harian TransitMY - liga kelewatan pengangkutan awam Malaysia' }] },
+    twitter: { card: 'summary_large_image', title, description, images: [image] },
+  }
 }
 
 function dateLabel(iso: string, lang: Lang): string {
