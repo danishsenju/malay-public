@@ -347,6 +347,29 @@ body {
   box-sizing: border-box;
 }
 
+/* ── Flood map basemap ───────────────────────────────────────────────────── */
+/* OSM's standard tiles are busy and colourful; desaturated, they step back so
+   the heat rings (the actual data) carry the colour. Static filter, no motion. */
+.tiles-muted {
+  filter: grayscale(0.9) contrast(0.92) brightness(1.04);
+}
+
+/* Leaflet's stock zoom buttons, re-inked as plates so they belong to the page. */
+.flood-map .leaflet-bar {
+  border: 2px solid var(--color-ink-black);
+  border-radius: var(--radius-lg);
+  box-shadow: 3px 3px 0 0 var(--color-ink-black);
+  overflow: hidden;
+}
+.flood-map .leaflet-bar a {
+  color: var(--color-ink-black);
+  font-family: var(--font-departure-mono), monospace;
+  border-bottom-color: var(--color-ink-black);
+}
+.flood-map .leaflet-top.leaflet-right {
+  top: max(0px, env(safe-area-inset-top));
+}
+
 /* ── Utility: hide native scrollbar on horizontal card rows ──────────────── */
 .scrollbar-none {
   scrollbar-width: none;

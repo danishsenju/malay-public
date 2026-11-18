@@ -24,6 +24,8 @@ const UPSTREAMS = [
   { name: 'Rapid KL - kedudukan bas',     url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/prasarana?category=rapid-bus-kl' },
   { name: 'myBAS Johor - kedudukan bas',  url: 'https://api.data.gov.my/gtfs-realtime/vehicle-position/mybas-johor' },
   { name: 'Rapid Rail - jadual statik',   url: 'https://api.data.gov.my/gtfs-static/prasarana?category=rapid-rail-kl' },
+  { name: 'JPS InfoBanjir - paras sungai', url: 'https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/data/latestreadingstrendabc.json' },
+  { name: 'MET - amaran cuaca',           url: 'https://api.data.gov.my/weather/warning/?limit=1' },
 ]
 
 interface Check {

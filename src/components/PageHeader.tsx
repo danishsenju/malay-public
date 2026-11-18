@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { BrandMark } from './BrandMark'
-import { HeaderNav } from './AppNav'
+import { HeaderNav, ReportButton } from './AppNav'
 import { useLang, LangToggle } from '@/lib/i18n'
 
 /**
@@ -40,7 +40,10 @@ export function PageHeader() {
           {/* Desktop: nav lives in the masthead pill itself */}
           <HeaderNav />
 
-          <LangToggle />
+          <span className="flex items-center gap-8">
+            <LangToggle />
+            <ReportButton compact />
+          </span>
         </div>
       </div>
     </header>

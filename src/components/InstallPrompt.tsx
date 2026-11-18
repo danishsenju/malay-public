@@ -117,7 +117,9 @@ function GuideStep({ index, icon, text }: { index: number; icon: React.ReactNode
   )
 }
 
-function InstallGuideSheet({ open, onClose, platform }: { open: boolean; onClose: () => void; platform: Platform }) {
+// Exported for the flood-alert toggle: iOS only allows push from a Home
+// Screen PWA, so it opens this same guide instead of a dead switch.
+export function InstallGuideSheet({ open, onClose, platform }: { open: boolean; onClose: () => void; platform: Platform }) {
   const { t } = useLang()
   const steps: { icon: React.ReactNode; text: string }[] =
     platform === 'ios'

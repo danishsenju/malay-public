@@ -30,12 +30,16 @@ const ITEMS: NavItem[] = [
   { href: '/map',    label: 'nav.map',    icon: 'M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0 0 21 18.382V7.618a1 1 0 0 0-.553-.894L15 4m0 13V4M9 7l6-3' },
   { href: '/plan',   label: 'nav.plan',   icon: 'M13 5l7 7-7 7M5 5l7 7-7 7' },
   { href: '/ktmb',   label: 'nav.ktmb',   icon: 'M6 10h12M8 4h8a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM8.5 17l-2 4M15.5 17l2 4' },
-  { href: '/report', label: 'nav.report', icon: 'M9 17V9m4 8V5m4 12v-4M4 21h16' },
+  { href: '/weather', label: 'nav.weather', icon: 'M17.5 14.5H7a4 4 0 1 1 .9-7.9 5.5 5.5 0 0 1 10.5 1.4 3.25 3.25 0 0 1-.9 6.5zM8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5' },
 ]
+
+const REPORT_ICON = 'M9 17V9m4 8V5m4 12v-4M4 21h16'
 
 // /status is intentionally not in the bar - it's a rarely-visited transparency
 // page, kept discoverable via the footer links on Home, Report and KTM. Its
 // nav.status string stays in strings.ts in case it returns to the bar.
+// /report moved out of the bar into the masthead's CTA slot (ReportButton) -
+// the bar's fifth tab now belongs to Cuaca & Banjir.
 
 function isActive(pathname: string, href: string): boolean {
   return href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -99,6 +103,40 @@ export function BottomNav() {
         })}
       </div>
     </nav>
+  )
+}
+
+// ── Masthead CTA: the Daily Report sticker ──────────────────────────────────
+
+/**
+ * Sits where the old LIVE chip was, at the same footprint (10px mono caps,
+ * pill, ink ring), so the masthead keeps its balance. Lime because DESIGN.md's
+ * pill nav puts "CTA right as Lime Spark pill" - this is the one button the
+ * masthead shouts about. No idle motion: it's on screen on every page, so the
+ * only movement is press feedback (Emil's frequency rule).
+ */
+export function ReportButton({ compact = false }: { compact?: boolean }) {
+  const { t } = useLang()
+  const pathname = usePathname()
+  const active = pathname.startsWith('/report')
+
+  return (
+    <Link
+      href="/report"
+      aria-label={t('nav.reportAria')}
+      aria-current={active ? 'page' : undefined}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full-2 border-2 border-ink-black bg-lime-spark py-0.75 text-ink-black active:scale-[0.96] ${compact ? 'px-8 sm:px-10' : 'px-10'}`}
+      style={{ transition: 'transform 120ms var(--ease-out)' }}
+    >
+      <svg aria-hidden className="h-[11px] w-[11px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+        <path strokeLinecap="round" strokeLinejoin="round" d={REPORT_ICON} />
+      </svg>
+      {/* compact: these mastheads also carry a back arrow, so on narrow
+          phones the label drops and the chart glyph carries the meaning */}
+      <span className={`font-mono text-[10px] font-bold uppercase tracking-[0.16em] ${compact ? 'hidden sm:inline' : ''}`}>
+        {t('nav.report')}
+      </span>
+    </Link>
   )
 }
 

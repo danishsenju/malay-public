@@ -8,7 +8,7 @@
  */
 
 const CACHE = 'sampai-bila-v1';
-const SHELL = ['/', '/plan', '/report', '/status'];
+const SHELL = ['/', '/plan', '/weather', '/report', '/status'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -65,5 +65,46 @@ self.addEventListener('fetch', event => {
         }
         return Response.error();
       }),
+  );
+});
+
+/**
+ * Flood alerts (Web Push). Payload shape from lib/floodAlerts.ts:
+ *   { title, body, url, tag }
+ * `tag` is per state-set, so a newer alert for the same area replaces the
+ * older one in the tray instead of stacking up - `renotify` still buzzes.
+ */
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data && event.data.text() }; }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'TransitMY', {
+      body: data.body || '',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: data.tag || 'transitmy',
+      renotify: Boolean(data.tag),
+      data: { url: data.url || '/weather' },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || '/weather', self.location.origin).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
+      // Reuse an open TransitMY window if there is one - jumping to the page
+      // beats spawning a second copy of the app.
+      for (const w of windows) {
+        if (new URL(w.url).origin === self.location.origin && 'focus' in w) {
+          // navigate() rejects on windows this worker doesn't control yet.
+          return w.navigate(target).then(c => (c || w).focus()).catch(() => self.clients.openWindow(target));
+        }
+      }
+      return self.clients.openWindow(target);
+    }),
   );
 });

@@ -3,7 +3,7 @@
 import { useCallback, useState, useSyncExternalStore } from 'react'
 import { NearbySection } from './NearbySection'
 import { NetworkPulse } from './NetworkPulse'
-import { HeaderNav } from './AppNav'
+import { HeaderNav, ReportButton } from './AppNav'
 import { BrandMark } from './BrandMark'
 import { SearchBar } from './SearchBar'
 import { SearchOverlay } from './SearchOverlay'
@@ -125,19 +125,9 @@ export function HomeLayout() {
               {/* Language switch */}
               <LangToggle />
 
-              {/* LIVE chip */}
-              <span className="flex items-center gap-1.75 rounded-full-2 border-2 border-ink-black bg-lime-spark px-10 py-0.75">
-                <span className="relative flex h-1.75 w-1.75" aria-hidden>
-                  <span
-                    className="absolute inset-0 rounded-full-3 bg-forest-ink"
-                    style={{ animation: 'livePulseRing 2s ease-out infinite' }}
-                  />
-                  <span className="relative h-1.75 w-1.75 rounded-full-3 bg-forest-ink" />
-                </span>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-ink-black">
-                  Live
-                </span>
-              </span>
+              {/* Daily Report - the masthead CTA (was the LIVE chip; liveness
+                  is already said by the Network Pulse card below) */}
+              <ReportButton />
             </span>
           </div>
         </div>

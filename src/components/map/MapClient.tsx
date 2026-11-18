@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { NetworkRouteSelector, type MapNetwork } from './NetworkRouteSelector'
-import { HeaderNav } from '@/components/AppNav'
+import { HeaderNav, ReportButton } from '@/components/AppNav'
 import { useLang, LangToggle } from '@/lib/i18n'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNow } from '@/hooks/useNow'
@@ -292,7 +292,10 @@ export function MapClient() {
             </span>
           </span>
           <HeaderNav />
-          <LangToggle />
+          <span className="flex items-center gap-8">
+            <LangToggle />
+            <ReportButton compact />
+          </span>
         </div>
 
         <div className="pointer-events-auto w-full max-w-md lg:max-w-2xl">
